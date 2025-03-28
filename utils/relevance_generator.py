@@ -100,8 +100,70 @@ def generate_team_relevance(team, document_info):
         
         # Parse the response
         result = json.loads(response.choices[0].message.content)
-        return result.get("relevance_reason", "This document contains information relevant to your team's work.")
+        relevance = result.get("relevance_reason")
+        
+        # If we have a valid response, return it
+        if relevance and len(relevance) > 20:
+            return relevance
+            
+        # Otherwise, fall back to the category-specific messages
+        return get_team_specific_fallback(team, document_info)
         
     except Exception as e:
         logger.error(f"Error generating relevance for team {team}: {str(e)}")
-        return "This document may contain valuable insights for your team's work."
+        # Provide more specific fallback messages
+        return get_team_specific_fallback(team, document_info)
+
+def get_team_specific_fallback(team, document_info):
+    """
+    Generate a specific fallback message based on team and document category
+    
+    Args:
+        team: Team specialization string
+        document_info: Document information dictionary
+        
+    Returns:
+        str: Team-specific relevance fallback
+    """
+    category = document_info.get("category", "").lower()
+    
+    if "Digital Product" in team:
+        if "industry insights" in category:
+            return "Contains market trends that can inform product roadmap decisions and help you prioritize features aligned with industry direction."
+        elif "technology news" in category:
+            return "Highlights new technologies that can enhance your product capabilities and improve user experience with cutting-edge solutions."
+        else:
+            return "Offers strategic insights for product development and UX optimization relevant to your team's help center initiatives."
+            
+    elif "Service Technology" in team:
+        if "technology news" in category:
+            return "Presents CRM technology updates and integration opportunities to enhance your Salesforce implementations and workflows."
+        else:
+            return "Contains technical insights that can improve your team's Salesforce CRM implementation and customer service processes."
+            
+    elif "Digital Engagement" in team:
+        if "customer service" in category:
+            return "Offers strategies to improve chatbot user experiences and social media engagement based on recent customer interaction analysis."
+        else:
+            return "Provides engagement metrics and automation strategies to enhance your team's chatbot and social platform implementations."
+            
+    elif "Product Testing" in team:
+        if "product management" in category:
+            return "Includes testing methodologies and user acceptance criteria that can improve your team's UAT processes and quality metrics."
+        else:
+            return "Contains user experience insights and testing frameworks applicable to your team's product validation procedures."
+            
+    elif "Product Insights" in team:
+        if "industry insights" in category:
+            return "Features data analysis techniques and reporting strategies to enhance your team's Adobe and Salesforce data capabilities."
+        else:
+            return "Presents analytical frameworks and data visualization approaches relevant to your team's customer insight initiatives."
+            
+    elif "NextGen Products" in team:
+        if "industry insights" in category or "technology news" in category:
+            return "Explores emerging technologies and future market directions directly relevant to your team's innovation focus areas."
+        else:
+            return "Provides forward-looking strategies and technology adoption insights aligned with your team's future industry trend analysis."
+    
+    else:
+        return "Contains specific information relevant to your team's specialized work areas and current projects."
