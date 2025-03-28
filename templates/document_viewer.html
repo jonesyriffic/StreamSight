@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}View Document{% endblock %}
+
+{% block extra_head %}
+<style>
+    #pdf-container {
+        height: 800px;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    #pdf-viewer {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border: none;
+    }
+    
+    .document-info {
+        background-color: var(--bs-dark);
+        border-radius: 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Document Viewer</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Library
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ document.filename }}</h5>
+            </div>
+            <div id="pdf-container">
+                <iframe id="pdf-viewer" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Document Info</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Category:</strong>
+                    <span class="badge 
+                        {% if document.category == 'Industry Insights' %}bg-info
+                        {% elif document.category == 'Technology News' %}bg-success
+                        {% elif document.category == 'Product Management' %}bg-primary
+                        {% elif document.category == 'Customer Service' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ document.category }}
+                    </span>
+                </p>
+                <p><strong>Uploaded:</strong> <br>{{ document.uploaded_at }}</p>
+                <p><strong>Filename:</strong> <br>{{ document.filename }}</p>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Search in this Document</h5>
+            </div>
+            <div class="card-body">
+                <form id="search-document-form">
+                    <div class="mb-3">
+                        <input type="text" id="document-search-input" class="form-control" 
+                               placeholder="Search term...">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i> Find
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="javascript:void(0)" class="btn btn-info w-100 mb-2" id="download-btn">
+                    <i class="fas fa-download me-2"></i> Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/pdfjs-init.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Set PDF URL
+        const pdfUrl = "{{ document.filepath }}";
+        
+        // Initialize PDF viewer
+        initPdfViewer(pdfUrl);
+        
+        // Download button functionality
+        document.getElementById('download-btn').addEventListener('click', function() {
+            // Create a temporary link to download the PDF
+            const a = document.createElement('a');
+            a.href = pdfUrl;
+            a.download = "{{ document.filename }}";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+        
+        // Document search functionality
+        document.getElementById('search-document-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchTerm = document.getElementById('document-search-input').value.trim();
+            if (searchTerm) {
+                // Simple PDF.js search functionality - this could be expanded
+                if (window.PDFViewerApplication) {
+                    window.PDFViewerApplication.findBar.open();
+                    window.PDFViewerApplication.findBar.findField.value = searchTerm;
+                    window.PDFViewerApplication.findBar.dispatchEvent('');
+                } else {
+                    alert('PDF viewer is still loading. Please try again in a moment.');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
