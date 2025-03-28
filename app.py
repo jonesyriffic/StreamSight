@@ -434,6 +434,19 @@ def upload_document():
                     logger.error(f"Error generating relevance reasons: {str(e)}")
                     # Continue even if relevance generation fails - this isn't critical
                 
+                # Automatically generate document summary and key points
+                try:
+                    from utils.document_ai import generate_document_summary
+                    summary_result = generate_document_summary(new_document.id)
+                    if summary_result and summary_result['success']:
+                        logger.info(f"Generated summary for document {new_document.id}")
+                    else:
+                        error_msg = summary_result.get('error', 'Unknown error') if summary_result else 'Failed to generate summary'
+                        logger.error(f"Error generating summary: {error_msg}")
+                except Exception as e:
+                    logger.error(f"Error generating document summary: {str(e)}")
+                    # Continue even if summary generation fails - this isn't critical
+                
                 # Track upload activity for badges
                 try:
                     new_badges = BadgeService.track_activity(
