@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}My Badges | NextGen Insight Spark{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">My Badges</h1>
+    
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h4>Earned Badges</h4>
+                </div>
+                <div class="card-body">
+                    {% if user_badges %}
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {% for badge in user_badges %}
+                            <div class="col">
+                                <div class="card h-100 bg-dark border-info">
+                                    <div class="card-body text-center">
+                                        <img src="{{ badge.icon }}" alt="{{ badge.name }}" class="badge-icon mb-3" width="80">
+                                        <h5 class="card-title">{{ badge.name }}</h5>
+                                        <p class="card-text text-muted">{{ badge.description }}</p>
+                                        <div class="mt-2">
+                                            <span class="badge bg-info">{{ badge.type | title }}</span>
+                                            <span class="badge bg-secondary">{{ badge.level | title }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p>You haven't earned any badges yet. Use the platform to search, view, upload, and summarize documents to earn badges!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h4>Badge Progress</h4>
+                </div>
+                <div class="card-body">
+                    {% if badge_progress %}
+                        <div class="row">
+                            {% for badge_type, progress in badge_progress.items() %}
+                            <div class="col-md-6 mb-4">
+                                <h5 class="mb-3">{{ badge_type | title }} Badges</h5>
+                                
+                                {% set next_badge = progress.next_badge %}
+                                {% if next_badge %}
+                                <div class="card bg-dark border-secondary mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ next_badge.icon }}" alt="{{ next_badge.name }}" class="me-3" width="50">
+                                            <div>
+                                                <h6>Next Badge: {{ next_badge.name }}</h6>
+                                                <p class="text-muted mb-2">{{ next_badge.description }}</p>
+                                                
+                                                <div class="progress" style="height: 10px;">
+                                                    {% set percent = (progress.current_count / next_badge.criteria_count) * 100 %}
+                                                    <div class="progress-bar bg-info" role="progressbar" 
+                                                        style="width: {{ percent }}%;" 
+                                                        aria-valuenow="{{ progress.current_count }}" 
+                                                        aria-valuemin="0" 
+                                                        aria-valuemax="{{ next_badge.criteria_count }}">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">{{ progress.current_count }} of {{ next_badge.criteria_count }} actions completed</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-success">
+                                    <p>Congratulations! You've earned all the {{ badge_type | title }} badges!</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p>Badge progress information is not available.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize any badge-specific JavaScript functionality here
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Badge page initialized');
+    });
+</script>
+{% endblock %}

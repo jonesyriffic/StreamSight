@@ -14,7 +14,8 @@ from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
 from utils.document_ai import generate_document_summary
 from utils.relevance_generator import generate_relevance_reasons
-from models import db, Document, User
+from utils.badge_service import BadgeService
+from models import db, Document, User, Badge, UserActivity
 
 # Set up logging for debugging
 logging.basicConfig(level=logging.DEBUG)
@@ -292,8 +293,13 @@ def profile():
         flash('Profile updated successfully', 'success')
         return redirect(url_for('profile'))
     
-    # Pass team choices for the dropdown
-    return render_template('profile.html', team_choices=User.TEAM_CHOICES)
+    # Get user badges for the profile page
+    user_badges = BadgeService.get_user_badges(current_user.id)
+    
+    # Pass team choices and badges for the template
+    return render_template('profile.html', 
+                          team_choices=User.TEAM_CHOICES,
+                          badges=user_badges)
 
 @app.route('/update_profile', methods=['POST'])
 @login_required
@@ -413,6 +419,18 @@ def upload_document():
                 logger.error(f"Error generating relevance reasons: {str(e)}")
                 # Continue even if relevance generation fails - this isn't critical
             
+            # Track upload activity for badges
+            new_badges = BadgeService.track_activity(
+                user_id=current_user.id,
+                activity_type='upload',
+                document_id=new_document.id
+            )
+            
+            # If new badges were earned, show notification
+            if new_badges and new_badges.get('new_badges'):
+                for badge in new_badges.get('new_badges'):
+                    flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
+            
             flash(f'Document "{original_filename}" uploaded successfully!', 'success')
             return redirect(url_for('library'))
         except Exception as e:
@@ -445,6 +463,19 @@ def search():
         
         results = search_documents(query, document_repository, category_filter)
         
+        # Track search activity if user is logged in
+        if current_user.is_authenticated:
+            # Record activity for badge tracking
+            new_badges = BadgeService.track_activity(
+                user_id=current_user.id,
+                activity_type='search'
+            )
+            
+            # If new badges were earned, show notification
+            if new_badges and new_badges.get('new_badges'):
+                for badge in new_badges.get('new_badges'):
+                    flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
+        
         all_categories = db.session.query(Document.category).distinct().all()
         categories = [category[0] for category in all_categories]
         
@@ -464,6 +495,20 @@ def search():
 def view_document(doc_id):
     document = Document.query.get(doc_id)
     if document:
+        # Track document view activity if user is logged in
+        if current_user.is_authenticated:
+            # Record activity for badge tracking
+            new_badges = BadgeService.track_activity(
+                user_id=current_user.id,
+                activity_type='view',
+                document_id=doc_id
+            )
+            
+            # If new badges were earned, show notification
+            if new_badges and new_badges.get('new_badges'):
+                for badge in new_badges.get('new_badges'):
+                    flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
+        
         return render_template('document_viewer.html', document=document)
     else:
         flash('Document not found', 'danger')
@@ -515,6 +560,17 @@ def generate_document_summary_api(doc_id):
         
         # Generate summary using our AI utility
         result = generate_document_summary(doc_id)
+        
+        # Track summarize activity for badge
+        new_badges = BadgeService.track_activity(
+            user_id=current_user.id,
+            activity_type='summarize',
+            document_id=doc_id
+        )
+        
+        # If new badges were earned, add to result
+        if new_badges and new_badges.get('new_badges'):
+            result['new_badges'] = new_badges.get('new_badges')
         
         # We don't need to format the timestamp here anymore
         # The document_ai.py module now returns a properly formatted timestamp
@@ -611,9 +667,13 @@ def admin_view_user(user_id):
     # Get user's documents
     documents = Document.query.filter_by(user_id=user.id).order_by(Document.uploaded_at.desc()).all()
     
+    # Get user's earned badges
+    user_badges = BadgeService.get_user_badges(user_id)
+    
     return render_template('admin/user_detail.html', 
                           user=user, 
                           documents=documents, 
+                          user_badges=user_badges,
                           team_choices=User.TEAM_CHOICES)
 
 @app.route('/admin/user/<int:user_id>/approve', methods=['POST'])
@@ -844,6 +904,36 @@ def server_error(e):
 @app.errorhandler(403)
 def forbidden(e):
     return render_template('index.html', error='Access forbidden'), 403
+
+# Badge routes
+@app.route('/badges')
+@login_required
+def user_badges():
+    """View user's earned badges and progress"""
+    # Get user badges
+    user_badges = BadgeService.get_user_badges(current_user.id)
+    
+    # Get badge progress
+    badge_progress = BadgeService.get_user_progress(current_user.id)
+    
+    return render_template('badges.html', 
+                          user_badges=user_badges,
+                          badge_progress=badge_progress)
+
+@app.route('/api/badges')
+@login_required
+def api_user_badges():
+    """API endpoint to get user's badge data"""
+    # Get user badges
+    user_badges = BadgeService.get_user_badges(current_user.id)
+    
+    # Get badge progress
+    badge_progress = BadgeService.get_user_progress(current_user.id)
+    
+    return jsonify({
+        'badges': user_badges,
+        'progress': badge_progress
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

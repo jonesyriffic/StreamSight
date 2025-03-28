@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import uuid
+import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
@@ -72,6 +73,79 @@ class User(UserMixin, db.Model):
             'approved_at': self.approved_at.isoformat() if self.approved_at else None
         }
 
+class Badge(db.Model):
+    """Badge model for gamification system"""
+    
+    # Badge type constants
+    TYPE_READER = 'reader'         # For reading documents
+    TYPE_SEARCHER = 'searcher'     # For searching documents
+    TYPE_CONTRIBUTOR = 'contributor'  # For uploading documents
+    TYPE_SUMMARIZER = 'summarizer'  # For generating summaries
+    
+    BADGE_TYPES = [
+        TYPE_READER,
+        TYPE_SEARCHER,
+        TYPE_CONTRIBUTOR,
+        TYPE_SUMMARIZER
+    ]
+    
+    # Badge level constants
+    LEVEL_BRONZE = 'bronze'    # Level 1
+    LEVEL_SILVER = 'silver'    # Level 2
+    LEVEL_GOLD = 'gold'        # Level 3
+    LEVEL_PLATINUM = 'platinum'  # Level 4
+    
+    BADGE_LEVELS = [
+        LEVEL_BRONZE,
+        LEVEL_SILVER,
+        LEVEL_GOLD,
+        LEVEL_PLATINUM
+    ]
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # reader, searcher, contributor, summarizer
+    level = db.Column(db.String(20), nullable=False)  # bronze, silver, gold, platinum
+    criteria_count = db.Column(db.Integer, nullable=False)  # Number of actions needed to earn this badge
+    icon = db.Column(db.String(255), nullable=False)  # Path to badge icon
+    
+    def to_dict(self):
+        """Convert badge to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'type': self.type,
+            'level': self.level,
+            'criteria_count': self.criteria_count,
+            'icon': self.icon
+        }
+
+
+class UserActivity(db.Model):
+    """User activity tracking for badge awards"""
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    document_id = db.Column(db.String(36), db.ForeignKey('document.id'), nullable=True)
+    activity_type = db.Column(db.String(50), nullable=False)  # view, search, upload, summarize
+    performed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with user
+    user = db.relationship('User', backref=db.backref('activities', lazy='dynamic'))
+    
+    def to_dict(self):
+        """Convert activity to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'document_id': self.document_id,
+            'activity_type': self.activity_type,
+            'performed_at': self.performed_at.isoformat()
+        }
+
+
 class Document(db.Model):
     """Document model for storing uploaded documents"""
     
@@ -108,3 +182,14 @@ class Document(db.Model):
             'relevance_reasons': self.relevance_reasons,
             'summary_generated_at': self.summary_generated_at.isoformat() if self.summary_generated_at else None
         }
+        
+# Association table for user-badge relationship (many-to-many)
+user_badges = db.Table('user_badges',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('badge_id', db.Integer, db.ForeignKey('badge.id'), primary_key=True),
+    db.Column('earned_at', db.DateTime, default=datetime.utcnow)
+)
+
+# Add many-to-many relationship between User and Badge
+User.badges = db.relationship('Badge', secondary=user_badges, 
+                             backref=db.backref('users', lazy='dynamic'))

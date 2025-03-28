@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C0C0C0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0A0A0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="url(#badge-gradient)" stroke="#808080" stroke-width="2"/>
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#E8E8E8" stroke-width="1" opacity="0.8"/>
+  
+  <!-- Summary/Text Compression Icon with Arrow -->
+  <g transform="translate(24, 22)">
+    <!-- Large document -->
+    <rect x="6" y="8" width="28" height="30" rx="2" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Text lines (full width) -->
+    <line x1="10" y1="14" x2="30" y2="14" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="10" y1="19" x2="30" y2="19" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="10" y1="24" x2="30" y2="24" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Arrow pointing to summary -->
+    <path d="M20,25 L20,28 L16,28 L20,32 L24,28 L20,28" fill="#FFFFFF"/>
+    
+    <!-- Summarized text (shorter lines) -->
+    <line x1="15" y1="34" x2="25" y2="34" stroke="#FFFFFF" stroke-width="2"/>
+  </g>
+  
+  <text x="40" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">SILVER</text>
+</svg>

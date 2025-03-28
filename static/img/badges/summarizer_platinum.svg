@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E5E4E2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9CC0DE;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7B96AC;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="url(#badge-gradient)" stroke="#8DAFD8" stroke-width="2"/>
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#F0F0F0" stroke-width="1.5" opacity="0.9"/>
+  
+  <!-- Advanced AI Summary Icon -->
+  <g transform="translate(24, 18)">
+    <!-- Document with brain/network -->
+    <rect x="6" y="8" width="28" height="34" rx="2" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Text lines (full width) -->
+    <line x1="10" y1="14" x2="30" y2="14" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="10" y1="19" x2="30" y2="19" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Brain/Neural network -->
+    <circle cx="15" cy="28" r="2" fill="#F0F0F0" filter="url(#glow)"/>
+    <circle cx="25" cy="28" r="2" fill="#F0F0F0" filter="url(#glow)"/>
+    <circle cx="20" cy="25" r="2" fill="#F0F0F0" filter="url(#glow)"/>
+    <circle cx="16" cy="32" r="2" fill="#F0F0F0" filter="url(#glow)"/>
+    <circle cx="24" cy="32" r="2" fill="#F0F0F0" filter="url(#glow)"/>
+    <circle cx="20" cy="35" r="2" fill="#F0F0F0" filter="url(#glow)"/>
+    
+    <!-- Connections in neural network -->
+    <line x1="15" y1="28" x2="20" y2="25" stroke="#8DAFD8" filter="url(#glow)"/>
+    <line x1="20" y1="25" x2="25" y2="28" stroke="#8DAFD8" filter="url(#glow)"/>
+    <line x1="15" y1="28" x2="16" y2="32" stroke="#8DAFD8" filter="url(#glow)"/>
+    <line x1="25" y1="28" x2="24" y2="32" stroke="#8DAFD8" filter="url(#glow)"/>
+    <line x1="16" y1="32" x2="20" y2="35" stroke="#8DAFD8" filter="url(#glow)"/>
+    <line x1="24" y1="32" x2="20" y2="35" stroke="#8DAFD8" filter="url(#glow)"/>
+    <line x1="15" y1="28" x2="25" y2="28" stroke="#8DAFD8" filter="url(#glow)"/>
+    
+    <!-- Key points/summary -->
+    <line x1="13" y1="40" x2="27" y2="40" stroke="#FFFFFF" stroke-width="2"/>
+  </g>
+  
+  <text x="40" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">PLATINUM</text>
+</svg>

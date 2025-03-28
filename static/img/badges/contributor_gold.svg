@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DAA520;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="url(#badge-gradient)" stroke="#B8860B" stroke-width="2"/>
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#FFF8DC" stroke-width="1" opacity="0.8"/>
+  
+  <!-- Upload Icon with Multiple Documents -->
+  <g transform="translate(24, 22)">
+    <path d="M16,32 L16,22 L24,22 L24,32 L30,32 L20,20 L10,32 Z" fill="#FFFFFF"/>
+    <rect x="10" y="34" width="20" height="2" fill="#FFFFFF"/>
+    
+    <!-- Multiple documents -->
+    <rect x="11" y="14" width="8" height="10" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="16" y="12" width="8" height="10" fill="#FFFFFF" opacity="0.6"/>
+    <rect x="21" y="10" width="8" height="10" fill="#FFFFFF" opacity="0.7"/>
+    
+    <!-- Gold sparkles -->
+    <path d="M7,3 L8,1 L9,3 L11,3.5 L9.5,5 L10,7 L8,6 L6,7 L6.5,5 L5,3.5 Z" fill="#FFFFFF" transform="translate(25, 9) scale(0.5)"/>
+    <path d="M7,3 L8,1 L9,3 L11,3.5 L9.5,5 L10,7 L8,6 L6,7 L6.5,5 L5,3.5 Z" fill="#FFFFFF" transform="translate(10, 20) scale(0.4)"/>
+  </g>
+  
+  <text x="40" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">GOLD</text>
+</svg>

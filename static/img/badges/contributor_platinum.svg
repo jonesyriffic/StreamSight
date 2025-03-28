@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E5E4E2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9CC0DE;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7B96AC;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="url(#badge-gradient)" stroke="#8DAFD8" stroke-width="2"/>
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#F0F0F0" stroke-width="1.5" opacity="0.9"/>
+  
+  <!-- Upload Icon with Digital Library -->
+  <g transform="translate(24, 22)">
+    <path d="M16,32 L16,22 L24,22 L24,32 L30,32 L20,20 L10,32 Z" fill="#FFFFFF" filter="url(#glow)"/>
+    <rect x="10" y="34" width="20" height="2" fill="#FFFFFF"/>
+    
+    <!-- Digital library grid -->
+    <g opacity="0.8">
+      <rect x="8" y="10" width="6" height="8" fill="#F0F0F0" rx="1"/>
+      <rect x="16" y="10" width="6" height="8" fill="#F0F0F0" rx="1"/>
+      <rect x="24" y="10" width="6" height="8" fill="#F0F0F0" rx="1"/>
+      <rect x="12" y="4" width="6" height="8" fill="#F0F0F0" rx="1"/>
+      <rect x="20" y="4" width="6" height="8" fill="#F0F0F0" rx="1"/>
+    </g>
+    
+    <!-- Connection lines -->
+    <g stroke="#8DAFD8" stroke-width="0.5" opacity="0.7">
+      <line x1="11" y1="14" x2="15" y2="10" filter="url(#glow)"/>
+      <line x1="19" y1="14" x2="23" y2="10" filter="url(#glow)"/>
+      <line x1="27" y1="14" x2="30" y2="17" filter="url(#glow)"/>
+      <line x1="15" y1="8" x2="20" y2="8" filter="url(#glow)"/>
+    </g>
+    
+    <!-- Glowing dots -->
+    <circle cx="11" cy="14" r="0.8" fill="#FFFFFF" filter="url(#glow)"/>
+    <circle cx="19" cy="14" r="0.8" fill="#FFFFFF" filter="url(#glow)"/>
+    <circle cx="27" cy="14" r="0.8" fill="#FFFFFF" filter="url(#glow)"/>
+    <circle cx="15" cy="8" r="0.8" fill="#FFFFFF" filter="url(#glow)"/>
+    <circle cx="23" cy="8" r="0.8" fill="#FFFFFF" filter="url(#glow)"/>
+  </g>
+  
+  <text x="40" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">PLATINUM</text>
+</svg>

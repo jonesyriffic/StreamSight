@@ -109,3 +109,38 @@
     cursor: pointer;
     background-color: var(--bs-primary-rgb, 0.1);
 }
+
+/* Badge styling */
+.badge-icon {
+    transition: transform 0.3s ease;
+}
+
+.badge-icon:hover {
+    transform: scale(1.1);
+}
+
+.badge-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-dark);
+    border-radius: 50%;
+    padding: 0.25rem;
+    border: 2px solid var(--bs-info);
+    transition: all 0.3s ease;
+}
+
+.badge-icon-container:hover {
+    border-color: var(--bs-warning);
+    box-shadow: 0 0 8px rgba(var(--bs-info-rgb), 0.8);
+}
+
+/* Badge card styling */
+.card.bg-dark.border-info {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card.bg-dark.border-info:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}

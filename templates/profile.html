@@ -124,6 +124,33 @@
                             </div>
                         </div>
                         
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Badges Earned:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                <div id="user-badges-preview">
+                                    {% if badges %}
+                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                            {% for badge in badges %}
+                                                <div class="badge-icon-container" title="{{ badge.name }} - {{ badge.description }}">
+                                                    <img src="{{ badge.icon }}" alt="{{ badge.name }}" width="40" height="40" class="me-1">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <a href="{{ url_for('user_badges') }}" class="btn btn-sm btn-outline-info mt-2">
+                                            <i class="fas fa-award me-1"></i> View All Badges
+                                        </a>
+                                    {% else %}
+                                        <p class="text-muted">No badges earned yet.</p>
+                                        <a href="{{ url_for('user_badges') }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-award me-1"></i> View Badge Progress
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Update Profile</button>
                         </div>

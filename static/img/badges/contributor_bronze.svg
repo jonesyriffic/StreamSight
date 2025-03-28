@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#CD7F32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A05A2C;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="url(#badge-gradient)" stroke="#8B4513" stroke-width="2"/>
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#E5C090" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Upload Icon -->
+  <g transform="translate(24, 22)">
+    <path d="M16,32 L16,22 L24,22 L24,32 L30,32 L20,20 L10,32 Z" fill="#FFFFFF"/>
+    <rect x="10" y="34" width="20" height="2" fill="#FFFFFF"/>
+  </g>
+  
+  <text x="40" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">BRONZE</text>
+</svg>
