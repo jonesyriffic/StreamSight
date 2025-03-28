@@ -90,12 +90,12 @@
                     {% for doc in recommended_documents %}
                     {% if loop.index <= 3 %}
                     <div class="col-md-4">
-                        <div class="card h-100 bg-dark border border-1 
-                            {% if doc.category == 'Industry Insights' %}border-info
-                            {% elif doc.category == 'Technology News' %}border-success
-                            {% elif doc.category == 'Product Management' %}border-primary
-                            {% elif doc.category == 'Customer Service' %}border-warning
-                            {% else %}border-secondary{% endif %}">
+                        <div class="card h-100
+                            {% if doc.category == 'Industry Insights' %}card-insights
+                            {% elif doc.category == 'Technology News' %}card-tech
+                            {% elif doc.category == 'Product Management' %}card-product
+                            {% elif doc.category == 'Customer Service' %}card-service
+                            {% else %}card-default{% endif %}">
                             
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -224,12 +224,12 @@
                     {% for doc in recent_documents %}
                     {% if loop.index <= 3 %}
                     <div class="col-md-4">
-                        <div class="card h-100 bg-dark border border-1 
-                            {% if doc.category == 'Industry Insights' %}border-info
-                            {% elif doc.category == 'Technology News' %}border-success
-                            {% elif doc.category == 'Product Management' %}border-primary
-                            {% elif doc.category == 'Customer Service' %}border-warning
-                            {% else %}border-secondary{% endif %}">
+                        <div class="card h-100
+                            {% if doc.category == 'Industry Insights' %}card-insights
+                            {% elif doc.category == 'Technology News' %}card-tech
+                            {% elif doc.category == 'Product Management' %}card-product
+                            {% elif doc.category == 'Customer Service' %}card-service
+                            {% else %}card-default{% endif %}">
                             
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -251,28 +251,26 @@
                                 <div class="mb-3 flex-grow-1">
                                     <div class="d-flex align-items-center mb-2">
                                         <i class="fas fa-calendar-alt text-secondary me-2"></i>
-                                        <span class="small text-muted">
-                                            {% if doc.relative_time %}
-                                                {{ doc.relative_time }}
-                                            {% elif doc.uploaded_at %}
-                                                Added {{ doc.uploaded_at.strftime('%b %d, %Y') if doc.uploaded_at is not string else doc.uploaded_at }}
-                                            {% else %}
-                                                Recently added
-                                            {% endif %}
-                                        </span>
+                                        <span class="text-muted">Added {{ doc.uploaded_at|humanize }}</span>
                                     </div>
                                     
                                     {% if doc.summary %}
                                     <p class="card-text small">{{ doc.summary|truncate(120) }}</p>
                                     {% else %}
-                                    <p class="card-text small text-muted"><i class="fas fa-info-circle me-1"></i> No summary available</p>
+                                    <p class="card-text small fst-italic text-muted">Summary not available. View the document to generate a summary.</p>
                                     {% endif %}
                                 </div>
                                 
-                                <div class="mt-auto text-center">
-                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
-                                        <i class="fas fa-eye me-1"></i> View Document
+                                <div class="d-flex mt-auto justify-content-between">
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-outline-light">
+                                        <i class="fas fa-eye me-1"></i> View
                                     </a>
+                                    
+                                    {% if doc.filepath %}
+                                    <a href="{{ url_for('serve_upload', filename=doc.filepath) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-file-pdf me-1"></i> PDF
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -281,52 +279,72 @@
                     {% endfor %}
                 </div>
                 
-                {% if recent_documents|length > 3 %}
                 <div class="text-center mt-4">
                     <a href="{{ url_for('library') }}" class="btn btn-outline-info">
-                        <i class="fas fa-list me-1"></i> View All Documents
+                        <i class="fas fa-book me-1"></i> Browse All Documents
                     </a>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
-<!-- Document Stats Section -->
+<!-- Category Quick Links -->
 <div class="row mb-5">
     <div class="col-md-12">
         <div class="card bg-dark shadow">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header">
                 <h3 class="mb-0">
-                    <i class="fas fa-chart-bar text-primary me-2"></i>
-                    Document Statistics
+                    <i class="fas fa-tags text-warning me-2"></i>
+                    Browse by Category
                 </h3>
             </div>
             <div class="card-body">
-                <div class="row text-center">
+                <div class="row">
                     <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="bg-dark rounded p-3">
-                            <div class="display-4 text-primary mb-2">{{ total_documents }}</div>
-                            <div class="text-muted">Total Documents</div>
-                        </div>
+                        <a href="{{ url_for('library', category='Industry Insights') }}" class="btn btn-info w-100 py-3">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Industry Insights
+                        </a>
                     </div>
                     <div class="col-md-4 mb-3 mb-md-0">
-                        <div class="bg-dark rounded p-3">
-                            <div class="display-4 text-info mb-2">{{ total_categories }}</div>
-                            <div class="text-muted">Categories</div>
-                        </div>
+                        <a href="{{ url_for('library', category='Technology News') }}" class="btn btn-success w-100 py-3">
+                            <i class="fas fa-microchip me-2"></i>
+                            Technology News
+                        </a>
                     </div>
                     <div class="col-md-4">
-                        <div class="bg-dark rounded p-3">
-                            <div class="display-4 text-success mb-2">{{ upload_month }}</div>
-                            <div class="text-muted">Uploads This Month</div>
-                        </div>
+                        <a href="{{ url_for('library', category='Product Management') }}" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-tasks me-2"></i>
+                            Product Management
+                        </a>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4 offset-md-4">
+                        <a href="{{ url_for('library', category='Customer Service') }}" class="btn btn-warning w-100 py-3">
+                            <i class="fas fa-headset me-2"></i>
+                            Customer Service
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{% if current_user.is_authenticated and current_user.can_upload %}
+<div class="row mb-5">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('upload_page') }}" class="btn btn-lg btn-success">
+            <i class="fas fa-upload me-2"></i> Upload New Document
+        </a>
+        <p class="text-muted mt-2">
+            <small>Contribute to the knowledge base by uploading new documents</small>
+        </p>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

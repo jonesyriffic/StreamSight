@@ -24,39 +24,89 @@
     
     <!-- Modernized UI Styles -->
     <style>
+        /* Main theme colors */
+        :root {
+            --primary-gradient-start: #1a2a4a;
+            --primary-gradient-end: #0f172a;
+            --header-gradient-start: #111827;
+            --header-gradient-end: #1e293b;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Document category colors */
+        .bg-insights, .text-insights { color: #0dcaf0 !important; }
+        .bg-tech, .text-tech { color: #20c997 !important; }
+        .bg-product, .text-product { color: #0d6efd !important; }
+        .bg-service, .text-service { color: #ffc107 !important; }
+        
+        /* Main app background */
+        body {
+            background: linear-gradient(to bottom, var(--primary-gradient-start), var(--primary-gradient-end));
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        /* Header styling */
+        header .navbar {
+            background: linear-gradient(to right, var(--header-gradient-start), var(--header-gradient-end)) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
         /* Card Styles */
         .card {
             border-radius: 1rem;
             border: none;
             overflow: hidden;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.25rem;
+        }
+        
+        .card-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.25rem;
         }
         
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            box-shadow: var(--card-hover-shadow);
         }
         
         /* Category-based card gradients */
         .card.card-insights {
             background: linear-gradient(145deg, #0d131f, #192541);
+            border-left: 4px solid #0dcaf0;
         }
         
         .card.card-tech {
             background: linear-gradient(145deg, #0d1e14, #193327);
+            border-left: 4px solid #20c997;
         }
         
         .card.card-product {
             background: linear-gradient(145deg, #0f143d, #1c2450);
+            border-left: 4px solid #0d6efd;
         }
         
         .card.card-service {
             background: linear-gradient(145deg, #241a0d, #3d2e16);
+            border-left: 4px solid #ffc107;
         }
         
         .card.card-default {
             background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+            border-left: 4px solid #6c757d;
         }
         
         /* Button styles */
@@ -64,16 +114,78 @@
             border-radius: 0.6rem;
             padding: 0.5rem 1.2rem;
             transition: all 0.2s ease;
+            font-weight: 500;
         }
         
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         /* Badge styles */
         .badge {
             border-radius: 0.5rem;
             padding: 0.5rem 0.8rem;
+            font-weight: 500;
+        }
+        
+        /* Table styles */
+        .table {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .table thead th {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+        
+        /* Form styles */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            padding: 0.6rem 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Footer styling */
+        footer {
+            background: linear-gradient(to right, var(--header-gradient-start), var(--header-gradient-end)) !important;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 3rem !important;
+        }
+        
+        /* Utility classes */
+        .shadow {
+            box-shadow: var(--card-shadow) !important;
+        }
+        
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Modal styling */
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+            background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
     
@@ -81,11 +193,11 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                    <i class="fas fa-lightbulb text-warning me-2"></i>
-                    <span>NextGen Insight Spark</span>
+                    <i class="fas fa-lightbulb text-warning me-2 fa-lg"></i>
+                    <span class="fw-bold">NextGen <span class="text-info">Insight</span> <span class="text-warning">Spark</span></span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,31 +206,32 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('index') }}">
+                            <a class="nav-link px-3 rounded-pill mx-1 {{ 'active bg-dark bg-opacity-50' if request.path == url_for('index') }}" href="{{ url_for('index') }}">
                                 <i class="fas fa-home me-1"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('library') }}">
+                            <a class="nav-link px-3 rounded-pill mx-1 {{ 'active bg-dark bg-opacity-50' if request.path == url_for('library') }}" href="{{ url_for('library') }}">
                                 <i class="fas fa-book me-1"></i> Library
                             </a>
                         </li>
                         {% if current_user.is_authenticated %}
                         {% if current_user.can_upload or current_user.is_admin %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('upload_page') }}">
+                            <a class="nav-link px-3 rounded-pill mx-1 {{ 'active bg-dark bg-opacity-50' if request.path == url_for('upload_page') }}" href="{{ url_for('upload_page') }}">
                                 <i class="fas fa-upload me-1"></i> Upload
                             </a>
                         </li>
                         {% endif %}
                         {% if current_user.is_admin %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle px-3 rounded-pill mx-1 {{ 'active bg-dark bg-opacity-50' if '/admin/' in request.path }}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-shield-alt me-1"></i> Admin
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin_users') }}"><i class="fas fa-users me-1"></i> User Management</a></li>
+                            <ul class="dropdown-menu dropdown-menu-dark shadow border-0" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_dashboard') }}" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
+                                <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_users') }}" href="{{ url_for('admin_users') }}"><i class="fas fa-users me-1"></i> User Management</a></li>
+                                <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_search_analytics') }}" href="{{ url_for('admin_search_analytics') }}"><i class="fas fa-chart-line me-1"></i> Search Analytics</a></li>
                             </ul>
                         </li>
                         {% endif %}
@@ -127,35 +240,38 @@
                     <div class="ms-auto me-2"></div>
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('tour_page') }}" id="nav-tour-link">
+                        <li class="nav-item me-2">
+                            <a class="nav-link px-3 rounded-pill {{ 'active bg-dark bg-opacity-50' if request.path == url_for('tour_page') }}" href="{{ url_for('tour_page') }}" id="nav-tour-link">
                                 <i class="fas fa-route me-1"></i> Tour
                             </a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user me-1"></i> {{ current_user.name or current_user.email }}
+                            <a class="nav-link dropdown-toggle px-3 rounded-pill" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i> {{ current_user.name or current_user.email }}
+                                {% if current_user.is_admin %}
+                                <span class="badge bg-danger ms-1">Admin</span>
+                                {% endif %}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-id-card me-1"></i> Profile</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('user_badges') }}"><i class="fas fa-award me-1"></i> My Badges</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow border-0" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item {{ 'active' if request.path == url_for('profile') }}" href="{{ url_for('profile') }}"><i class="fas fa-id-card me-1"></i> Profile</a></li>
+                                <li><a class="dropdown-item {{ 'active' if request.path == url_for('user_badges') }}" href="{{ url_for('user_badges') }}"><i class="fas fa-award me-1"></i> My Badges</a></li>
+                                <li><hr class="dropdown-divider opacity-25"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i> Logout</a></li>
                             </ul>
                         </li>
                         {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('tour_page') }}" id="nav-tour-link">
+                        <li class="nav-item me-2">
+                            <a class="nav-link px-3 rounded-pill {{ 'active bg-dark bg-opacity-50' if request.path == url_for('tour_page') }}" href="{{ url_for('tour_page') }}" id="nav-tour-link">
                                 <i class="fas fa-route me-1"></i> Tour
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">
+                        <li class="nav-item me-2">
+                            <a class="nav-link px-3 rounded-pill {{ 'active bg-dark bg-opacity-50' if request.path == url_for('login') }}" href="{{ url_for('login') }}">
                                 <i class="fas fa-sign-in-alt me-1"></i> Login
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">
+                            <a class="btn btn-outline-info px-3 rounded-pill" href="{{ url_for('register') }}">
                                 <i class="fas fa-user-plus me-1"></i> Register
                             </a>
                         </li>
@@ -170,22 +286,85 @@
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
+                <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-{{ category }} bg-opacity-25 text-{{ category }}">
+                            <i class="fas 
+                                {% if category == 'success' %}fa-check-circle
+                                {% elif category == 'warning' %}fa-exclamation-triangle
+                                {% elif category == 'danger' %}fa-times-circle
+                                {% else %}fa-info-circle{% endif %} 
+                                me-2"></i>
+                            <strong class="me-auto">
+                                {% if category == 'success' %}Success
+                                {% elif category == 'warning' %}Warning
+                                {% elif category == 'danger' %}Error
+                                {% else %}Information{% endif %}
+                            </strong>
+                            <small>Just now</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+                
+                <!-- Backup alerts in case JavaScript is disabled -->
+                <div class="d-none d-js-block">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm rounded-3 border-0" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas 
+                                {% if category == 'success' %}fa-check-circle
+                                {% elif category == 'warning' %}fa-exclamation-triangle
+                                {% elif category == 'danger' %}fa-times-circle
+                                {% else %}fa-info-circle{% endif %} 
+                                me-2 fa-lg"></i>
+                            <div>{{ message }}</div>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="mt-5 py-4 bg-dark text-light">
-        <div class="container text-center">
-            <p class="mb-0">NextGen Insight Spark &copy; 2025 - AI-powered document insights for product managers</p>
-            <p class="mt-2 small text-muted">Made with love by NextGen Products</p>
+    <footer class="py-4 text-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <h5 class="mb-3"><i class="fas fa-lightbulb text-warning me-2"></i> NextGen Insight Spark</h5>
+                    <p class="mb-0">AI-powered document insights platform for product managers to discover, analyze, and collaborate on industry knowledge.</p>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h6 class="mb-3 text-info">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-light text-decoration-none"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+                        <li class="mb-2"><a href="{{ url_for('library') }}" class="text-light text-decoration-none"><i class="fas fa-book me-1"></i> Library</a></li>
+                        <li><a href="{{ url_for('tour_page') }}" class="text-light text-decoration-none"><i class="fas fa-route me-1"></i> Interactive Tour</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="mb-3 text-info">Categories</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('library', category='Industry Insights') }}" class="text-light text-decoration-none"><i class="fas fa-chart-line me-1 text-info"></i> Industry Insights</a></li>
+                        <li class="mb-2"><a href="{{ url_for('library', category='Technology News') }}" class="text-light text-decoration-none"><i class="fas fa-microchip me-1 text-success"></i> Technology News</a></li>
+                        <li class="mb-2"><a href="{{ url_for('library', category='Product Management') }}" class="text-light text-decoration-none"><i class="fas fa-tasks me-1 text-primary"></i> Product Management</a></li>
+                        <li><a href="{{ url_for('library', category='Customer Service') }}" class="text-light text-decoration-none"><i class="fas fa-headset me-1 text-warning"></i> Customer Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-secondary opacity-25">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <p class="mb-2 mb-md-0">NextGen Insight Spark &copy; 2025</p>
+                <p class="mb-0 small text-muted">Made with <i class="fas fa-heart text-danger"></i> by NextGen Products</p>
+            </div>
         </div>
     </footer>
 
@@ -197,5 +376,22 @@
     <script src="{{ url_for('static', filename='js/tour.js') }}"></script>
     
     {% block extra_scripts %}{% endblock %}
+    
+    <!-- Initialize toasts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all toasts
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.map(function(toastEl) {
+                return new bootstrap.Toast(toastEl, {
+                    autohide: true,
+                    delay: 5000
+                });
+            });
+            
+            // Add "d-js-block" class to body when JavaScript is enabled
+            document.body.classList.add('d-js-block');
+        });
+    </script>
 </body>
 </html>

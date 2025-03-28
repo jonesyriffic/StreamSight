@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextGen Insight Spark - Dashboard</title>
+    
+    <!-- Bootstrap CSS (Replit Theme) -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF.js for PDF rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    
+    <!-- Intro.js for interactive tours -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link rel="stylesheet" href="/static/css/tour.css">
+    
+    <!-- Modernized UI Styles -->
+    <style>
+        /* Card Styles */
+        .card {
+            border-radius: 1rem;
+            border: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Category-based card gradients */
+        .card.card-insights {
+            background: linear-gradient(145deg, #0d131f, #192541);
+        }
+        
+        .card.card-tech {
+            background: linear-gradient(145deg, #0d1e14, #193327);
+        }
+        
+        .card.card-product {
+            background: linear-gradient(145deg, #0f143d, #1c2450);
+        }
+        
+        .card.card-service {
+            background: linear-gradient(145deg, #241a0d, #3d2e16);
+        }
+        
+        .card.card-default {
+            background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+        }
+        
+        /* Button styles */
+        .btn {
+            border-radius: 0.6rem;
+            padding: 0.5rem 1.2rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Badge styles */
+        .badge {
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.8rem;
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>
+                    <span>NextGen Insight Spark</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-home me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/library">
+                                <i class="fas fa-book me-1"></i> Library
+                            </a>
+                        </li>
+                        
+                    </ul>
+                    <div class="ms-auto me-2"></div>
+                    <ul class="navbar-nav">
+                        
+                        <li class="nav-item">
+                            <a class="nav-link" href="/tour" id="nav-tour-link">
+                                <i class="fas fa-route me-1"></i> Tour
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">
+                                <i class="fas fa-user-plus me-1"></i> Register
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mt-4">
+        <!-- Flash messages -->
+        
+            
+        
+
+        
+<div class="row align-items-center mb-5">
+    <div class="col-md-8">
+        <h1 class="display-4 mb-4">NextGen Insight Spark</h1>
+        <p class="lead">
+            Discover breakthrough insights from your product management and customer service resources
+            using advanced AI-powered document analysis.
+        </p>
+        
+        
+    </div>
+    <div class="col-md-4 text-center">
+        <i class="fas fa-lightbulb fa-6x text-warning mb-3"></i>
+    </div>
+</div>
+
+<!-- Search Box -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Search Your Knowledge Base</h2>
+                <form action="/search" method="get" class="mb-0">
+                    <div class="input-group input-group-lg mb-3">
+                        <input type="text" name="query" class="form-control" 
+                               placeholder="Ask a question or search for keywords..." 
+                               aria-label="Search query">
+                        <button class="btn btn-primary" type="submit" id="mainSearchButton">
+                            <i class="fas fa-search me-2"></i> Search
+                        </button>
+                    </div>
+                    
+                    <!-- Loading spinner that appears when search is in progress -->
+                    <div id="mainSearchSpinner" class="mt-3 text-center d-none">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Searching...</span>
+                        </div>
+                        <p class="mt-2 text-info">Searching documents using AI... This may take a few moments.</p>
+                    </div>
+                    
+                    <script>
+                        // Show loading spinner when search form is submitted
+                        document.currentScript.closest('form').addEventListener('submit', function() {
+                            // Only show spinner if there's a search query
+                            if (this.querySelector('input[name="query"]').value.trim()) {
+                                document.getElementById('mainSearchButton').disabled = true;
+                                document.getElementById('mainSearchSpinner').classList.remove('d-none');
+                            }
+                        });
+                    </script>
+                    <!-- Category filter removed -->
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Recommendations -->
+
+
+<!-- Recently Added Documents -->
+
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-clock text-info me-2"></i>
+                    Recently Added Documents
+                </h3>
+                <a href="/library" class="btn btn-sm btn-outline-info">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            border-info
+                            ">
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="2025 Benchmark Insights Report">
+                                        2025 Benchmark Insights Report
+                                    </h5>
+                                    <span class="badge 
+                                        bg-info
+                                        ">
+                                        Industry Insights
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                        <span class="small text-muted">
+                                            
+                                                2 hours ago
+                                            
+                                        </span>
+                                    </div>
+                                    
+                                    
+                                    <p class="card-text small">SummaryThe 2025 Digital Experience Benchmarks report leverages data from 6,000 websites to analyze digital presence...</p>
+                                    
+                                </div>
+                                
+                                <div class="mt-auto text-center">
+                                    <a href="/document/d126eb68-16a1-49fd-992f-d149777e5ce9" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            border-success
+                            ">
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="Notebook March 25">
+                                        Notebook March 25
+                                    </h5>
+                                    <span class="badge 
+                                        bg-success
+                                        ">
+                                        Technology News
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                        <span class="small text-muted">
+                                            
+                                                3 hours ago
+                                            
+                                        </span>
+                                    </div>
+                                    
+                                    
+                                    <p class="card-text small">SummaryIncreased generative AI usage is rapidly transforming traffic patterns across various sectors, including...</p>
+                                    
+                                </div>
+                                
+                                <div class="mt-auto text-center">
+                                    <a href="/document/69dd4f47-4b1d-4ce5-8405-094025d5a205" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            border-success
+                            ">
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="The Notebook Issue 1">
+                                        The Notebook Issue 1
+                                    </h5>
+                                    <span class="badge 
+                                        bg-success
+                                        ">
+                                        Technology News
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                        <span class="small text-muted">
+                                            
+                                                3 hours ago
+                                            
+                                        </span>
+                                    </div>
+                                    
+                                    
+                                    <p class="card-text small">1. Executive Summary:In this edition of &#34;The Notebook,&#34; notable industry shifts and innovation insights are...</p>
+                                    
+                                </div>
+                                
+                                <div class="mt-auto text-center">
+                                    <a href="/document/068c7bb5-87c3-434e-9610-9e49b7e2d655" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+                    
+                    
+                </div>
+                
+                
+                <div class="text-center mt-4">
+                    <a href="/library" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i> View All Documents
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Document Stats Section -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-chart-bar text-primary me-2"></i>
+                    Document Statistics
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="bg-dark rounded p-3">
+                            <div class="display-4 text-primary mb-2">6</div>
+                            <div class="text-muted">Total Documents</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="bg-dark rounded p-3">
+                            <div class="display-4 text-info mb-2">2</div>
+                            <div class="text-muted">Categories</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-dark rounded p-3">
+                            <div class="display-4 text-success mb-2">6</div>
+                            <div class="text-muted">Uploads This Month</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <footer class="mt-5 py-4 bg-dark text-light">
+        <div class="container text-center">
+            <p class="mb-0">NextGen Insight Spark &copy; 2025 - AI-powered document insights for product managers</p>
+            <p class="mt-2 small text-muted">Made with love by NextGen Products</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Main JavaScript -->
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/tour.js"></script>
+    
+    
+</body>
+</html>
