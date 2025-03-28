@@ -225,41 +225,48 @@ def index():
     
     # If user is logged in and has a team specialization, get personalized recommendations
     if current_user.is_authenticated and current_user.team_specialization:
+        # Default recommendations - if no specific team match found
+        default_docs = Document.query.order_by(Document.uploaded_at.desc()).limit(3).all()
+        
         # For the Product Insights team, prioritize "Industry Insights" and "Product Management"
-        if current_user.team_specialization == User.TEAM_PRODUCT_INSIGHTS:
+        if User.TEAM_PRODUCT_INSIGHTS in current_user.team_specialization:
             industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
             product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = industry_docs + product_docs
         
         # For the Digital Product team, prioritize "Product Management" and "Customer Service"
-        elif current_user.team_specialization == User.TEAM_DIGITAL_PRODUCT:
+        elif User.TEAM_DIGITAL_PRODUCT in current_user.team_specialization:
             product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = product_docs + customer_docs
         
         # For the Service Technology team, prioritize "Technology News" and "Customer Service"
-        elif current_user.team_specialization == User.TEAM_SERVICE_TECH:
+        elif User.TEAM_SERVICE_TECH in current_user.team_specialization:
             tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(2).all()
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = tech_docs + customer_docs
         
         # For the Digital Engagement team, prioritize "Customer Service" and "Industry Insights"
-        elif current_user.team_specialization == User.TEAM_DIGITAL_ENGAGEMENT:
+        elif User.TEAM_DIGITAL_ENGAGEMENT in current_user.team_specialization:
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(2).all()
             industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = customer_docs + industry_docs
         
         # For the Product Testing team, prioritize "Product Management" and "Customer Service"
-        elif current_user.team_specialization == User.TEAM_PRODUCT_TESTING:
+        elif User.TEAM_PRODUCT_TESTING in current_user.team_specialization:
             product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = product_docs + customer_docs
         
         # For the NextGen Products team, prioritize "Industry Insights" and "Technology News"
-        elif current_user.team_specialization == User.TEAM_NEXTGEN_PRODUCTS:
+        elif User.TEAM_NEXTGEN_PRODUCTS in current_user.team_specialization:
             industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
             tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = industry_docs + tech_docs
+            
+        # Fallback to default if no team-specific recommendations were generated
+        if not recommended_documents:
+            recommended_documents = default_docs
     
     return render_template('index.html', 
                           categories=categories,
