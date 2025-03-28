@@ -64,59 +64,34 @@
     </div>
 </div>
 
-<!-- Main Dashboard Grid -->
-<div class="row g-4 mb-5">
-    <!-- Upload Documents -->
-    <div class="col-md-6">
-        <div class="card bg-dark h-100 shadow border-primary border-opacity-25">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary bg-opacity-25 p-3 rounded-circle me-3">
-                        <i class="fas fa-upload fa-2x text-primary"></i>
-                    </div>
-                    <h3 class="mb-0">Upload Documents</h3>
-                </div>
-                <p class="flex-grow-1">Add new PDF documents to your knowledge base. Our AI will automatically categorize them and make them searchable.</p>
-                {% if current_user.is_authenticated %}
-                    {% if current_user.is_approved %}
-                        {% if current_user.can_upload or current_user.is_admin %}
+<!-- Main Dashboard Content -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow text-center">
+            <div class="card-body py-5">
+                <i class="fas fa-chart-network fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold mb-3">Welcome to NextGen Insight Spark</h2>
+                <p class="lead mb-4">Your centralized knowledge hub for product management and customer service resources.</p>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_approved and (current_user.can_upload or current_user.is_admin) %}
                         <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
                             <i class="fas fa-upload me-2"></i> Upload Documents
                         </a>
-                        {% else %}
-                        <button class="btn btn-secondary" disabled>
-                            <i class="fas fa-lock me-2"></i> View-Only Access
-                        </button>
-                        <p class="text-muted small mt-2">Contact an administrator for upload permission.</p>
                         {% endif %}
                     {% else %}
-                    <button class="btn btn-secondary" disabled>
-                        <i class="fas fa-clock me-2"></i> Waiting for Approval
-                    </button>
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-plus me-2"></i> Register
+                        </a>
                     {% endif %}
-                {% else %}
-                <a href="{{ url_for('login') }}" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt me-2"></i> Login to Upload
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Document Library -->
-    <div class="col-md-6">
-        <div class="card bg-dark h-100 shadow border-info border-opacity-25">
-            <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-info bg-opacity-25 p-3 rounded-circle me-3">
-                        <i class="fas fa-book fa-2x text-info"></i>
-                    </div>
-                    <h3 class="mb-0">Document Library</h3>
+                    <a href="{{ url_for('library') }}" class="btn btn-info">
+                        <i class="fas fa-book me-2"></i> Browse Library
+                    </a>
                 </div>
-                <p class="flex-grow-1">View, manage, and organize your document collection. Sort by category or date, and delete documents you no longer need.</p>
-                <a href="{{ url_for('library') }}" class="btn btn-info">
-                    <i class="fas fa-book me-2"></i> Browse Library
-                </a>
             </div>
         </div>
     </div>
@@ -157,7 +132,7 @@
 
 <!-- Team Recommendations -->
 {% if current_user.is_authenticated and current_user.team_specialization and recommended_documents %}
-<div class="row mb-4">
+<div class="row mb-5">
     <div class="col-md-12">
         <div class="card bg-dark shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -167,84 +142,95 @@
                 </h3>
                 <span class="badge bg-primary">Personalized</span>
             </div>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Filename</th>
-                            <th>Category</th>
-                            <th>Why it's relevant for you</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for doc in recommended_documents %}
-                        <tr>
-                            <td>{{ doc.filename }}</td>
-                            <td>
-                                <span class="badge 
-                                    {% if doc.category == 'Industry Insights' %}bg-info
-                                    {% elif doc.category == 'Technology News' %}bg-success
-                                    {% elif doc.category == 'Product Management' %}bg-primary
-                                    {% elif doc.category == 'Customer Service' %}bg-warning
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ doc.category }}
-                                </span>
-                            </td>
-                            <td class="small">
-                                {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-bullseye text-success me-1"></i>
-                                        <span class="text-truncate d-inline-block" style="max-width: 250px;" 
-                                              data-bs-toggle="tooltip" 
-                                              data-bs-placement="top" 
-                                              data-bs-html="true"
-                                              title="{{ doc.relevance_reasons[current_user.team_specialization] }}">
-                                            {{ doc.relevance_reasons[current_user.team_specialization] }}
-                                        </span>
-                                        <button type="button" class="btn btn-sm text-info ms-1" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#relevanceModal{{ loop.index }}">
-                                            <i class="fas fa-expand-alt"></i>
-                                        </button>
-                                    </div>
-                                    <!-- Modal for full relevance reason -->
-                                    <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content bg-dark text-light">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="relevanceModalLabel{{ loop.index }}">Why this document is relevant for you</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Document:</strong> {{ doc.filename }}</p>
-                                                    <p><strong>Your team:</strong> {{ current_user.team_specialization }}</p>
-                                                    <div class="alert alert-info">
-                                                        <i class="fas fa-bullseye me-2"></i>{{ doc.relevance_reasons[current_user.team_specialization] }}
+            <div class="card-body">
+                <div class="row g-4">
+                    {% for doc in recommended_documents %}
+                    {% if loop.index <= 3 %}
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            {% if doc.category == 'Industry Insights' %}border-info
+                            {% elif doc.category == 'Technology News' %}border-success
+                            {% elif doc.category == 'Product Management' %}border-primary
+                            {% elif doc.category == 'Customer Service' %}border-warning
+                            {% else %}border-secondary{% endif %}">
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.filename }}">
+                                        {{ doc.filename }}
+                                    </h5>
+                                    <span class="badge 
+                                        {% if doc.category == 'Industry Insights' %}bg-info
+                                        {% elif doc.category == 'Technology News' %}bg-success
+                                        {% elif doc.category == 'Product Management' %}bg-primary
+                                        {% elif doc.category == 'Customer Service' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ doc.category }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <h6 class="mb-2 text-muted"><i class="fas fa-bullseye text-success me-1"></i> Why it's relevant for you:</h6>
+                                    {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
+                                        <p class="card-text small">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
+                                        
+                                        <!-- Modal for full relevance reason -->
+                                        <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content bg-dark text-light">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="relevanceModalLabel{{ loop.index }}">Why this document is relevant for you</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-primary">
-                                                        <i class="fas fa-eye me-1"></i> View Document
-                                                    </a>
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <div class="modal-body">
+                                                        <p><strong>Document:</strong> {{ doc.filename }}</p>
+                                                        <p><strong>Your team:</strong> {{ current_user.team_specialization }}</p>
+                                                        <div class="alert alert-info">
+                                                            <i class="fas fa-bullseye me-2"></i>{{ doc.relevance_reasons[current_user.team_specialization] }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-primary">
+                                                            <i class="fas fa-eye me-1"></i> View Document
+                                                        </a>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                {% else %}
-                                    <i class="fas fa-info-circle text-muted me-1"></i> Recommended based on your team specialization
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye me-1"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    {% else %}
+                                        <p class="card-text small text-muted"><i class="fas fa-info-circle me-1"></i> Recommended based on your team specialization</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-flex mt-auto justify-content-between">
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                    {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#relevanceModal{{ loop.index }}">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if recommended_documents|length > 3 %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('library') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i> View All Recommendations
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -253,47 +239,83 @@
 
 <!-- Recently Added Documents -->
 {% if recent_documents %}
-<div class="row">
+<div class="row mb-5">
     <div class="col-md-12">
         <div class="card bg-dark shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">Recently Added Documents</h3>
+                <h3 class="mb-0">
+                    <i class="fas fa-clock text-info me-2"></i>
+                    Recently Added Documents
+                </h3>
                 <a href="{{ url_for('library') }}" class="btn btn-sm btn-outline-info">View All</a>
             </div>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Filename</th>
-                            <th>Category</th>
-                            <th>Uploaded</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for doc in recent_documents %}
-                        <tr>
-                            <td>{{ doc.filename }}</td>
-                            <td>
-                                <span class="badge 
-                                    {% if doc.category == 'Industry Insights' %}bg-info
-                                    {% elif doc.category == 'Technology News' %}bg-success
-                                    {% elif doc.category == 'Product Management' %}bg-primary
-                                    {% elif doc.category == 'Customer Service' %}bg-warning
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ doc.category }}
-                                </span>
-                            </td>
-                            <td>{{ doc.uploaded_at }}</td>
-                            <td>
-                                <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye me-1"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% for doc in recent_documents %}
+                    {% if loop.index <= 3 %}
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            {% if doc.category == 'Industry Insights' %}border-info
+                            {% elif doc.category == 'Technology News' %}border-success
+                            {% elif doc.category == 'Product Management' %}border-primary
+                            {% elif doc.category == 'Customer Service' %}border-warning
+                            {% else %}border-secondary{% endif %}">
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.filename }}">
+                                        {{ doc.filename }}
+                                    </h5>
+                                    <span class="badge 
+                                        {% if doc.category == 'Industry Insights' %}bg-info
+                                        {% elif doc.category == 'Technology News' %}bg-success
+                                        {% elif doc.category == 'Product Management' %}bg-primary
+                                        {% elif doc.category == 'Customer Service' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ doc.category }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                        <span class="small text-muted">
+                                            {% if doc.uploaded_at %}
+                                                Added {{ doc.uploaded_at.strftime('%b %d, %Y') if doc.uploaded_at is not string else doc.uploaded_at }}
+                                            {% else %}
+                                                Recently added
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if doc.summary %}
+                                    <p class="card-text small">{{ doc.summary|truncate(120) }}</p>
+                                    {% else %}
+                                    <p class="card-text small text-muted"><i class="fas fa-info-circle me-1"></i> No summary available</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mt-auto text-center">
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if recent_documents|length > 3 %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('library') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i> View All Documents
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
