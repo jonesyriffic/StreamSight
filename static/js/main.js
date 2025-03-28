@@ -333,14 +333,44 @@ document.addEventListener('DOMContentLoaded', function() {
  * Uses the Web Speech API for speech recognition
  */
 function initializeVoiceSearch() {
+    // Get all voice search buttons
+    const voiceButtons = document.querySelectorAll('[id^="voiceSearch"]');
+    
+    // Function to disable voice search and show fallback UI
+    const disableVoiceSearch = (message) => {
+        console.warn(message);
+        voiceButtons.forEach(button => {
+            // Change button appearance instead of hiding
+            button.innerHTML = '<i class="fas fa-keyboard"></i>';
+            button.title = "Voice search not available - use keyboard instead";
+            button.disabled = true;
+            button.classList.remove('btn-info');
+            button.classList.add('btn-secondary');
+            
+            // Add a message near the search box
+            const searchContainer = button.closest('.input-group');
+            if (searchContainer && !searchContainer.querySelector('.voice-search-unavailable')) {
+                const unavailableMessage = document.createElement('small');
+                unavailableMessage.classList.add('text-muted', 'mt-1', 'd-block', 'voice-search-unavailable');
+                unavailableMessage.innerHTML = 'Voice search is not available in this environment.';
+                searchContainer.parentNode.appendChild(unavailableMessage);
+            }
+        });
+    };
+    
     // Check if browser supports speech recognition
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        // Hide voice search buttons if speech recognition is not supported
-        const voiceButtons = document.querySelectorAll('[id^="voiceSearch"]');
-        voiceButtons.forEach(button => {
-            button.style.display = 'none';
-        });
-        console.warn('Speech recognition not supported in this browser');
+        disableVoiceSearch('Speech recognition not supported in this browser');
+        return;
+    }
+    
+    // Check if we're in a Replit/iframe environment - these often have issues with Web Speech API
+    const isReplit = window.location.hostname.includes('replit') || 
+                    window.location.hostname.includes('repl.co') ||
+                    (window.top !== window.self); // Check if in an iframe
+                    
+    if (isReplit) {
+        disableVoiceSearch('Speech recognition may not work reliably in this environment');
         return;
     }
 
