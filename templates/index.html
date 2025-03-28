@@ -193,7 +193,45 @@
                             </td>
                             <td class="small">
                                 {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
-                                    <i class="fas fa-bullseye text-success me-1"></i> {{ doc.relevance_reasons[current_user.team_specialization] }}
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-bullseye text-success me-1"></i>
+                                        <span class="text-truncate d-inline-block" style="max-width: 250px;" 
+                                              data-bs-toggle="tooltip" 
+                                              data-bs-placement="top" 
+                                              data-bs-html="true"
+                                              title="{{ doc.relevance_reasons[current_user.team_specialization] }}">
+                                            {{ doc.relevance_reasons[current_user.team_specialization] }}
+                                        </span>
+                                        <button type="button" class="btn btn-sm text-info ms-1" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#relevanceModal{{ loop.index }}">
+                                            <i class="fas fa-expand-alt"></i>
+                                        </button>
+                                    </div>
+                                    <!-- Modal for full relevance reason -->
+                                    <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content bg-dark text-light">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="relevanceModalLabel{{ loop.index }}">Why this document is relevant for you</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Document:</strong> {{ doc.filename }}</p>
+                                                    <p><strong>Your team:</strong> {{ current_user.team_specialization }}</p>
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-bullseye me-2"></i>{{ doc.relevance_reasons[current_user.team_specialization] }}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-primary">
+                                                        <i class="fas fa-eye me-1"></i> View Document
+                                                    </a>
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 {% else %}
                                     <i class="fas fa-info-circle text-muted me-1"></i> Recommended based on your team specialization
                                 {% endif %}
