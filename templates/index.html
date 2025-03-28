@@ -124,14 +124,26 @@
                                     
                                     {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
                                         <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
-                                            <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
-                                            
-                                            {% if doc.relevance_reasons[current_user.team_specialization]|length > 150 %}
-                                                <button class="btn btn-link btn-sm text-success p-0" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#relevanceModal{{ loop.index }}">
-                                                    Read more
-                                                </button>
+                                            {% if doc.relevance_reasons[current_user.team_specialization] is mapping and doc.relevance_reasons[current_user.team_specialization].relevance_reason %}
+                                                <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization].relevance_reason|truncate(150) }}</p>
+                                                
+                                                {% if doc.relevance_reasons[current_user.team_specialization].relevance_reason|length > 150 %}
+                                                    <button class="btn btn-link btn-sm text-success p-0" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#relevanceModal{{ loop.index }}">
+                                                        Read more
+                                                    </button>
+                                                {% endif %}
+                                            {% else %}
+                                                <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
+                                                
+                                                {% if doc.relevance_reasons[current_user.team_specialization]|length > 150 %}
+                                                    <button class="btn btn-link btn-sm text-success p-0" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#relevanceModal{{ loop.index }}">
+                                                        Read more
+                                                    </button>
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                         
@@ -159,7 +171,11 @@
                                                                 <strong>Why this is relevant for you</strong>
                                                             </div>
                                                             <div class="card-body">
-                                                                <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization] }}</p>
+                                                                {% if doc.relevance_reasons[current_user.team_specialization] is mapping and doc.relevance_reasons[current_user.team_specialization].relevance_reason %}
+                                                                    <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization].relevance_reason }}</p>
+                                                                {% else %}
+                                                                    <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization] }}</p>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
