@@ -7,7 +7,7 @@ import json
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
-from utils.document_store import DocumentStore
+from models import db, Document
 
 # Set up logging for debugging
 logging.basicConfig(level=logging.DEBUG)
@@ -24,11 +24,20 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
+# Configure database
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+# Create database tables
+with app.app_context():
+    db.create_all()
+
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'pdf'}
-
-# Initialize document store
-document_store = DocumentStore()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -36,8 +45,8 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    documents = document_store.get_all_documents()
-    return render_template('index.html', documents=documents)
+    documents = Document.query.order_by(Document.uploaded_at.desc()).all()
+    return render_template('index.html', documents=[doc.to_dict() for doc in documents])
 
 @app.route('/upload', methods=['POST'])
 def upload_document():
@@ -67,15 +76,17 @@ def upload_document():
             # Categorize the content
             category = categorize_content(extracted_text)
             
-            # Store the document
-            doc_id = document_store.add_document({
-                'id': str(uuid.uuid4()),
-                'filename': original_filename,
-                'filepath': filepath,
-                'text': extracted_text,
-                'category': category,
-                'uploaded_at': document_store.get_current_time()
-            })
+            # Create new document in database
+            new_document = Document(
+                filename=original_filename,
+                filepath=filepath,
+                text=extracted_text,
+                category=category
+            )
+            
+            # Add to database
+            db.session.add(new_document)
+            db.session.commit()
             
             flash(f'Document "{original_filename}" uploaded successfully!', 'success')
             return redirect(url_for('index'))
@@ -93,46 +104,85 @@ def search():
     category_filter = request.args.get('category', 'all')
     
     if not query:
-        return render_template('search_results.html', results=[], query='', categories=document_store.get_all_categories())
+        all_categories = db.session.query(Document.category).distinct().all()
+        categories = [category[0] for category in all_categories]
+        return render_template('search_results.html', results=[], query='', categories=categories)
     
     try:
-        results = search_documents(query, document_store, category_filter)
+        # Get document repository for search
+        document_repository = {
+            'get_all_documents': lambda: [doc.to_dict() for doc in Document.query.all()],
+            'get_documents_by_category': lambda category: [
+                doc.to_dict() for doc in Document.query.filter_by(category=category).all()
+            ],
+            'get_document': lambda doc_id: Document.query.get(doc_id).to_dict() if Document.query.get(doc_id) else None
+        }
+        
+        results = search_documents(query, document_repository, category_filter)
+        
+        all_categories = db.session.query(Document.category).distinct().all()
+        categories = [category[0] for category in all_categories]
+        
         return render_template('search_results.html', 
                               results=results, 
                               query=query,
                               selected_category=category_filter,
-                              categories=document_store.get_all_categories())
+                              categories=categories)
     except Exception as e:
         logger.error(f"Search error: {str(e)}")
         flash(f'Error during search: {str(e)}', 'danger')
-        return render_template('search_results.html', results=[], query=query, error=str(e), categories=document_store.get_all_categories())
+        all_categories = db.session.query(Document.category).distinct().all()
+        categories = [category[0] for category in all_categories]
+        return render_template('search_results.html', results=[], query=query, error=str(e), categories=categories)
 
 @app.route('/document/<doc_id>')
 def view_document(doc_id):
-    document = document_store.get_document(doc_id)
+    document = Document.query.get(doc_id)
     if document:
-        return render_template('document_viewer.html', document=document)
+        return render_template('document_viewer.html', document=document.to_dict())
     else:
         flash('Document not found', 'danger')
         return redirect(url_for('index'))
 
 @app.route('/api/documents')
 def get_documents():
-    documents = document_store.get_all_documents()
-    return jsonify(documents)
+    documents = Document.query.all()
+    return jsonify([doc.to_dict() for doc in documents])
 
 @app.route('/api/documents/<doc_id>')
 def get_document(doc_id):
-    document = document_store.get_document(doc_id)
+    document = Document.query.get(doc_id)
     if document:
-        return jsonify(document)
+        return jsonify(document.to_dict())
     else:
         return jsonify({'error': 'Document not found'}), 404
 
 @app.route('/api/categories')
 def get_categories():
-    categories = document_store.get_all_categories()
-    return jsonify(categories)
+    categories = db.session.query(Document.category).distinct().all()
+    return jsonify([category[0] for category in categories])
+
+@app.route('/document/delete/<doc_id>', methods=['POST'])
+def delete_document(doc_id):
+    document = Document.query.get(doc_id)
+    if document:
+        try:
+            # Delete physical file if it exists
+            if os.path.exists(document.filepath):
+                os.remove(document.filepath)
+            
+            # Delete from database
+            db.session.delete(document)
+            db.session.commit()
+            
+            flash(f'Document "{document.filename}" deleted successfully', 'success')
+        except Exception as e:
+            logger.error(f"Error deleting document: {str(e)}")
+            flash(f'Error deleting document: {str(e)}', 'danger')
+    else:
+        flash('Document not found', 'danger')
+    
+    return redirect(url_for('index'))
 
 # Error handlers
 @app.errorhandler(404)

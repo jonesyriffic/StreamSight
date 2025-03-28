@@ -14,13 +14,13 @@ openai = OpenAI(api_key=OPENAI_API_KEY)
 # do not change this unless explicitly requested by the user
 MODEL = "gpt-4o"
 
-def search_documents(query, document_store, category_filter="all"):
+def search_documents(query, document_repository, category_filter="all"):
     """
     Search through documents using OpenAI to find relevant information.
     
     Args:
         query: User search query
-        document_store: Document store instance containing documents
+        document_repository: Document repository with methods to access documents
         category_filter: Category to filter documents by (or 'all')
         
     Returns:
@@ -31,9 +31,9 @@ def search_documents(query, document_store, category_filter="all"):
         
         # Get documents filtered by category if needed
         if category_filter and category_filter.lower() != "all":
-            documents = document_store.get_documents_by_category(category_filter)
+            documents = document_repository['get_documents_by_category'](category_filter)
         else:
-            documents = document_store.get_all_documents()
+            documents = document_repository['get_all_documents']()
         
         if not documents:
             logger.warning("No documents found for search")
