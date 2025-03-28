@@ -43,8 +43,14 @@ def generate_document_summary(document_id):
                                "Format your response with two clearly separated sections:\n\n"
                                "1. Executive Summary: A concise paragraph-based summary of the document (200-300 words)\n"
                                "2. Key Insights: A bulleted list of 3-5 key actionable points\n\n"
-                               "Always use 'Key Insights:' as the section header for the second part. "
-                               "Format each key insight with a bullet point (- ) at the start of the line. "
+                               "Always use 'Key Insights:' as the section header for the second part.\n\n"
+                               "For Key Insights:\n"
+                               "- Start each insight with a bullet point (- )\n"
+                               "- Put an actionable title in **bold** at the beginning of each point\n" 
+                               "- Elaborate with 1-2 sentences after the bold title\n"
+                               "- Keep each insight focused on a single idea\n\n"
+                               "Example format for a key insight:\n"
+                               "- **Improve Customer Onboarding:** Streamline the first-time user experience to reduce drop-off rates by 15%.\n\n"
                                "Focus on business implications, customer needs, and product strategy. "
                                "Ensure insights are practical and directly applicable to product management work."
                 },
@@ -91,7 +97,33 @@ def generate_document_summary(document_id):
                             line = line[line.find(".")+1:].strip()
                         
                         if line:  # Only add non-empty lines
-                            bullet_items.append(f"<li>{line}</li>")
+                            # Process markdown bold formatting (**text**)
+                            formatted_line = line
+                            
+                            # Convert markdown bold to HTML bold
+                            if "**" in formatted_line:
+                                bold_count = formatted_line.count("**")
+                                if bold_count >= 2 and bold_count % 2 == 0:
+                                    # Replace pairs of ** with <strong> and </strong>
+                                    is_open = True
+                                    for _ in range(bold_count // 2):
+                                        if is_open:
+                                            formatted_line = formatted_line.replace("**", "<strong>", 1)
+                                            is_open = False
+                                        else:
+                                            formatted_line = formatted_line.replace("**", "</strong>", 1)
+                                            is_open = True
+                            
+                            # Add additional formatting for insights that follow the title: description pattern
+                            if ":" in formatted_line and "<strong>" in formatted_line:
+                                parts = formatted_line.split(":", 1)
+                                if "</strong>" in parts[0]:
+                                    # Format as title + description
+                                    title = parts[0].strip()
+                                    description = parts[1].strip()
+                                    formatted_line = f"{title}:<span class='insight-description'>{description}</span>"
+                            
+                            bullet_items.append(f"<li class='insight-item'>{formatted_line}</li>")
                 
                 # If no properly formatted bullet points were found, try a different approach
                 if not bullet_items:
@@ -99,7 +131,32 @@ def generate_document_summary(document_id):
                     for line in key_points_text.split("\n"):
                         line = line.strip()
                         if line:
-                            bullet_items.append(f"<li>{line}</li>")
+                            # Process markdown bold formatting (**text**)
+                            formatted_line = line
+                            
+                            # Convert markdown bold to HTML bold
+                            if "**" in formatted_line:
+                                bold_count = formatted_line.count("**")
+                                if bold_count >= 2 and bold_count % 2 == 0:
+                                    # Replace pairs of ** with <strong> and </strong>
+                                    is_open = True
+                                    for _ in range(bold_count // 2):
+                                        if is_open:
+                                            formatted_line = formatted_line.replace("**", "<strong>", 1)
+                                            is_open = False
+                                        else:
+                                            formatted_line = formatted_line.replace("**", "</strong>", 1)
+                                            is_open = True
+                            
+                            # Format title-description pattern if present
+                            if ":" in formatted_line and "<strong>" in formatted_line:
+                                parts = formatted_line.split(":", 1)
+                                if "</strong>" in parts[0]:
+                                    title = parts[0].strip()
+                                    description = parts[1].strip()
+                                    formatted_line = f"{title}:<span class='insight-description'>{description}</span>"
+                                    
+                            bullet_items.append(f"<li class='insight-item'>{formatted_line}</li>")
                 
                 key_points = "<ul class='key-points-list'>" + "".join(bullet_items) + "</ul>"
             else:
@@ -114,7 +171,31 @@ def generate_document_summary(document_id):
                     for line in key_points_text.split("\n"):
                         line = line.strip()
                         if line:
-                            bullet_items.append(f"<li>{line}</li>")
+                            # Process markdown formatting here too
+                            formatted_line = line
+                            
+                            # Convert markdown bold to HTML bold
+                            if "**" in formatted_line:
+                                bold_count = formatted_line.count("**")
+                                if bold_count >= 2 and bold_count % 2 == 0:
+                                    is_open = True
+                                    for _ in range(bold_count // 2):
+                                        if is_open:
+                                            formatted_line = formatted_line.replace("**", "<strong>", 1)
+                                            is_open = False
+                                        else:
+                                            formatted_line = formatted_line.replace("**", "</strong>", 1)
+                                            is_open = True
+                            
+                            # Format title-description pattern if present
+                            if ":" in formatted_line and "<strong>" in formatted_line:
+                                parts = formatted_line.split(":", 1)
+                                if "</strong>" in parts[0]:
+                                    title = parts[0].strip()
+                                    description = parts[1].strip()
+                                    formatted_line = f"{title}:<span class='insight-description'>{description}</span>"
+                                    
+                            bullet_items.append(f"<li class='insight-item'>{formatted_line}</li>")
                     
                     key_points = "<ul class='key-points-list'>" + "".join(bullet_items) + "</ul>"
                 else:
@@ -133,7 +214,8 @@ def generate_document_summary(document_id):
         return {
             "success": True,
             "summary": summary,
-            "key_points": key_points
+            "key_points": key_points,
+            "generated_at": document.summary_generated_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         }
     
     except Exception as e:

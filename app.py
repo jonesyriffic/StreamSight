@@ -390,9 +390,8 @@ def generate_document_summary_api(doc_id):
         # Generate summary using our AI utility
         result = generate_document_summary(doc_id)
         
-        # Format the timestamp if present
-        if result.get('success') and document.summary_generated_at:
-            result['generated_at'] = document.summary_generated_at.isoformat()
+        # We don't need to format the timestamp here anymore
+        # The document_ai.py module now returns a properly formatted timestamp
             
         return jsonify(result)
     
