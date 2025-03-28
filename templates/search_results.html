@@ -80,25 +80,26 @@
         
         {% if result.passages %}
         <h5 class="card-title">Key Passages</h5>
-        <div class="accordion" id="passages-{{ loop.index }}">
+        {% set outer_loop = loop %}
+        <div class="accordion" id="passages-{{ outer_loop.index }}">
             {% for passage in result.passages %}
             <div class="accordion-item bg-dark-subtle border-secondary">
-                <h2 class="accordion-header" id="heading-{{ loop.parent.loop.index }}-{{ loop.index }}">
+                <h2 class="accordion-header" id="heading-{{ outer_loop.index }}-{{ loop.index }}">
                     <button class="accordion-button collapsed bg-dark text-light" type="button" 
                             data-bs-toggle="collapse" 
-                            data-bs-target="#collapse-{{ loop.parent.loop.index }}-{{ loop.index }}" 
+                            data-bs-target="#collapse-{{ outer_loop.index }}-{{ loop.index }}" 
                             aria-expanded="false" 
-                            aria-controls="collapse-{{ loop.parent.loop.index }}-{{ loop.index }}">
+                            aria-controls="collapse-{{ outer_loop.index }}-{{ loop.index }}">
                         {% if passage.location %}
                         <span class="badge bg-secondary me-2">{{ passage.location }}</span>
                         {% endif %}
                         Relevant Passage {{ loop.index }}
                     </button>
                 </h2>
-                <div id="collapse-{{ loop.parent.loop.index }}-{{ loop.index }}" 
+                <div id="collapse-{{ outer_loop.index }}-{{ loop.index }}" 
                      class="accordion-collapse collapse" 
-                     aria-labelledby="heading-{{ loop.parent.loop.index }}-{{ loop.index }}" 
-                     data-bs-parent="#passages-{{ loop.parent.loop.index }}">
+                     aria-labelledby="heading-{{ outer_loop.index }}-{{ loop.index }}" 
+                     data-bs-parent="#passages-{{ outer_loop.index }}">
                     <div class="accordion-body">
                         <p class="mb-0">{{ passage.text }}</p>
                     </div>
