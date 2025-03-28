@@ -148,6 +148,74 @@ def regenerate_concise_relevance():
     except Exception as e:
         logging.error(f"Error regenerating concise relevance reasons: {str(e)}")
 
+# Function to fix relevance format for all documents
+def fix_relevance_format():
+    """Fix relevance reason format for all existing documents"""
+    try:
+        with app.app_context():
+            from models import Document, User
+            from utils.relevance_generator import generate_team_relevance
+            
+            # Get all documents from the database
+            documents = Document.query.all()
+            logging.info(f"Found {len(documents)} documents to process for format fix")
+            
+            for doc in documents:
+                # Skip documents with no relevance reasons
+                if not doc.relevance_reasons:
+                    logging.info(f"Skipping document {doc.id}: No relevance reasons")
+                    continue
+
+                try:
+                    # Check if any relevance reason is a dictionary instead of a string
+                    needs_update = False
+                    for team in doc.relevance_reasons:
+                        if isinstance(doc.relevance_reasons[team], dict) and "relevance_reason" in doc.relevance_reasons[team]:
+                            needs_update = True
+                            break
+                    
+                    if not needs_update:
+                        logging.info(f"Document {doc.id} already has correct format")
+                        continue
+                    
+                    # Create a document info dictionary for the relevance generator
+                    document_info = {
+                        "id": doc.id,
+                        "title": doc.friendly_name or doc.filename,
+                        "category": doc.category,
+                        "summary": doc.summary or "No summary available",
+                        "text_excerpt": doc.text[:500] if doc.text else "No text available"
+                    }
+                    
+                    # Fix relevance reasons for each team
+                    updated_relevance = {}
+                    for team in User.TEAM_CHOICES:
+                        if team in doc.relevance_reasons:
+                            if isinstance(doc.relevance_reasons[team], dict) and "relevance_reason" in doc.relevance_reasons[team]:
+                                # Extract the relevance reason from the dictionary
+                                updated_relevance[team] = doc.relevance_reasons[team]["relevance_reason"]
+                            else:
+                                # Keep as is if already a string
+                                updated_relevance[team] = doc.relevance_reasons[team]
+                        else:
+                            # Generate a new relevance reason for this team
+                            updated_relevance[team] = generate_team_relevance(team, document_info)
+                    
+                    # Update the document with fixed relevance reasons
+                    doc.relevance_reasons = updated_relevance
+                    logging.info(f"Updated document {doc.id} relevance format")
+                    
+                except Exception as e:
+                    logging.error(f"Error processing document {doc.id}: {str(e)}")
+                    continue
+            
+            # Commit all changes
+            db.session.commit()
+            logging.info("Completed relevance format fix")
+            
+    except Exception as e:
+        logging.error(f"Error fixing relevance format: {str(e)}")
+
 # For Gunicorn, we need to be careful about initialization that happens on module load
 # We're moving these to a function that's only called by the development server
 
@@ -162,8 +230,12 @@ def run_dev_initializations():
     # Set up search analytics database
     setup_search_analytics()
     
-    # Regenerate document relevance data with concise format
-    regenerate_concise_relevance()
+    # Fix relevance format issues
+    fix_relevance_format()
+    
+    # Regenerate document relevance data with concise format if needed
+    # Commenting this out as we've already fixed the format with fix_relevance_format
+    # regenerate_concise_relevance()
 
 # Only run these operations when starting the development server directly
 if __name__ == "__main__":

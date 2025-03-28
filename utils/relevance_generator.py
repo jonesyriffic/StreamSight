@@ -131,9 +131,9 @@ def generate_team_relevance(team, document_info):
         result = json.loads(response.choices[0].message.content)
         relevance = result.get("relevance_reason")
         
-        # If we have a valid response, return the JSON object with the relevance_reason
+        # If we have a valid response, return just the relevance_reason string (not the full JSON object)
         if relevance and len(relevance) > 20:
-            return result
+            return relevance
             
         # Otherwise, fall back to the category-specific messages
         return get_team_specific_fallback(team, document_info)
@@ -198,5 +198,5 @@ def get_team_specific_fallback(team, document_info):
     else:
         fallback_reason = "Contains information relevant to your specialized work areas."
         
-    # Return the fallback reason in the same format as the AI-generated reason
-    return {"relevance_reason": fallback_reason}
+    # Return just the fallback reason string, not a dictionary
+    return fallback_reason
