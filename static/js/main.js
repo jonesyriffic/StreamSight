@@ -350,12 +350,40 @@ function initializeVoiceSearch() {
     recognition.continuous = false;
     recognition.interimResults = true;
     
-    // Try to use browser's preferred language or fall back to English
+    // Set up supported languages with fallback mechanism
     try {
+        // Common supported languages for speech recognition
+        const supportedLanguages = [
+            'en-US', 'en-GB', 'en', 
+            'fr-FR', 'fr',
+            'es-ES', 'es',
+            'de-DE', 'de',
+            'it-IT', 'it',
+            'ja-JP', 'ja',
+            'ko-KR', 'ko',
+            'pt-BR', 'pt',
+            'zh-CN', 'zh'
+        ];
+        
         // Get browser's language preference
-        const browserLang = navigator.language || 'en';
-        recognition.lang = browserLang;
-        console.log('Using speech recognition language:', browserLang);
+        let browserLang = navigator.language || 'en';
+        let langCode = browserLang.split('-')[0]; // Get the base language code (en, fr, etc.)
+        
+        // Try to find an exact match first
+        if (supportedLanguages.includes(browserLang)) {
+            recognition.lang = browserLang;
+            console.log('Using exact language match:', browserLang);
+        } 
+        // Then try the base language code
+        else if (supportedLanguages.includes(langCode)) {
+            recognition.lang = langCode;
+            console.log('Using base language match:', langCode);
+        }
+        // Fallback to English
+        else {
+            recognition.lang = 'en';
+            console.log('Using fallback language: en');
+        }
     } catch (error) {
         console.warn('Error setting language, using default:', error);
         recognition.lang = 'en'; // Fallback to generic English without region
@@ -486,9 +514,16 @@ function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
         // Create user-friendly error message
         let errorText = 'Voice recognition error';
         if (event.error === 'language-not-supported') {
-            errorText = 'Language not supported. Try a different browser or language setting.';
-            // Try to set a more compatible language on next attempt
-            recognition.lang = 'en'; // Generic English
+            // If language is not supported, try to use a different language next time
+            if (recognition.lang !== 'en-US') {
+                errorText = `Language "${recognition.lang}" not supported. Switching to English (US) for next attempt.`;
+                recognition.lang = 'en-US'; // Try US English next
+            } else if (recognition.lang !== 'en') {
+                errorText = 'English (US) not supported. Trying generic English for next attempt.';
+                recognition.lang = 'en'; // Try generic English next
+            } else {
+                errorText = 'Speech recognition language not supported by your browser.';
+            }
         } else if (event.error === 'no-speech') {
             errorText = 'No speech detected. Please try speaking again.';
         } else if (event.error === 'network') {
