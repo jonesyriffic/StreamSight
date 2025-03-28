@@ -1,7 +1,8 @@
 import os
 import logging
 import uuid
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session
+from functools import wraps
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort
 from werkzeug.utils import secure_filename
 import json
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -48,6 +49,45 @@ def load_user(user_id):
 # Create database tables
 with app.app_context():
     db.create_all()
+    
+    # Check if any admin users exist, if not create one
+    admin_exists = User.query.filter_by(is_admin=True).first()
+    if not admin_exists:
+        admin_email = os.environ.get('ADMIN_EMAIL', 'admin@insights.com')
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'adminpassword')
+        admin_user = User(
+            email=admin_email,
+            name='System Administrator',
+            is_active=True,
+            is_approved=True,
+            is_admin=True
+        )
+        admin_user.set_password(admin_password)
+        db.session.add(admin_user)
+        db.session.commit()
+        logger.info(f"Created admin user: {admin_email}")
+
+# Admin access decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('Admin access required', 'danger')
+            return abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Access check for approved users
+def approved_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        if not current_user.is_approved and not current_user.is_admin:
+            flash('Your account is pending approval', 'warning')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'pdf'}
@@ -174,6 +214,7 @@ def profile():
 
 @app.route('/upload', methods=['GET'])
 @login_required
+@approved_required
 def upload_page():
     return render_template('upload.html')
 
@@ -215,6 +256,7 @@ def library():
 
 @app.route('/upload', methods=['POST'])
 @login_required
+@approved_required
 def upload_document():
     if 'file' not in request.files:
         flash('No file part', 'danger')
@@ -331,6 +373,7 @@ def get_categories():
 
 @app.route('/document/delete/<doc_id>', methods=['POST'])
 @login_required
+@approved_required
 def delete_document(doc_id):
     document = Document.query.get(doc_id)
     if not document:
@@ -359,6 +402,96 @@ def delete_document(doc_id):
     # Redirect back to library
     return redirect(url_for('library'))
 
+# Admin Dashboard Routes
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    # Get statistics for admin dashboard
+    total_users = User.query.count()
+    pending_users = User.query.filter_by(is_approved=False).count()
+    admin_users = User.query.filter_by(is_admin=True).count()
+    total_documents = Document.query.count()
+    
+    # Recent user registrations
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    
+    # Pending approval users
+    pending_approval = User.query.filter_by(is_approved=False).order_by(User.created_at.desc()).all()
+    
+    return render_template('admin/dashboard.html',
+                         total_users=total_users,
+                         pending_users=pending_users,
+                         admin_users=admin_users,
+                         total_documents=total_documents,
+                         recent_users=recent_users,
+                         pending_approval=pending_approval)
+
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    # Get all users
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('admin/users.html', users=users)
+
+@app.route('/admin/user/<int:user_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    user.approve()
+    db.session.commit()
+    
+    flash(f'User {user.email} has been approved', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/<int:user_id>/toggle_admin', methods=['POST'])
+@login_required
+@admin_required
+def toggle_admin(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Don't allow removing admin status from the last admin
+    if user.is_admin and User.query.filter_by(is_admin=True).count() <= 1:
+        flash('Cannot remove admin status from the last admin user', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    user.is_admin = not user.is_admin
+    db.session.commit()
+    
+    action = 'granted' if user.is_admin else 'revoked'
+    flash(f'Admin privileges {action} for user {user.email}', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/<int:user_id>/toggle_active', methods=['POST'])
+@login_required
+@admin_required
+def toggle_active(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Don't allow deactivating the last admin
+    if user.is_admin and user.is_active and User.query.filter_by(is_admin=True, is_active=True).count() <= 1:
+        flash('Cannot deactivate the last active admin user', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    user.is_active = not user.is_active
+    db.session.commit()
+    
+    status = 'activated' if user.is_active else 'deactivated'
+    flash(f'User {user.email} has been {status}', 'success')
+    return redirect(url_for('admin_users'))
+
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
@@ -367,6 +500,10 @@ def page_not_found(e):
 @app.errorhandler(500)
 def server_error(e):
     return render_template('index.html', error='Server error occurred'), 500
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('index.html', error='Access forbidden'), 403
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

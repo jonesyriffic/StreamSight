@@ -54,6 +54,39 @@
                             {{ current_user.documents|length }}
                         </div>
                     </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Account Status:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {% if current_user.is_active %}
+                                {% if current_user.is_approved %}
+                                    <span class="badge bg-success">Active & Approved</span>
+                                    {% if current_user.approved_at %}
+                                        <small class="text-muted d-block mt-1">Approved on {{ current_user.approved_at.strftime('%B %d, %Y') }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning">Pending Approval</span>
+                                    <small class="text-muted d-block mt-1">Your account is awaiting administrator approval.</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-danger">Deactivated</span>
+                                <small class="text-muted d-block mt-1">Please contact an administrator for assistance.</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if current_user.is_admin %}
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Role:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <span class="badge bg-primary">Administrator</span>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="card-footer">
                     <div class="d-flex justify-content-end">

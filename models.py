@@ -14,7 +14,10 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     name = db.Column(db.String(100), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    is_approved = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approved_at = db.Column(db.DateTime, nullable=True)
     
     # Relationship with documents
     documents = db.relationship('Document', backref='uploader', lazy=True)
@@ -27,13 +30,22 @@ class User(UserMixin, db.Model):
         """Check password"""
         return check_password_hash(self.password_hash, password)
     
+    def approve(self):
+        """Approve user account"""
+        self.is_approved = True
+        self.approved_at = datetime.utcnow()
+    
     def to_dict(self):
         """Convert user to dictionary"""
         return {
             'id': self.id,
             'email': self.email,
             'name': self.name,
-            'created_at': self.created_at.isoformat()
+            'is_active': self.is_active,
+            'is_approved': self.is_approved,
+            'is_admin': self.is_admin,
+            'created_at': self.created_at.isoformat(),
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None
         }
 
 class Document(db.Model):

@@ -10,6 +10,22 @@
             Discover breakthrough insights from your product management and customer service resources
             using advanced AI-powered document analysis.
         </p>
+        
+        {% if current_user.is_authenticated %}
+            {% if not current_user.is_approved %}
+            <div class="alert alert-warning mt-3">
+                <i class="fas fa-clock me-2"></i> <strong>Welcome {{ current_user.name or current_user.email }}!</strong> Your account is pending approval. Some features will be limited until an administrator approves your account.
+            </div>
+            {% elif not current_user.is_active %}
+            <div class="alert alert-danger mt-3">
+                <i class="fas fa-ban me-2"></i> <strong>Account deactivated.</strong> Your account has been deactivated. Please contact an administrator.
+            </div>
+            {% else %}
+            <div class="alert alert-success mt-3">
+                <i class="fas fa-check-circle me-2"></i> <strong>Welcome back, {{ current_user.name or current_user.email }}!</strong> Your account is active and fully approved.
+            </div>
+            {% endif %}
+        {% endif %}
     </div>
     <div class="col-md-4 text-center">
         <i class="fas fa-lightbulb fa-6x text-warning mb-3"></i>
@@ -62,9 +78,15 @@
                 </div>
                 <p class="flex-grow-1">Add new PDF documents to your knowledge base. Our AI will automatically categorize them and make them searchable.</p>
                 {% if current_user.is_authenticated %}
-                <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
-                    <i class="fas fa-upload me-2"></i> Upload Documents
-                </a>
+                    {% if current_user.is_approved %}
+                    <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i> Upload Documents
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-clock me-2"></i> Waiting for Approval
+                    </button>
+                    {% endif %}
                 {% else %}
                 <a href="{{ url_for('login') }}" class="btn btn-primary">
                     <i class="fas fa-sign-in-alt me-2"></i> Login to Upload

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Admin Dashboard</h1>
+    <div>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-primary me-2">
+            <i class="fas fa-users me-2"></i> Manage Users
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-home me-2"></i> Main Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-dark mb-3">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-0">{{ total_users }}</h1>
+                <p class="text-muted">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark mb-3">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-0">{{ pending_users }}</h1>
+                <p class="text-muted">Pending Approvals</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark mb-3">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-0">{{ admin_users }}</h1>
+                <p class="text-muted">Admin Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark mb-3">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-0">{{ total_documents }}</h1>
+                <p class="text-muted">Total Documents</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if pending_approval|length > 0 %}
+<div class="card bg-dark border-warning mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">Pending User Approvals</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in pending_approval %}
+                    <tr>
+                        <td>{{ user.name or 'N/A' }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.created_at }}</td>
+                        <td>
+                            <form action="{{ url_for('approve_user', user_id=user.id) }}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check me-1"></i> Approve
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i> No pending user approvals.
+</div>
+{% endif %}
+
+<div class="card bg-dark mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Recent User Registrations</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Admin</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr>
+                        <td>{{ user.name or 'N/A' }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.is_active %}
+                                {% if user.is_approved %}
+                                <span class="badge bg-success">Active & Approved</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending Approval</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-danger">Deactivated</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge bg-primary">Admin</span>
+                            {% else %}
+                            <span class="badge bg-secondary">User</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">
+                View All Users
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
