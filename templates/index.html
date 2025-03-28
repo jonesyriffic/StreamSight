@@ -3,347 +3,340 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="row align-items-center mb-5 animate-fade-in">
-    {% if current_user.is_authenticated %}
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="modern-card profile-card">
-            <button class="floating-action">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <div class="profile-image-container">
-                <div class="profile-progress" style="--progress: 75%"></div>
-                <img src="https://ui-avatars.com/api/?name={{ current_user.name or current_user.email }}&background=random&color=fff&size=200" class="profile-image" alt="Profile">
-            </div>
-            <h2 class="profile-name">{{ current_user.name or current_user.email }}</h2>
-            <p class="profile-role">{{ current_user.team_specialization or "Team Member" }}</p>
-            
-            {% if not current_user.is_approved %}
-            <div class="modern-badge modern-badge-warning mb-3">
-                <i class="fas fa-clock"></i> Pending Approval
-            </div>
-            {% elif not current_user.is_active %}
-            <div class="modern-badge modern-badge-danger mb-3">
-                <i class="fas fa-ban"></i> Account Deactivated
-            </div>
-            {% else %}
-            <div class="modern-badge modern-badge-success mb-3">
-                <i class="fas fa-check-circle"></i> Active Account
-            </div>
-            {% endif %}
-            
-            <div class="profile-stats">
-                <div class="stat-item">
-                    <span class="stat-value">{{ recent_views|length if recent_views else 0 }}</span>
-                    <span class="stat-label">Views</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">{{ current_user.activities.filter_by(activity_type='search').count() }}</span>
-                    <span class="stat-label">Searches</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">{{ current_user.documents|length }}</span>
-                    <span class="stat-label">Uploads</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="modern-card metrics-card modern-card-gradient-red">
-            <button class="floating-action">
-                <i class="fas fa-bell"></i>
-            </button>
-            <h3 class="metrics-title">Prioritized Tasks</h3>
-            <div class="metrics-value">83%</div>
-            <div class="metrics-label">Avg. Completion Rate</div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="modern-card metrics-card modern-card-gradient-blue">
-            <button class="floating-action">
-                <i class="fas fa-clock"></i>
-            </button>
-            <h3 class="metrics-title">Document Insights</h3>
-            <div class="metrics-value">{{ '{:.0f}'.format(56) }}%</div>
-            <div class="metrics-label">Knowledge Coverage</div>
-        </div>
-    </div>
-    {% else %}
+<div class="row align-items-center mb-5">
     <div class="col-md-8">
         <h1 class="display-4 mb-4">NextGen Insight Spark</h1>
         <p class="lead">
             Discover breakthrough insights from your product management and customer service resources
             using advanced AI-powered document analysis.
         </p>
+        
+        {% if current_user.is_authenticated %}
+            {% if not current_user.is_approved %}
+            <div class="alert alert-warning mt-3">
+                <i class="fas fa-clock me-2"></i> <strong>Welcome {{ current_user.name or current_user.email }}!</strong> Your account is pending approval. Some features will be limited until an administrator approves your account.
+            </div>
+            {% elif not current_user.is_active %}
+            <div class="alert alert-danger mt-3">
+                <i class="fas fa-ban me-2"></i> <strong>Account deactivated.</strong> Your account has been deactivated. Please contact an administrator.
+            </div>
+            {% else %}
+            <div class="alert alert-success mt-3">
+                <i class="fas fa-check-circle me-2"></i> <strong>Welcome back, {{ current_user.name or current_user.email }}!</strong> Your account is active and fully approved.
+            </div>
+            {% endif %}
+        {% endif %}
     </div>
     <div class="col-md-4 text-center">
         <i class="fas fa-lightbulb fa-6x text-warning mb-3"></i>
     </div>
-    {% endif %}
 </div>
 
 <!-- Search Box -->
-<div class="row mb-5 animate-fade-in" style="animation-delay: 0.2s">
+<div class="row mb-5">
     <div class="col-md-12">
-        <div class="modern-card" style="padding: 30px;">
-            <h2 style="font-weight: 600; margin-bottom: 20px;">Search Your Knowledge Base</h2>
-            <form action="{{ url_for('search') }}" method="get" class="mb-0">
-                <div class="modern-search-container mb-4">
-                    <input type="text" name="query" class="modern-search form-control form-control-lg" 
-                           placeholder="Ask a question or search for keywords..." 
-                           aria-label="Search query">
-                    <button class="modern-search-btn" type="submit" id="mainSearchButton">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                
-                <!-- Loading spinner that appears when search is in progress -->
-                <div id="mainSearchSpinner" class="mt-3 text-center d-none">
-                    <div class="spinner-border" style="color: #4989FF" role="status">
-                        <span class="visually-hidden">Searching...</span>
+        <div class="card bg-dark shadow">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Search Your Knowledge Base</h2>
+                <form action="{{ url_for('search') }}" method="get" class="mb-0">
+                    <div class="input-group input-group-lg mb-3">
+                        <input type="text" name="query" class="form-control" 
+                               placeholder="Ask a question or search for keywords..." 
+                               aria-label="Search query">
+                        <button class="btn btn-primary" type="submit" id="mainSearchButton">
+                            <i class="fas fa-search me-2"></i> Search
+                        </button>
                     </div>
-                    <p class="mt-2" style="color: #4989FF">Searching documents using AI... This may take a few moments.</p>
-                </div>
-                
-                <script>
-                    // Show loading spinner when search form is submitted
-                    document.currentScript.closest('form').addEventListener('submit', function() {
-                        // Only show spinner if there's a search query
-                        if (this.querySelector('input[name="query"]').value.trim()) {
-                            document.getElementById('mainSearchButton').disabled = true;
-                            document.getElementById('mainSearchSpinner').classList.remove('d-none');
-                        }
-                    });
-                </script>
-                <div>
-                    <label class="form-label" style="font-weight: 500; margin-bottom: 10px;">Filter by Category:</label>
-                    <select name="category" class="form-select" style="max-width: 300px;">
-                        <option value="all">All Categories</option>
-                        {% for category in categories if categories %}
-                            <option value="{{ category }}">{{ category }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </form>
+                    
+                    <!-- Loading spinner that appears when search is in progress -->
+                    <div id="mainSearchSpinner" class="mt-3 text-center d-none">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Searching...</span>
+                        </div>
+                        <p class="mt-2 text-info">Searching documents using AI... This may take a few moments.</p>
+                    </div>
+                    
+                    <script>
+                        // Show loading spinner when search form is submitted
+                        document.currentScript.closest('form').addEventListener('submit', function() {
+                            // Only show spinner if there's a search query
+                            if (this.querySelector('input[name="query"]').value.trim()) {
+                                document.getElementById('mainSearchButton').disabled = true;
+                                document.getElementById('mainSearchSpinner').classList.remove('d-none');
+                            }
+                        });
+                    </script>
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <label class="form-label">Filter by Category:</label>
+                            <select name="category" class="form-select">
+                                <option value="all">All Categories</option>
+                                {% for category in categories if categories %}
+                                    <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Team Recommendations -->
 {% if current_user.is_authenticated and current_user.team_specialization and recommended_documents %}
-<div class="row mb-5 animate-fade-in" style="animation-delay: 0.3s">
-    <div class="col-md-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3 style="font-weight: 600; margin-bottom: 0;">
-                <i class="fas fa-star text-warning me-2"></i> 
-                Recommendations for {{ current_user.team_specialization }}
-            </h3>
-            <span class="modern-badge modern-badge-info">Personalized</span>
-        </div>
-    </div>
-    
-    {% for doc in recommended_documents %}
-    {% if loop.index <= 3 %}
-    <div class="col-lg-4 col-md-6 mb-4">
-        <div class="modern-card document-card">
-            <div class="document-card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}" style="font-weight: 600;">
-                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
-                    </h5>
-                    <span class="modern-badge 
-                        {% if doc.category == 'Industry Insights' %}modern-badge-info
-                        {% elif doc.category == 'Technology News' %}modern-badge-success
-                        {% elif doc.category == 'Product Management' %}modern-badge-primary
-                        {% elif doc.category == 'Customer Service' %}modern-badge-warning
-                        {% else %}{% endif %}">
-                        {{ doc.category }}
-                    </span>
-                </div>
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-star text-warning me-2"></i> 
+                    Recommendations for {{ current_user.team_specialization }}
+                </h3>
+                <span class="badge bg-primary">Personalized</span>
             </div>
-            
-            <div class="document-card-body">
-                <div class="mb-3">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="modern-badge modern-badge-success me-2">
-                            <i class="fas fa-lightbulb me-1"></i> Relevance
-                        </span>
-                    </div>
-                    
-                    {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
-                        <div class="relevance-container">
-                            <p class="relevance-text mb-1">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% for doc in recommended_documents %}
+                    {% if loop.index <= 3 %}
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            {% if doc.category == 'Industry Insights' %}border-info
+                            {% elif doc.category == 'Technology News' %}border-success
+                            {% elif doc.category == 'Product Management' %}border-primary
+                            {% elif doc.category == 'Customer Service' %}border-warning
+                            {% else %}border-secondary{% endif %}">
                             
-                            {% if doc.relevance_reasons[current_user.team_specialization]|length > 150 %}
-                                <button class="btn btn-link btn-sm p-0" 
-                                        style="color: #49FF7E; font-size: 0.875rem;"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#relevanceModal{{ loop.index }}">
-                                    Read more
-                                </button>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Modal for full relevance reason -->
-                        <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" style="color: #49FF7E" id="relevanceModalLabel{{ loop.index }}">
-                                            <i class="fas fa-lightbulb me-2"></i>Document Relevance Insights
-                                        </h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
+                                    </h5>
+                                    <span class="badge 
+                                        {% if doc.category == 'Industry Insights' %}bg-info
+                                        {% elif doc.category == 'Technology News' %}bg-success
+                                        {% elif doc.category == 'Product Management' %}bg-primary
+                                        {% elif doc.category == 'Customer Service' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ doc.category }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-success me-2 px-2 py-1">
+                                            <i class="fas fa-lightbulb me-1"></i> Relevance
+                                        </span>
+                                        <h6 class="mb-0 fw-bold text-success">Why this matters for your team</h6>
                                     </div>
-                                    <div class="modal-body">
-                                        <h6 class="mb-3">{{ doc.friendly_name if doc.friendly_name else doc.filename }}</h6>
-                                        
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="modern-badge modern-badge-info me-2">{{ current_user.team_specialization }}</span>
-                                            <small style="color: rgba(255, 255, 255, 0.6)">Your team specialization</small>
+                                    
+                                    {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
+                                        <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
+                                            <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
+                                            
+                                            {% if doc.relevance_reasons[current_user.team_specialization]|length > 150 %}
+                                                <button class="btn btn-link btn-sm text-success p-0" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#relevanceModal{{ loop.index }}">
+                                                    Read more
+                                                </button>
+                                            {% endif %}
                                         </div>
                                         
-                                        <div style="background: rgba(73, 255, 126, 0.05); border-radius: 12px; padding: 16px; border: 1px solid rgba(73, 255, 126, 0.1);">
-                                            <p style="margin-bottom: 0;">{{ doc.relevance_reasons[current_user.team_specialization] }}</p>
+                                        <!-- Modal for full relevance reason -->
+                                        <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content bg-dark text-light">
+                                                    <div class="modal-header bg-dark">
+                                                        <h5 class="modal-title text-success" id="relevanceModalLabel{{ loop.index }}">
+                                                            <i class="fas fa-lightbulb me-2"></i>Document Relevance Insights
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <h6 class="mb-3 text-light">{{ doc.friendly_name if doc.friendly_name else doc.filename }}</h6>
+                                                        
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <span class="badge bg-info me-2">{{ current_user.team_specialization }}</span>
+                                                            <small class="text-muted">Your team specialization</small>
+                                                        </div>
+                                                        
+                                                        <div class="card bg-dark-subtle border-success mb-3">
+                                                            <div class="card-header bg-success bg-opacity-25 text-success">
+                                                                <i class="fas fa-bullseye me-1"></i>
+                                                                <strong>Why this is relevant for you</strong>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization] }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-success">
+                                                            <i class="fas fa-eye me-1"></i> View Full Document
+                                                        </a>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="modern-btn" data-bs-dismiss="modal">Close</button>
-                                    </div>
+                                    {% else %}
+                                        <div class="border-start border-warning ps-3 pt-2 pb-2 mt-2 mb-2">
+                                            <p class="card-text small mb-0">
+                                                <i class="fas fa-info-circle me-1 text-warning"></i> 
+                                                This document contains insights from the {{ doc.category }} domain that align with specific needs of the {{ current_user.team_specialization }} team.
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-flex mt-auto justify-content-center">
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
                                 </div>
                             </div>
                         </div>
-                    {% else %}
-                        <p class="card-text small fst-italic" style="color: rgba(255, 255, 255, 0.5)">Relevance information not available</p>
+                    </div>
                     {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if recommended_documents|length > 3 %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('library') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i> View All Recommendations
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recently Added Documents -->
+{% if recent_documents %}
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-clock text-info me-2"></i>
+                    Recently Added Documents
+                </h3>
+                <a href="{{ url_for('library') }}" class="btn btn-sm btn-outline-info">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% for doc in recent_documents %}
+                    {% if loop.index <= 3 %}
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark border border-1 
+                            {% if doc.category == 'Industry Insights' %}border-info
+                            {% elif doc.category == 'Technology News' %}border-success
+                            {% elif doc.category == 'Product Management' %}border-primary
+                            {% elif doc.category == 'Customer Service' %}border-warning
+                            {% else %}border-secondary{% endif %}">
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
+                                    </h5>
+                                    <span class="badge 
+                                        {% if doc.category == 'Industry Insights' %}bg-info
+                                        {% elif doc.category == 'Technology News' %}bg-success
+                                        {% elif doc.category == 'Product Management' %}bg-primary
+                                        {% elif doc.category == 'Customer Service' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ doc.category }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                        <span class="small text-muted">
+                                            {% if doc.relative_time %}
+                                                {{ doc.relative_time }}
+                                            {% elif doc.uploaded_at %}
+                                                Added {{ doc.uploaded_at.strftime('%b %d, %Y') if doc.uploaded_at is not string else doc.uploaded_at }}
+                                            {% else %}
+                                                Recently added
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if doc.summary %}
+                                    <p class="card-text small">{{ doc.summary|truncate(120) }}</p>
+                                    {% else %}
+                                    <p class="card-text small text-muted"><i class="fas fa-info-circle me-1"></i> No summary available</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mt-auto text-center">
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if recent_documents|length > 3 %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('library') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i> View All Documents
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Document Stats Section -->
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-chart-bar text-primary me-2"></i>
+                    Document Statistics
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="bg-dark rounded p-3">
+                            <div class="display-4 text-primary mb-2">{{ total_documents }}</div>
+                            <div class="text-muted">Total Documents</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="bg-dark rounded p-3">
+                            <div class="display-4 text-info mb-2">{{ total_categories }}</div>
+                            <div class="text-muted">Categories</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-dark rounded p-3">
+                            <div class="display-4 text-success mb-2">{{ upload_month }}</div>
+                            <div class="text-muted">Uploads This Month</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="document-card-footer">
-                <span style="color: rgba(255, 255, 255, 0.6); font-size: 0.875rem;">
-                    <i class="far fa-calendar-alt me-1"></i> {{ doc.uploaded_at.strftime('%b %d, %Y') }}
-                </span>
-                <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="modern-btn modern-btn-primary">
-                    <i class="fas fa-eye me-1"></i> View
-                </a>
-            </div>
         </div>
-    </div>
-    {% endif %}
-    {% endfor %}
-    
-    {% if recommended_documents|length > 3 %}
-    <div class="col-md-12 text-center mt-3">
-        <a href="{{ url_for('library') }}" class="modern-btn">
-            <i class="fas fa-book me-1"></i> View All Documents
-        </a>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
-
-<!-- Recent Activity -->
-{% if current_user.is_authenticated and recent_views %}
-<div class="row mb-5 animate-fade-in" style="animation-delay: 0.4s">
-    <div class="col-md-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3 style="font-weight: 600; margin-bottom: 0;">
-                <i class="fas fa-history text-info me-2"></i> Recently Viewed
-            </h3>
-        </div>
-    </div>
-    
-    <div class="col-md-12">
-        <div class="modern-card">
-            <div class="table-responsive">
-                <table class="table text-light" style="margin-bottom: 0;">
-                    <thead>
-                        <tr>
-                            <th>Document</th>
-                            <th>Category</th>
-                            <th>Viewed On</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for view in recent_views %}
-                        <tr style="border-color: rgba(255, 255, 255, 0.05);">
-                            <td>
-                                <a href="{{ url_for('view_document', doc_id=view.document.id) }}" class="text-decoration-none text-white">
-                                    {{ view.document.friendly_name if view.document.friendly_name else view.document.filename }}
-                                </a>
-                            </td>
-                            <td>
-                                <span class="modern-badge 
-                                    {% if view.document.category == 'Industry Insights' %}modern-badge-info
-                                    {% elif view.document.category == 'Technology News' %}modern-badge-success
-                                    {% elif view.document.category == 'Product Management' %}modern-badge-primary
-                                    {% elif view.document.category == 'Customer Service' %}modern-badge-warning
-                                    {% else %}{% endif %}">
-                                    {{ view.document.category }}
-                                </span>
-                            </td>
-                            <td>{{ view.performed_at.strftime('%b %d, %Y at %H:%M') }}</td>
-                            <td class="text-end">
-                                <a href="{{ url_for('view_document', doc_id=view.document.id) }}" class="modern-btn">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Categories Overview -->
-<div class="row animate-fade-in" style="animation-delay: 0.5s">
-    <div class="col-md-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3 style="font-weight: 600; margin-bottom: 0;">
-                <i class="fas fa-folder-open text-warning me-2"></i> Browse by Category
-            </h3>
-        </div>
-    </div>
-    
-    <div class="col-md-3 col-sm-6 mb-4">
-        <a href="{{ url_for('library', category='Industry Insights') }}" class="text-decoration-none">
-            <div class="modern-card h-100" style="padding: 24px; text-align: center;">
-                <i class="fas fa-chart-line fa-3x mb-3" style="color: #4989FF"></i>
-                <h4 style="font-weight: 600; color: #4989FF">Industry Insights</h4>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 0;">Trends, benchmarks, and market analysis</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-4">
-        <a href="{{ url_for('library', category='Technology News') }}" class="text-decoration-none">
-            <div class="modern-card h-100" style="padding: 24px; text-align: center;">
-                <i class="fas fa-microchip fa-3x mb-3" style="color: #49FF7E"></i>
-                <h4 style="font-weight: 600; color: #49FF7E">Technology News</h4>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 0;">Latest tech breakthroughs and innovations</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-4">
-        <a href="{{ url_for('library', category='Product Management') }}" class="text-decoration-none">
-            <div class="modern-card h-100" style="padding: 24px; text-align: center;">
-                <i class="fas fa-tasks fa-3x mb-3" style="color: #A68BFF"></i>
-                <h4 style="font-weight: 600; color: #A68BFF">Product Management</h4>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 0;">Methodologies, strategies, and best practices</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-4">
-        <a href="{{ url_for('library', category='Customer Service') }}" class="text-decoration-none">
-            <div class="modern-card h-100" style="padding: 24px; text-align: center;">
-                <i class="fas fa-headset fa-3x mb-3" style="color: #FFBD49"></i>
-                <h4 style="font-weight: 600; color: #FFBD49">Customer Service</h4>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 0;">Support strategies and customer experience</p>
-            </div>
-        </a>
     </div>
 </div>
 {% endblock %}
