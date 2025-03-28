@@ -90,8 +90,8 @@
                             
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.filename }}">
-                                        {{ doc.filename }}
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
                                     </h5>
                                     <span class="badge 
                                         {% if doc.category == 'Industry Insights' %}bg-info
@@ -119,7 +119,7 @@
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <p><strong>Document:</strong> {{ doc.filename }}</p>
+                                                        <p><strong>Document:</strong> {{ doc.friendly_name if doc.friendly_name else doc.filename }}</p>
                                                         <p><strong>Your team:</strong> {{ current_user.team_specialization }}</p>
                                                         <div class="alert alert-info">
                                                             <i class="fas fa-bullseye me-2"></i>{{ doc.relevance_reasons[current_user.team_specialization] }}
@@ -197,8 +197,8 @@
                             
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.filename }}">
-                                        {{ doc.filename }}
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
                                     </h5>
                                     <span class="badge 
                                         {% if doc.category == 'Industry Insights' %}bg-info

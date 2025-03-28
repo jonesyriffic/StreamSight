@@ -68,7 +68,7 @@
                 {% else %}bg-secondary{% endif %}">
                 {{ result.document.category }}
             </span>
-            <strong class="ms-2">{{ result.document.filename }}</strong>
+            <strong class="ms-2">{{ result.document.friendly_name if result.document.friendly_name else result.document.filename }}</strong>
         </div>
         <div>
             <span class="badge bg-secondary">Relevance: {{ result.relevance_score }}/10</span>

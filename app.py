@@ -12,7 +12,7 @@ from email_validator import validate_email, EmailNotValidError
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
-from utils.document_ai import generate_document_summary
+from utils.document_ai import generate_document_summary, generate_friendly_name
 from utils.relevance_generator import generate_relevance_reasons
 from utils.badge_service import BadgeService
 from models import db, Document, User, Badge, UserActivity
@@ -411,9 +411,13 @@ def upload_document():
                     # Use a default category if categorization fails
                     category = "Uncategorized"
                 
+                # Generate a user-friendly name for the document
+                friendly_name = generate_friendly_name(original_filename)
+                
                 # Create new document in database with current user as uploader
                 new_document = Document(
                     filename=original_filename,
+                    friendly_name=friendly_name,
                     filepath=filepath,
                     text=extracted_text,
                     category=category,

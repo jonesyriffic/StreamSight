@@ -102,7 +102,7 @@
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">{{ document.filename }}</h5>
+                <h5 class="card-title mb-0">{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
                 <a id="direct-download-btn" href="" class="btn btn-sm btn-outline-info" target="_blank">
                     <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
                 </a>
@@ -111,7 +111,7 @@
                 <div class="d-flex flex-column align-items-center">
                     <div class="mb-3">
                         <i class="fas fa-file-pdf text-danger fa-4x mb-3"></i>
-                        <h5>{{ document.filename }}</h5>
+                        <h5>{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
                     </div>
                     <p class="mb-4">PDF ready for viewing or download</p>
                     <div class="d-flex gap-3">
@@ -209,7 +209,8 @@
                     </span>
                 </p>
                 <p><strong>Uploaded:</strong> <br>{{ document.uploaded_at }}</p>
-                <p><strong>Filename:</strong> <br>{{ document.filename }}</p>
+                <p><strong>Document Name:</strong> <br>{{ document.friendly_name if document.friendly_name else document.filename }}</p>
+                <p><strong>Original Filename:</strong> <br>{{ document.filename }}</p>
             </div>
         </div>
         

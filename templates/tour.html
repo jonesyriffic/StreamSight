@@ -194,7 +194,7 @@
                     <i class="fas fa-book-open me-2"></i> Sample Document for Exploration
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">{{ sample_document.filename }}</h5>
+                    <h5 class="card-title">{{ sample_document.friendly_name if sample_document.friendly_name else sample_document.filename }}</h5>
                     <p class="card-text">
                         {{ sample_document.category }} - Uploaded {{ sample_document.uploaded_at.strftime('%Y-%m-%d') }}
                     </p>

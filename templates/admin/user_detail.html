@@ -225,7 +225,7 @@
                             <tbody>
                                 {% for doc in documents %}
                                 <tr>
-                                    <td>{{ doc.filename }}</td>
+                                    <td>{{ doc.friendly_name if doc.friendly_name else doc.filename }}</td>
                                     <td><span class="badge bg-info">{{ doc.category }}</span></td>
                                     <td>{{ doc.uploaded_at.strftime('%b %d, %Y') }}</td>
                                     <td>

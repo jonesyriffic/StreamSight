@@ -3,6 +3,7 @@ Document AI module for handling AI operations on documents
 """
 import os
 import logging
+import re
 from datetime import datetime
 from openai import OpenAI
 from models import db, Document
@@ -12,6 +13,67 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 openai = OpenAI(api_key=OPENAI_API_KEY)
 
 logger = logging.getLogger(__name__)
+
+def generate_friendly_name(filename):
+    """
+    Generate a user-friendly name for a document based on its filename
+    
+    Args:
+        filename: Original filename of the document
+        
+    Returns:
+        str: User-friendly name for the document
+    """
+    try:
+        # Remove file extensions
+        name = re.sub(r'\.[^.]+$', '', filename)
+        
+        # Replace underscores and hyphens with spaces
+        name = name.replace('_', ' ').replace('-', ' ')
+        
+        # Remove any UUID patterns that might be in the filename
+        name = re.sub(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', '', name, flags=re.IGNORECASE)
+        
+        # Clean up any extra spaces
+        name = re.sub(r'\s+', ' ', name).strip()
+        
+        # If the name is still complex or unclear, use AI to generate a better title
+        if len(name) > 30 or re.search(r'\d{6,}', name) or name.count(' ') < 1:
+            # Get a better title using OpenAI
+            response = openai.chat.completions.create(
+                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert at creating concise, descriptive document titles. "
+                                   "Given a filename, create a professional, clear title that would make sense in a "
+                                   "document library for product managers. Keep it under 6 words if possible. "
+                                   "Don't use phrases like 'Report on' or 'Analysis of' unless necessary. "
+                                   "Don't include dates unless they seem important to the content."
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Create a user-friendly title for this document filename: {filename}"
+                    }
+                ],
+                max_tokens=50
+            )
+            
+            # Extract the generated title
+            friendly_name = response.choices[0].message.content.strip()
+            
+            # Remove any quotation marks that might have been added
+            friendly_name = friendly_name.strip('"\'').strip()
+            
+            return friendly_name
+        
+        # If the name is already decent, just capitalize words properly
+        return ' '.join(word.capitalize() for word in name.split())
+        
+    except Exception as e:
+        logger.error(f"Error generating friendly name: {str(e)}")
+        # Fall back to the original filename without extension if there's an error
+        return re.sub(r'\.[^.]+$', '', filename).replace('_', ' ').replace('-', ' ')
 
 def generate_document_summary(document_id):
     """
