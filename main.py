@@ -122,17 +122,27 @@ def regenerate_document_relevance():
     except Exception as e:
         logging.error(f"Error regenerating document relevance reasons: {str(e)}")
 
-# Initialize badges when server starts
-initialize_badges()
+# For Gunicorn, we need to be careful about initialization that happens on module load
+# We're moving these to a function that's only called by the development server
 
-# Process document friendly names
-process_document_friendly_names()
+# Function to run initializations for development mode only
+def run_dev_initializations():
+    # Initialize badges
+    initialize_badges()
+    
+    # Process document friendly names
+    process_document_friendly_names()
+    
+    # Set up search analytics database
+    setup_search_analytics()
+    
+    # Regenerate document relevance data
+    regenerate_document_relevance()
 
-# Set up search analytics database
-setup_search_analytics()
-
-# Regenerate document relevance data
-regenerate_document_relevance()
-
+# Only run these operations when starting the development server directly
 if __name__ == "__main__":
+    # Run development initializations
+    run_dev_initializations()
+    
+    # Start the Flask development server
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -191,7 +191,15 @@ class Document(db.Model):
         if self.relevance_reasons and isinstance(self.relevance_reasons, dict):
             cleaned_relevance = {}
             for team, reason in self.relevance_reasons.items():
-                cleaned_relevance[team] = clean_html(reason)
+                # Check if the reason is a dictionary with 'relevance_reason' key
+                if isinstance(reason, dict) and 'relevance_reason' in reason:
+                    relevance_text = reason.get('relevance_reason', '')
+                    cleaned_relevance[team] = {
+                        'relevance_reason': clean_html(relevance_text)
+                    }
+                else:
+                    # If it's a string, clean it directly
+                    cleaned_relevance[team] = clean_html(reason) if isinstance(reason, str) else reason
         else:
             cleaned_relevance = self.relevance_reasons
         

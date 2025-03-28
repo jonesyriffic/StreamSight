@@ -160,7 +160,11 @@
                         {% if document.relevance_reasons and current_user.team_specialization and current_user.team_specialization in document.relevance_reasons %}
                             <div class='relevance-section'>
                                 <h3>Why This Matters For Your Team</h3>
-                                <p>{{ document.relevance_reasons[current_user.team_specialization]["relevance_reason"] }}</p>
+                                {% if document.relevance_reasons[current_user.team_specialization] is mapping and "relevance_reason" in document.relevance_reasons[current_user.team_specialization] %}
+                                    <p>{{ document.relevance_reasons[current_user.team_specialization]["relevance_reason"] }}</p>
+                                {% else %}
+                                    <p>{{ document.relevance_reasons[current_user.team_specialization] }}</p>
+                                {% endif %}
                             </div>
                         {% else %}
                             <div class='relevance-section'>
