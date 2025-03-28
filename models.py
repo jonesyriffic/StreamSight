@@ -86,6 +86,9 @@ class Document(db.Model):
     key_points = db.Column(db.Text, nullable=True)
     summary_generated_at = db.Column(db.DateTime, nullable=True)
     
+    # Personalized relevance reasons for different teams
+    relevance_reasons = db.Column(db.JSON, nullable=True)
+    
     # User who uploaded this document
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     
@@ -101,5 +104,6 @@ class Document(db.Model):
             'user_id': self.user_id,
             'summary': self.summary,
             'key_points': self.key_points,
+            'relevance_reasons': self.relevance_reasons,
             'summary_generated_at': self.summary_generated_at.isoformat() if self.summary_generated_at else None
         }

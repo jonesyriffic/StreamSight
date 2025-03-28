@@ -173,7 +173,7 @@
                         <tr>
                             <th>Filename</th>
                             <th>Category</th>
-                            <th>Uploaded</th>
+                            <th>Why it's relevant for you</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -191,7 +191,13 @@
                                     {{ doc.category }}
                                 </span>
                             </td>
-                            <td>{{ doc.uploaded_at }}</td>
+                            <td class="small">
+                                {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
+                                    <i class="fas fa-bullseye text-success me-1"></i> {{ doc.relevance_reasons[current_user.team_specialization] }}
+                                {% else %}
+                                    <i class="fas fa-info-circle text-muted me-1"></i> Recommended based on your team specialization
+                                {% endif %}
+                            </td>
                             <td>
                                 <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye me-1"></i> View

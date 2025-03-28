@@ -12,6 +12,7 @@ from email_validator import validate_email, EmailNotValidError
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
 from utils.document_ai import generate_document_summary
+from utils.relevance_generator import generate_relevance_reasons
 from models import db, Document, User
 
 # Set up logging for debugging
@@ -381,6 +382,16 @@ def upload_document():
             # Add to database
             db.session.add(new_document)
             db.session.commit()
+            
+            # Generate relevance reasons for each team specialization
+            try:
+                relevance_reasons = generate_relevance_reasons(new_document)
+                new_document.relevance_reasons = relevance_reasons
+                db.session.commit()
+                logger.info(f"Generated relevance reasons for document {new_document.id}")
+            except Exception as e:
+                logger.error(f"Error generating relevance reasons: {str(e)}")
+                # Continue even if relevance generation fails - this isn't critical
             
             flash(f'Document "{original_filename}" uploaded successfully!', 'success')
             return redirect(url_for('library'))
