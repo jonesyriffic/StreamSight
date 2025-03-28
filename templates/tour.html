@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Onboarding Tour{% endblock %}
+
+{% block extra_head %}
+<style>
+    .tour-heading {
+        color: var(--bs-primary);
+        margin-bottom: 1.5rem;
+    }
+    
+    .tour-card {
+        border-radius: 10px;
+        border: 1px solid var(--bs-gray-700);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .tour-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tour-card-header {
+        background-color: var(--bs-primary);
+        color: white;
+        padding: 1rem;
+        font-weight: bold;
+    }
+    
+    .tour-step {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid var(--bs-gray-800);
+        display: flex;
+        align-items: center;
+    }
+    
+    .tour-step:last-child {
+        border-bottom: none;
+    }
+    
+    .step-status {
+        margin-right: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .step-complete {
+        color: var(--bs-success);
+    }
+    
+    .step-incomplete {
+        color: var(--bs-gray-600);
+    }
+    
+    .step-title {
+        font-weight: bold;
+        margin-bottom: 0.2rem;
+    }
+    
+    .tour-actions {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    
+    .feature-card {
+        height: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--bs-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <h1 class="tour-heading">
+                <i class="fas fa-route me-2"></i> Welcome to NextGen Insight Spark!
+            </h1>
+            <p class="lead">
+                Explore our platform through this interactive onboarding tour to discover all the features available to you.
+            </p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="tour-card">
+                <div class="tour-card-header">
+                    <i class="fas fa-map-signs me-2"></i> Tour Progress
+                </div>
+                <div class="card-body p-0">
+                    {% for step_id, step in tour_config.steps.items() %}
+                    <div class="tour-step">
+                        <div class="step-status">
+                            {% if step_id in tour_config.steps_completed %}
+                            <i class="fas fa-check-circle step-complete"></i>
+                            {% else %}
+                            <i class="far fa-circle step-incomplete"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="step-title">{{ step.title }}</div>
+                            <div class="step-content small text-muted">{{ step.content }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="tour-actions">
+                <button id="start-tour-btn" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play-circle me-2"></i> Start Tour
+                </button>
+                
+                {% if current_user.is_authenticated and tour_config.steps_completed %}
+                <button id="reset-tour-btn" class="btn btn-outline-secondary mt-2">
+                    <i class="fas fa-redo me-2"></i> Reset Progress
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h4>AI-Powered Search</h4>
+                            <p>Use natural language to search through documents and find exactly what you need.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <h4>Document Recommendations</h4>
+                            <p>Receive personalized document recommendations based on your team's focus.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h4>Earn Badges</h4>
+                            <p>Track your engagement through our gamification system with badges and achievements.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4>AI Summaries</h4>
+                            <p>Generate intelligent summaries and key points from any document with one click.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if current_user.is_authenticated and sample_document %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="fas fa-book-open me-2"></i> Sample Document for Exploration
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ sample_document.filename }}</h5>
+                    <p class="card-text">
+                        {{ sample_document.category }} - Uploaded {{ sample_document.uploaded_at.strftime('%Y-%m-%d') }}
+                    </p>
+                    <a href="{{ url_for('view_document', doc_id=sample_document.id) }}" class="btn btn-primary">
+                        <i class="fas fa-eye me-2"></i> View Document
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/tour.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Start tour button
+        const startTourBtn = document.getElementById('start-tour-btn');
+        if (startTourBtn) {
+            startTourBtn.addEventListener('click', function() {
+                if (window.appTour) {
+                    window.appTour.startTour();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -14,8 +14,13 @@
     <!-- PDF.js for PDF rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     
+    <!-- Intro.js for interactive tours -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tour.css') }}">
     
     {% block extra_head %}{% endblock %}
 </head>
@@ -75,6 +80,11 @@
                     </form>
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('tour_page') }}" id="nav-tour-link">
+                                <i class="fas fa-route me-1"></i> Tour
+                            </a>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user me-1"></i> {{ current_user.name or current_user.email }}
@@ -87,6 +97,11 @@
                             </ul>
                         </li>
                         {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('tour_page') }}" id="nav-tour-link">
+                                <i class="fas fa-route me-1"></i> Tour
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('login') }}">
                                 <i class="fas fa-sign-in-alt me-1"></i> Login
@@ -132,6 +147,7 @@
     
     <!-- Main JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tour.js') }}"></script>
     
     {% block extra_scripts %}{% endblock %}
 </body>

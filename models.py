@@ -40,6 +40,8 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
     needs_password_change = db.Column(db.Boolean, default=False)  # Flag for temporary password
+    tour_completed = db.Column(db.Boolean, default=False)  # Track if user has completed the onboarding tour
+    tour_steps_completed = db.Column(db.JSON, nullable=True)  # Track individual tour steps completion
     
     # Relationship with documents
     documents = db.relationship('Document', backref='uploader', lazy=True)
@@ -70,7 +72,9 @@ class User(UserMixin, db.Model):
             'team_specialization': self.team_specialization,
             'last_login': self.last_login.isoformat() if self.last_login else None,
             'created_at': self.created_at.isoformat(),
-            'approved_at': self.approved_at.isoformat() if self.approved_at else None
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
+            'tour_completed': self.tour_completed,
+            'tour_steps_completed': self.tour_steps_completed
         }
 
 class Badge(db.Model):

@@ -1037,5 +1037,53 @@ def api_user_badges():
         'progress': badge_progress
     })
 
+# Onboarding Tour Routes
+@app.route('/tour')
+def tour_page():
+    """View the interactive onboarding tour page"""
+    from utils.tour_service import TourService
+    tour_config = TourService.get_tour_config()
+    
+    # Sample document to use for demonstration if available
+    sample_doc = Document.query.first()
+    
+    return render_template('tour.html', 
+                          tour_config=tour_config,
+                          sample_document=sample_doc)
+
+@app.route('/api/tour/config')
+def api_tour_config():
+    """API endpoint to get tour configuration"""
+    from utils.tour_service import TourService
+    tour_config = TourService.get_tour_config()
+    
+    return jsonify(tour_config)
+
+@app.route('/api/tour/step/<step_id>', methods=['POST'])
+@login_required
+def api_complete_tour_step(step_id):
+    """API endpoint to mark a tour step as completed"""
+    from utils.tour_service import TourService
+    
+    completed = request.json.get('completed', True) if request.is_json else True
+    tour_config = TourService.update_tour_progress(step_id, completed)
+    
+    return jsonify({
+        'success': True,
+        'tour_config': tour_config
+    })
+
+@app.route('/api/tour/reset', methods=['POST'])
+@login_required
+def api_reset_tour():
+    """API endpoint to reset the tour progress"""
+    from utils.tour_service import TourService
+    tour_config = TourService.reset_tour()
+    
+    return jsonify({
+        'success': True,
+        'tour_config': tour_config
+    })
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

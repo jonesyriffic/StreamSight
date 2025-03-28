@@ -1,0 +1,135 @@
+/* Custom styles for the onboarding tour */
+
+/* Customize Intro.js appearance to match our app theme */
+.introjs-tooltip {
+    border-radius: 8px;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    border: 1px solid var(--bs-primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.introjs-tooltiptext {
+    padding: 15px;
+    line-height: 1.6;
+}
+
+.introjs-tooltipbuttons {
+    border-top: 1px solid var(--bs-gray-700);
+    padding: 10px;
+}
+
+.introjs-button {
+    background-color: var(--bs-dark);
+    color: var(--bs-primary);
+    border: 1px solid var(--bs-primary);
+    border-radius: 4px;
+    padding: 6px 12px;
+    transition: all 0.3s;
+}
+
+.introjs-button:hover, 
+.introjs-button:focus {
+    background-color: var(--bs-primary);
+    color: var(--bs-white);
+}
+
+.introjs-prevbutton {
+    margin-right: 5px;
+}
+
+.introjs-skipbutton {
+    color: var(--bs-gray-500);
+    margin-right: 10px;
+}
+
+.introjs-skipbutton:hover {
+    color: var(--bs-gray-300);
+    background-color: transparent;
+}
+
+.introjs-helperLayer {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--bs-primary);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+}
+
+.introjs-arrow.top {
+    border-bottom-color: var(--bs-primary);
+}
+
+.introjs-arrow.bottom {
+    border-top-color: var(--bs-primary);
+}
+
+.introjs-arrow.left {
+    border-right-color: var(--bs-primary);
+}
+
+.introjs-arrow.right {
+    border-left-color: var(--bs-primary);
+}
+
+/* Tour badge for new features */
+.tour-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+}
+
+/* Animation for the tour badge */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+/* Highlight elements during tour */
+.tour-highlight {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Tour start button styling */
+.tour-start-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tour-start-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
