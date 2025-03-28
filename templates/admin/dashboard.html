@@ -9,6 +9,9 @@
         <a href="{{ url_for('admin_users') }}" class="btn btn-primary me-2">
             <i class="fas fa-users me-2"></i> Manage Users
         </a>
+        <a href="{{ url_for('admin_search_analytics') }}" class="btn btn-primary me-2">
+            <i class="fas fa-chart-line me-2"></i> Search Analytics
+        </a>
         <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-home me-2"></i> Main Dashboard
         </a>
@@ -16,7 +19,7 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-3 col-lg-2">
         <div class="card bg-dark mb-3">
             <div class="card-body text-center">
                 <h1 class="display-4 mb-0">{{ total_users }}</h1>
@@ -24,7 +27,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-lg-2">
         <div class="card bg-dark mb-3">
             <div class="card-body text-center">
                 <h1 class="display-4 mb-0">{{ pending_users }}</h1>
@@ -32,7 +35,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-lg-2">
         <div class="card bg-dark mb-3">
             <div class="card-body text-center">
                 <h1 class="display-4 mb-0">{{ admin_users }}</h1>
@@ -40,11 +43,24 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-lg-2">
         <div class="card bg-dark mb-3">
             <div class="card-body text-center">
                 <h1 class="display-4 mb-0">{{ total_documents }}</h1>
                 <p class="text-muted">Total Documents</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-lg-2">
+        <div class="card bg-dark mb-3">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-0">{{ total_searches }}</h1>
+                <p class="text-muted">Total Searches</p>
+            </div>
+            <div class="card-footer bg-dark p-2 text-center">
+                <a href="{{ url_for('admin_search_analytics') }}" class="btn btn-sm btn-outline-info w-100">
+                    <i class="fas fa-chart-line me-1"></i> View Details
+                </a>
             </div>
         </div>
     </div>

@@ -74,11 +74,27 @@ def process_document_friendly_names():
     except Exception as e:
         logging.error(f"Error processing document friendly names: {str(e)}")
 
+# Function to set up search analytics
+def setup_search_analytics():
+    """Run the search log migration"""
+    try:
+        with app.app_context():
+            from migrate_search_log import run_migration
+            if run_migration():
+                logging.info("Search analytics database setup completed")
+            else:
+                logging.error("Failed to set up search analytics database")
+    except Exception as e:
+        logging.error(f"Error setting up search analytics: {str(e)}")
+
 # Initialize badges when server starts
 initialize_badges()
 
 # Process document friendly names
 process_document_friendly_names()
+
+# Set up search analytics database
+setup_search_analytics()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

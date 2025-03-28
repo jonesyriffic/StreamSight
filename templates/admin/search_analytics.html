@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Search Analytics{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Search Analytics</h1>
+    <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-tachometer-alt me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Summary Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-dark text-white h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x mb-3 text-info"></i>
+                <h5 class="card-title">Total Searches</h5>
+                <p class="display-4">{{ total_searches }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-dark text-white h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-clipboard-list fa-3x mb-3 text-success"></i>
+                <h5 class="card-title">Avg. Results</h5>
+                <p class="display-4">{{ avg_results|round(1) }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-dark text-white h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-tachometer-alt fa-3x mb-3 text-warning"></i>
+                <h5 class="card-title">Avg. Search Time</h5>
+                <p class="display-4">{{ avg_duration|round(2) }}s</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-dark text-white h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-bullseye fa-3x mb-3 text-danger"></i>
+                <h5 class="card-title">Avg. Relevance</h5>
+                <p class="display-4">{{ avg_relevance|round(1) }}/10</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Options -->
+<div class="card bg-dark mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Filter Search Analytics</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('admin_search_analytics') }}" method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="user_filter" class="form-label">Filter by User</label>
+                <select name="user_id" id="user_filter" class="form-select">
+                    <option value="">All Users</option>
+                    {% for user in user_options %}
+                    <option value="{{ user.id }}" {% if request.args.get('user_id') == user.id|string %}selected{% endif %}>
+                        {{ user.name or user.email }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="team_filter" class="form-label">Filter by Team</label>
+                <select name="team" id="team_filter" class="form-select">
+                    <option value="">All Teams</option>
+                    {% for team in team_options %}
+                    <option value="{{ team }}" {% if request.args.get('team') == team %}selected{% endif %}>
+                        {{ team }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="days_filter" class="form-label">Time Period</label>
+                <select name="days" id="days_filter" class="form-select">
+                    <option value="7" {% if request.args.get('days') == '7' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30" {% if request.args.get('days') == '30' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90" {% if request.args.get('days', '90') == '90' %}selected{% endif %}>Last 90 Days</option>
+                    <option value="all" {% if request.args.get('days') == 'all' %}selected{% endif %}>All Time</option>
+                </select>
+            </div>
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-2"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('admin_search_analytics') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-undo me-2"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Top Search Queries -->
+<div class="card bg-dark mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Top Search Queries</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>Query</th>
+                        <th>Count</th>
+                        <th>Avg. Results</th>
+                        <th>Avg. Relevance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for query_stat in top_queries %}
+                    <tr>
+                        <td>{{ query_stat.query }}</td>
+                        <td>{{ query_stat.count }}</td>
+                        <td>{{ query_stat.avg_results|round(1) }}</td>
+                        <td>
+                            {% if query_stat.avg_relevance %}
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                            style="width: {{ (query_stat.avg_relevance/10*100)|round }}%;" 
+                                            aria-valuenow="{{ query_stat.avg_relevance|round(1) }}" 
+                                            aria-valuemin="0" aria-valuemax="10">
+                                        </div>
+                                    </div>
+                                    <span>{{ query_stat.avg_relevance|round(1) }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Searches -->
+<div class="card bg-dark">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Searches</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Team</th>
+                        <th>Query</th>
+                        <th>Results</th>
+                        <th>Duration</th>
+                        <th>Relevance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for search in recent_searches %}
+                    <tr>
+                        <td>{{ search.executed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if search.user %}
+                                {{ search.user.name or search.user.email }}
+                            {% else %}
+                                <span class="text-muted">Guest</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if search.team_specialization %}
+                                <span class="badge bg-info">{{ search.team_specialization }}</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ search.query }}</td>
+                        <td>{{ search.results_count }}</td>
+                        <td>{{ search.duration_seconds|round(2) }}s</td>
+                        <td>
+                            {% if search.avg_relevance_score %}
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                            style="width: {{ (search.avg_relevance_score/10*100)|round }}%;" 
+                                            aria-valuenow="{{ search.avg_relevance_score|round(1) }}" 
+                                            aria-valuemin="0" aria-valuemax="10">
+                                        </div>
+                                    </div>
+                                    <span>{{ search.avg_relevance_score|round(1) }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if total_pages > 1 %}
+        <div class="pagination-container mt-4 d-flex justify-content-center">
+            <ul class="pagination">
+                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin_search_analytics', page=current_page-1, **request.args) if current_page > 1 else '#' }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                
+                {% for i in range(1, total_pages + 1) %}
+                    {% if i == 1 or i == total_pages or (i >= current_page - 2 and i <= current_page + 2) %}
+                        <li class="page-item {% if i == current_page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin_search_analytics', page=i, **request.args) }}">
+                                {{ i }}
+                            </a>
+                        </li>
+                    {% elif i == current_page - 3 or i == current_page + 3 %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin_search_analytics', page=current_page+1, **request.args) if current_page < total_pages else '#' }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

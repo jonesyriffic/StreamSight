@@ -3,12 +3,13 @@ import logging
 import uuid
 import re
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
 from werkzeug.utils import secure_filename
 import json
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from email_validator import validate_email, EmailNotValidError
+from sqlalchemy import func
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
@@ -16,7 +17,8 @@ from utils.document_ai import generate_document_summary, generate_friendly_name
 from utils.relevance_generator import generate_relevance_reasons
 from utils.badge_service import BadgeService
 from utils.text_processor import clean_html, format_timestamp
-from models import db, Document, User, Badge, UserActivity
+from models import db, Document, User, Badge, UserActivity, SearchLog
+from statistics import mean
 
 # Set up logging for debugging
 logging.basicConfig(level=logging.DEBUG)
@@ -580,6 +582,38 @@ def search():
             # Re-raise to be caught by the outer try/except
             raise search_error
         
+        # Track search information in the search log
+        try:
+            # Calculate success metrics if we have results
+            highest_relevance_score = None
+            avg_relevance_score = None
+            
+            if results:
+                relevance_scores = [result.get('relevance_score', 0) for result in results]
+                if relevance_scores:
+                    highest_relevance_score = max(relevance_scores)
+                    avg_relevance_score = mean(relevance_scores)
+            
+            # Create a search log entry
+            search_log = SearchLog(
+                query=query,
+                category_filter=category_filter if category_filter != 'all' else None,
+                user_id=current_user.id if current_user.is_authenticated else None,
+                team_specialization=current_user.team_specialization if current_user.is_authenticated else None,
+                results_count=len(results),
+                duration_seconds=search_info.get('elapsed_time'),
+                documents_searched=search_info.get('documents_searched'),
+                highest_relevance_score=highest_relevance_score,
+                avg_relevance_score=avg_relevance_score
+            )
+            
+            db.session.add(search_log)
+            db.session.commit()
+            logger.info(f"Search log entry saved with ID: {search_log.id}")
+        except Exception as log_error:
+            logger.error(f"Error saving search log: {str(log_error)}")
+            # Don't stop the whole process if logging fails
+        
         # Track search activity if user is logged in
         if current_user.is_authenticated:
             # Record activity for badge tracking
@@ -809,13 +843,138 @@ def admin_dashboard():
     # Pending approval users
     pending_approval = User.query.filter_by(is_approved=False).order_by(User.created_at.desc()).all()
     
+    # Get search analytics summary for the dashboard
+    total_searches = SearchLog.query.count()
+    
     return render_template('admin/dashboard.html',
                          total_users=total_users,
                          pending_users=pending_users,
                          admin_users=admin_users,
                          total_documents=total_documents,
+                         total_searches=total_searches,
                          recent_users=recent_users,
                          pending_approval=pending_approval)
+
+@app.route('/admin/search-analytics')
+@login_required
+@admin_required
+def admin_search_analytics():
+    """Admin page for search analytics"""
+    # Get filter parameters
+    user_id = request.args.get('user_id', type=int)
+    team = request.args.get('team')
+    days_filter = request.args.get('days', '90')  # Default to last 90 days
+    page = request.args.get('page', 1, type=int)
+    per_page = 20  # Number of results per page
+    
+    # Build base query
+    base_query = SearchLog.query
+    
+    # Apply filters
+    if user_id:
+        base_query = base_query.filter(SearchLog.user_id == user_id)
+    
+    if team:
+        base_query = base_query.filter(SearchLog.team_specialization == team)
+    
+    if days_filter and days_filter != 'all':
+        days = int(days_filter)
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        base_query = base_query.filter(SearchLog.executed_at >= cutoff_date)
+    
+    # Get total searches for statistics
+    total_searches = base_query.count()
+    
+    # Calculate average metrics
+    avg_results = 0
+    avg_duration = 0
+    avg_relevance = 0
+    
+    if total_searches > 0:
+        avg_results_query = db.session.query(func.avg(SearchLog.results_count)).select_from(SearchLog)
+        avg_duration_query = db.session.query(func.avg(SearchLog.duration_seconds)).select_from(SearchLog)
+        avg_relevance_query = db.session.query(func.avg(SearchLog.avg_relevance_score)).select_from(SearchLog)
+        
+        # Apply the same filters to these queries
+        if user_id:
+            avg_results_query = avg_results_query.filter(SearchLog.user_id == user_id)
+            avg_duration_query = avg_duration_query.filter(SearchLog.user_id == user_id)
+            avg_relevance_query = avg_relevance_query.filter(SearchLog.user_id == user_id)
+        
+        if team:
+            avg_results_query = avg_results_query.filter(SearchLog.team_specialization == team)
+            avg_duration_query = avg_duration_query.filter(SearchLog.team_specialization == team)
+            avg_relevance_query = avg_relevance_query.filter(SearchLog.team_specialization == team)
+        
+        if days_filter and days_filter != 'all':
+            avg_results_query = avg_results_query.filter(SearchLog.executed_at >= cutoff_date)
+            avg_duration_query = avg_duration_query.filter(SearchLog.executed_at >= cutoff_date)
+            avg_relevance_query = avg_relevance_query.filter(SearchLog.executed_at >= cutoff_date)
+        
+        avg_results = avg_results_query.scalar() or 0
+        avg_duration = avg_duration_query.scalar() or 0
+        avg_relevance = avg_relevance_query.scalar() or 0
+        
+        # Convert relevance score from 0-1 range to 0-10 scale for display
+        if avg_relevance:
+            avg_relevance = avg_relevance * 10
+    
+    # Get top search queries
+    top_queries_subquery = db.session.query(
+        SearchLog.query,
+        func.count(SearchLog.id).label('count'),
+        func.avg(SearchLog.results_count).label('avg_results'),
+        func.avg(SearchLog.avg_relevance_score).label('avg_relevance')
+    )
+    
+    # Apply the same filters to the top queries
+    if user_id:
+        top_queries_subquery = top_queries_subquery.filter(SearchLog.user_id == user_id)
+    
+    if team:
+        top_queries_subquery = top_queries_subquery.filter(SearchLog.team_specialization == team)
+    
+    if days_filter and days_filter != 'all':
+        top_queries_subquery = top_queries_subquery.filter(SearchLog.executed_at >= cutoff_date)
+    
+    top_queries = top_queries_subquery.group_by(SearchLog.query) \
+                                     .order_by(func.count(SearchLog.id).desc()) \
+                                     .limit(10) \
+                                     .all()
+    
+    # Convert relevance scores from 0-1 to 0-10 for display
+    top_queries = [
+        {
+            "query": item[0],
+            "count": item[1],
+            "avg_results": item[2],
+            "avg_relevance": item[3] * 10 if item[3] else None
+        }
+        for item in top_queries
+    ]
+    
+    # Get paginated recent searches
+    recent_searches_query = base_query.order_by(SearchLog.executed_at.desc())
+    pagination = recent_searches_query.paginate(page=page, per_page=per_page)
+    recent_searches = pagination.items
+    
+    # Get all users for filter dropdown
+    user_options = User.query.filter_by(is_active=True).order_by(User.name).all()
+    
+    # Get team options for filter dropdown
+    team_options = [team for team in User.TEAM_CHOICES if team]
+    
+    return render_template('admin/search_analytics.html',
+                          total_searches=total_searches,
+                          avg_results=avg_results,
+                          avg_duration=avg_duration,
+                          avg_relevance=avg_relevance,
+                          top_queries=top_queries,
+                          recent_searches=recent_searches,
+                          user_options=user_options,
+                          team_options=team_options,
+                          current_page=page,
+                          total_pages=pagination.pages or 1)
 
 @app.route('/admin/users')
 @login_required

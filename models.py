@@ -221,3 +221,51 @@ user_badges = db.Table('user_badges',
 # Add many-to-many relationship between User and Badge
 User.badges = db.relationship('Badge', secondary=user_badges, 
                              backref=db.backref('users', lazy='dynamic'))
+
+class SearchLog(db.Model):
+    """Search log for admin analytics"""
+    
+    id = db.Column(db.Integer, primary_key=True)
+    query = db.Column(db.String(255), nullable=False)
+    category_filter = db.Column(db.String(50), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    team_specialization = db.Column(db.String(100), nullable=True)
+    executed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Search metrics
+    results_count = db.Column(db.Integer, nullable=False, default=0)
+    duration_seconds = db.Column(db.Float, nullable=True)
+    documents_searched = db.Column(db.Integer, nullable=True)
+    
+    # Success metrics
+    highest_relevance_score = db.Column(db.Float, nullable=True)
+    avg_relevance_score = db.Column(db.Float, nullable=True)
+    
+    # Relationship with user
+    user = db.relationship('User', backref=db.backref('searches', lazy='dynamic'))
+    
+    def to_dict(self):
+        """Convert search log to dictionary"""
+        user_data = None
+        if self.user:
+            user_data = {
+                'id': self.user.id,
+                'email': self.user.email,
+                'name': self.user.name,
+                'team_specialization': self.user.team_specialization
+            }
+            
+        return {
+            'id': self.id,
+            'query': self.query,
+            'category_filter': self.category_filter,
+            'user_id': self.user_id,
+            'team_specialization': self.team_specialization,
+            'executed_at': self.executed_at.isoformat() if self.executed_at else None,
+            'results_count': self.results_count,
+            'duration_seconds': self.duration_seconds,
+            'documents_searched': self.documents_searched,
+            'highest_relevance_score': self.highest_relevance_score,
+            'avg_relevance_score': self.avg_relevance_score,
+            'user': user_data
+        }
