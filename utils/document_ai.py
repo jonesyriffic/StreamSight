@@ -105,12 +105,10 @@ def generate_document_summary(document_id):
                 {
                     "role": "system",
                     "content": "You are an expert document summarizer for a professional audience of product managers. "
-                               "Format your response with three clearly separated sections in this exact order:\n\n"
+                               "Format your response with two clearly separated sections in this exact order:\n\n"
                                "1. Key Points: A bulleted list of exactly 4-5 key points from the document\n"
-                               "2. Summary: A concise summary of no more than 2 short paragraphs (100-150 words total)\n"
-                               "3. Relevance: A brief paragraph explaining how this document is relevant to product teams "
-                               "managing customer care platforms for TV streaming services (specifically Peacock, SkyShowtime, Showmax and NOW TV)\n\n"
-                               "Use these exact section headers: 'Key Points:', 'Summary:', and 'Relevance to Streaming Services:'\n\n"
+                               "2. Summary: A concise summary of no more than 2 short paragraphs (100-150 words total)\n\n"
+                               "Use these exact section headers: 'Key Points:' and 'Summary:'\n\n"
                                "For Key Points:\n"
                                "- Start each point with a bullet point (- )\n"
                                "- Put a clear title in **bold** at the beginning of each point\n" 
@@ -132,34 +130,26 @@ def generate_document_summary(document_id):
         # Extract the generated summary
         ai_response = response.choices[0].message.content
         
-        # Process response to separate key points, summary, and relevance
+        # Process response to separate key points and summary
         # Look for section markers in AI responses
         key_points_marker = next((m for m in ["Key Points:", "Key Insights:", "Key Takeaways:"] if m in ai_response), None)
         summary_marker = "Summary:" if "Summary:" in ai_response else None
-        relevance_marker = "Relevance to Streaming Services:" if "Relevance to Streaming Services:" in ai_response else None
-
+        
         # Initialize formatted sections
         key_points_html = ""
         summary_html = ""
-        relevance_html = ""
-
+        
         # Extract and format each section based on their markers
         if key_points_marker and summary_marker:
             # Split the text into sections
             key_points_pos = ai_response.find(key_points_marker)
             summary_pos = ai_response.find(summary_marker)
-            relevance_pos = ai_response.find(relevance_marker) if relevance_marker else len(ai_response)
             
             # Extract key points (from key_points_marker to summary_marker)
             key_points_text = ai_response[key_points_pos:summary_pos].strip()
             
-            # Extract summary (from summary_marker to relevance_marker or end)
-            if relevance_marker:
-                summary_text = ai_response[summary_pos:relevance_pos].strip()
-                relevance_text = ai_response[relevance_pos:].strip()
-            else:
-                summary_text = ai_response[summary_pos:].strip()
-                relevance_text = ""
+            # Extract summary (from summary_marker to end)
+            summary_text = ai_response[summary_pos:].strip()
                 
             # Format key points as HTML
             key_points_content = key_points_text.replace(key_points_marker, "").strip()
@@ -226,27 +216,17 @@ def generate_document_summary(document_id):
             else:
                 summary_html = "<div class='summary-section'><h3>Summary</h3><p>No summary information available.</p></div>"
             
-            # Format relevance as HTML
-            if relevance_text:
-                relevance_content = relevance_text.replace(relevance_marker, "").strip()
-                if relevance_content:
-                    relevance_html = f"<div class='relevance-section'><h3>Relevance to Streaming Services</h3><p>{relevance_content}</p></div>"
-                else:
-                    relevance_html = "<div class='relevance-section'><h3>Relevance to Streaming Services</h3><p>No relevance information available.</p></div>"
-            else:
-                relevance_html = "<div class='relevance-section'><h3>Relevance to Streaming Services</h3><p>No relevance information available.</p></div>"
+            # Removed relevance section
         else:
             # Fallback for unstructured responses
             key_points_html = "<div class='key-points-section'><h3>Key Points</h3><p>Unable to extract key points from document.</p></div>"
             summary_html = f"<div class='summary-section'><h3>Summary</h3><p>{ai_response}</p></div>"
-            relevance_html = "<div class='relevance-section'><h3>Relevance to Streaming Services</h3><p>No relevance information available.</p></div>"
         
         # Combine all sections in the desired order
         document_insights = f"""
         <div class="document-insights">
             {key_points_html}
             {summary_html}
-            {relevance_html}
             <div class="insights-footer">
                 <small class="text-muted">Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}</small>
             </div>
@@ -274,9 +254,6 @@ def generate_document_summary(document_id):
             "key_points": key_points_html,
             "generated_at": document.summary_generated_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         }
-        
-        # For backward compatibility, also include the old streaming service relevance
-        response_data["relevance"] = relevance_html
         
         # Return all the data
         return response_data

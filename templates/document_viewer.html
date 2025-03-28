@@ -156,23 +156,7 @@
                         {% endif %}
                     </div>
                     
-                    <div id="relevance-text">
-                        {% if document.relevance_reasons and current_user.team_specialization and current_user.team_specialization in document.relevance_reasons %}
-                            <div class='relevance-section'>
-                                <h3>Why This Matters For Your Team</h3>
-                                {% if document.relevance_reasons[current_user.team_specialization] is mapping and "relevance_reason" in document.relevance_reasons[current_user.team_specialization] %}
-                                    <p>{{ document.relevance_reasons[current_user.team_specialization]["relevance_reason"] }}</p>
-                                {% else %}
-                                    <p>{{ document.relevance_reasons[current_user.team_specialization] }}</p>
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <div class='relevance-section'>
-                                <h3>Team Relevance</h3>
-                                <p class="text-muted">No team-specific relevance information available yet. Generate insights to see relevance for your team.</p>
-                            </div>
-                        {% endif %}
-                    </div>
+                    <!-- Team relevance section removed - now only shown on the dashboard -->
                     
                     {% if document.summary_generated_at %}
                     <div class="summary-meta">
@@ -286,31 +270,11 @@
                     document.getElementById('summary-text').innerHTML = data.summary;
                     document.getElementById('key-points-text').innerHTML = data.key_points;
                     
-                    // Update relevance section if provided
-                    if (data.relevance) {
-                        // Update the relevance text with newest data
-                        const relevanceElement = document.getElementById('relevance-text');
-                        if (relevanceElement) {
-                            // First try to create a team-specific relevance HTML
-                            {% if current_user.team_specialization %}
-                            const teamRelevanceHTML = `
-                                <div class='relevance-section'>
-                                    <h3>Why This Matters For Your Team</h3>
-                                    <p>{{ '{{' }} relevanceText {{ '}}' }}</p>
-                                </div>
-                            `;
-                            
-                            // Refresh page to show the updated team-specific relevance
-                            // The page refresh is needed to access the updated document.relevance_reasons data
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 500);
-                            {% else %}
-                            // Fallback to the generic relevance section
-                            relevanceElement.innerHTML = data.relevance;
-                            {% endif %}
-                        }
-                    }
+                    // Removed team relevance section - now only shown on the dashboard
+                    // Refreshing page to show updated content
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
                     
                     // Update timestamp if provided
                     if (data.generated_at) {
