@@ -49,14 +49,26 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Add custom Jinja filter for newlines to <br>
+# Add custom Jinja filter for newlines to <br> and handle markdown for bold
 @app.template_filter('nl2br')
 def nl2br(value):
-    """Convert newlines to <br> tags for use in templates"""
+    """
+    Convert newlines to <br> tags and process basic Markdown-style formatting
+    - Converts **text** to <strong>text</strong>
+    - Preserves line breaks
+    """
     if not value:
         return ""
     from markupsafe import Markup
-    return Markup(value.replace('\n', '<br>'))
+    import re
+    
+    # Replace **text** with <strong>text</strong>
+    value = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', value)
+    
+    # Convert newlines to <br>
+    value = value.replace('\n', '<br>')
+    
+    return Markup(value)
 login_manager.login_message_category = 'info'
 
 @login_manager.user_loader

@@ -237,8 +237,14 @@ def generate_search_response(query, search_results):
         Provide a clear, concise answer to the query based ONLY on the information in these documents.
         When the information is insufficient to fully answer the query, acknowledge the limitations.
         If you need to make assumptions, clearly state them.
-        Format your response for readability with bullet points where appropriate.
-        When quoting information, indicate the source document.
+        
+        Format your response for maximum readability:
+        - Use section headings with "**" around them (e.g., **Section Title**) to highlight main topics
+        - Use bullet points where appropriate
+        - Include paragraph breaks between sections
+        - Indent sub-points with spaces
+        - When quoting information, indicate the source document
+        
         DO NOT make up information that isn't present in the provided documents.
         """
         
