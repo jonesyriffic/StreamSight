@@ -40,13 +40,17 @@ def generate_document_summary(document_id):
                 {
                     "role": "system",
                     "content": "You are an expert document summarizer for a professional audience of product managers. "
-                               "Create a concise executive summary followed by a bulleted list of 3-5 key actionable insights. "
+                               "Format your response with two clearly separated sections:\n\n"
+                               "1. Executive Summary: A concise paragraph-based summary of the document (200-300 words)\n"
+                               "2. Key Insights: A bulleted list of 3-5 key actionable points\n\n"
+                               "Always use 'Key Insights:' as the section header for the second part. "
+                               "Format each key insight with a bullet point (- ) at the start of the line. "
                                "Focus on business implications, customer needs, and product strategy. "
-                               "Your summary should be under 300 words and emphasize practical applications of the information."
+                               "Ensure insights are practical and directly applicable to product management work."
                 },
                 {
                     "role": "user",
-                    "content": f"Summarize this document:\n\n{doc_text}"
+                    "content": f"Summarize this document and extract key insights:\n\n{doc_text}"
                 }
             ],
             max_tokens=700
@@ -55,11 +59,70 @@ def generate_document_summary(document_id):
         # Extract the generated summary
         ai_response = response.choices[0].message.content
         
-        # Split into summary and key points (assuming summary comes first, then key points as bullets)
-        parts = ai_response.split("\n\n", 1)  # Split on first double newline
-        
-        summary = parts[0]
-        key_points = parts[1] if len(parts) > 1 else "No key points extracted."
+        # Process response to separate summary and key points
+        # Look for common section markers in AI responses
+        if "Key Insights:" in ai_response or "Key Points:" in ai_response or "Key Takeaways:" in ai_response:
+            # Find the marker that exists in the text
+            markers = ["Key Insights:", "Key Points:", "Key Takeaways:"]
+            marker = next((m for m in markers if m in ai_response), None)
+            
+            if marker:
+                parts = ai_response.split(marker)
+                summary = parts[0].strip()
+                key_points = marker + parts[1].strip()
+                
+                # Format summary with paragraphs
+                summary = "<p>" + summary.replace("\n\n", "</p><p>") + "</p>"
+                summary = summary.replace("\n", "<br>")
+                
+                # Format key points as a proper HTML list
+                key_points_text = key_points.replace(marker, "").strip()
+                bullet_items = []
+                
+                # Process each line that starts with - or * or numbered items
+                for line in key_points_text.split("\n"):
+                    line = line.strip()
+                    if line and (line.startswith("- ") or line.startswith("* ") or (len(line) > 2 and line[0].isdigit() and line[1] == ".")):
+                        if line.startswith("- "):
+                            line = line[2:]
+                        elif line.startswith("* "):
+                            line = line[2:]
+                        elif len(line) > 2 and line[0].isdigit() and line[1] == ".":
+                            line = line[line.find(".")+1:].strip()
+                        
+                        if line:  # Only add non-empty lines
+                            bullet_items.append(f"<li>{line}</li>")
+                
+                # If no properly formatted bullet points were found, try a different approach
+                if not bullet_items:
+                    # Just split by newlines and make each non-empty line a bullet point
+                    for line in key_points_text.split("\n"):
+                        line = line.strip()
+                        if line:
+                            bullet_items.append(f"<li>{line}</li>")
+                
+                key_points = "<ul class='key-points-list'>" + "".join(bullet_items) + "</ul>"
+            else:
+                # Fallback if we can't find the markers but have newlines
+                parts = ai_response.split("\n\n", 1)
+                summary = "<p>" + parts[0].replace("\n", "<br>") + "</p>"
+                
+                if len(parts) > 1:
+                    key_points_text = parts[1].strip()
+                    bullet_items = []
+                    
+                    for line in key_points_text.split("\n"):
+                        line = line.strip()
+                        if line:
+                            bullet_items.append(f"<li>{line}</li>")
+                    
+                    key_points = "<ul class='key-points-list'>" + "".join(bullet_items) + "</ul>"
+                else:
+                    key_points = "<p>No key points extracted.</p>"
+        else:
+            # Simple fallback for unstructured responses
+            summary = "<p>" + ai_response.replace("\n\n", "</p><p>").replace("\n", "<br>") + "</p>"
+            key_points = "<p>No distinct key points identified in the AI response.</p>"
         
         # Update the document in the database
         document.summary = summary
