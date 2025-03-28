@@ -518,12 +518,21 @@ def search():
     query = request.args.get('query', '')
     category_filter = request.args.get('category', 'all')
     
+    logger.info(f"Search request received - Query: '{query}', Category filter: '{category_filter}'")
+    
     if not query:
         all_categories = db.session.query(Document.category).distinct().all()
         categories = [category[0] for category in all_categories]
+        logger.info("Empty search query, returning empty results")
         return render_template('search_results.html', results=[], query='', categories=categories)
     
     try:
+        # Check if the OpenAI API key exists
+        if not os.environ.get("OPENAI_API_KEY"):
+            logger.error("OpenAI API key is missing")
+            raise Exception("OpenAI API key is not configured")
+        
+        logger.info("Building document repository for search")
         # Get document repository for search
         document_repository = {
             'get_all_documents': lambda: [doc.to_dict() for doc in Document.query.all()],
@@ -533,12 +542,42 @@ def search():
             'get_document': lambda doc_id: Document.query.get(doc_id).to_dict() if Document.query.get(doc_id) else None
         }
         
-        results = search_documents(query, document_repository, category_filter)
+        # Get the document count
+        if category_filter and category_filter.lower() != "all":
+            doc_count = Document.query.filter_by(category=category_filter).count()
+        else:
+            doc_count = Document.query.count()
+            
+        logger.info(f"Found {doc_count} documents to search through")
+        
+        if doc_count == 0:
+            logger.warning("No documents found to search through")
+            all_categories = db.session.query(Document.category).distinct().all()
+            categories = [category[0] for category in all_categories]
+            return render_template('search_results.html', 
+                                  results=[], 
+                                  query=query,
+                                  error="No documents found to search through. Please upload some documents first.",
+                                  selected_category=category_filter,
+                                  categories=categories)
+        
+        logger.info("Performing search using OpenAI API")
+        try:
+            results = search_documents(query, document_repository, category_filter)
+            logger.info(f"Search completed, found {len(results)} relevant results")
+        except Exception as search_error:
+            logger.error(f"Error during document search: {str(search_error)}")
+            import traceback
+            logger.error(f"Search traceback: {traceback.format_exc()}")
+            
+            # Re-raise to be caught by the outer try/except
+            raise search_error
         
         # Track search activity if user is logged in
         if current_user.is_authenticated:
             # Record activity for badge tracking
             try:
+                logger.info(f"Tracking search activity for user {current_user.id}")
                 new_badges = BadgeService.track_activity(
                     user_id=current_user.id,
                     activity_type='search'
@@ -570,6 +609,10 @@ def search():
         else:
             error_message = "An error occurred while searching documents. Please try again with different search terms."
             
+        # Add traceback for more detailed error information
+        import traceback
+        logger.error(f"Search error traceback: {traceback.format_exc()}")
+        
         # Log the detailed error but show a user-friendly message
         flash(error_message, 'danger')
         
