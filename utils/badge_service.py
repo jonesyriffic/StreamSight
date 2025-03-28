@@ -152,7 +152,7 @@ class BadgeService:
         ).count()
         
         # Get next level badges
-        user_badges = user.badges.all()
+        user_badges = user.badges  # user.badges is already a list, no need to call .all()
         user_badge_types = {}
         
         for badge in user_badges:
@@ -176,19 +176,19 @@ class BadgeService:
         # Build the progress data
         progress = {
             "reader": {
-                "count": view_count,
+                "current_count": view_count,
                 "next_badge": next_badges.get(Badge.TYPE_READER)
             },
             "searcher": {
-                "count": search_count,
+                "current_count": search_count,
                 "next_badge": next_badges.get(Badge.TYPE_SEARCHER)
             },
             "contributor": {
-                "count": upload_count,
+                "current_count": upload_count,
                 "next_badge": next_badges.get(Badge.TYPE_CONTRIBUTOR)
             },
             "summarizer": {
-                "count": summarize_count,
+                "current_count": summarize_count,
                 "next_badge": next_badges.get(Badge.TYPE_SUMMARIZER)
             }
         }
