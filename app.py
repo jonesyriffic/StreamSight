@@ -198,6 +198,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
+@login_required
 def index():
     # Get all documents and categories for statistics
     documents = Document.query.order_by(Document.uploaded_at.desc()).all()
@@ -366,11 +367,21 @@ def register():
         new_user = User(email=email, name=name)
         new_user.set_password(password)
         
+        # Auto-approve users with Sky or NBCUniversal email domains
+        if email.lower().endswith('@sky.uk') or email.lower().endswith('@nbcuni.com'):
+            new_user.is_approved = True
+            new_user.approved_at = datetime.utcnow()
+            new_user.can_upload = True  # Also grant upload permission
+            logger.info(f"Auto-approved user with email domain: {email}")
+            flash_message = 'Registration successful! Your account has been automatically approved. Please log in.'
+        else:
+            flash_message = 'Registration successful! Your account is pending approval. Please check back later.'
+        
         # Add to database
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Registration successful! Please log in.', 'success')
+        flash(flash_message, 'success')
         return redirect(url_for('login'))
     
     return render_template('register.html')
@@ -429,6 +440,7 @@ def upload_page():
     return render_template('upload.html')
 
 @app.route('/library')
+@login_required
 def library():
     # Get filter parameters
     category_filter = request.args.get('category', 'all')
@@ -616,6 +628,7 @@ def upload_document():
     return redirect(url_for('library'))
 
 @app.route('/search', methods=['GET'])
+@login_required
 def search():
     query = request.args.get('query', '')
     category_filter = request.args.get('category', 'all')
@@ -786,6 +799,7 @@ def search():
                               ai_response=None)
 
 @app.route('/document/<doc_id>')
+@login_required
 def view_document(doc_id):
     document = Document.query.get(doc_id)
     if document:
@@ -813,6 +827,7 @@ def view_document(doc_id):
         return redirect(url_for('index'))
         
 @app.route('/uploads/<filename>')
+@login_required
 def serve_upload(filename):
     """
     Serve uploaded PDF files from the uploads folder
@@ -824,11 +839,13 @@ def serve_upload(filename):
         return "File not found", 404
 
 @app.route('/api/documents')
+@login_required
 def get_documents():
     documents = Document.query.all()
     return jsonify([doc.to_dict() for doc in documents])
 
 @app.route('/api/documents/<doc_id>')
+@login_required
 def get_document(doc_id):
     document = Document.query.get(doc_id)
     if document:
@@ -837,6 +854,7 @@ def get_document(doc_id):
         return jsonify({'error': 'Document not found'}), 404
 
 @app.route('/api/categories')
+@login_required
 def get_categories():
     categories = db.session.query(Document.category).distinct().all()
     return jsonify([category[0] for category in categories])
