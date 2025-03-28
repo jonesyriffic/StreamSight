@@ -232,6 +232,7 @@
                                 <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_dashboard') }}" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
                                 <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_users') }}" href="{{ url_for('admin_users') }}"><i class="fas fa-users me-1"></i> User Management</a></li>
                                 <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_search_analytics') }}" href="{{ url_for('admin_search_analytics') }}"><i class="fas fa-chart-line me-1"></i> Search Analytics</a></li>
+                                <li><a class="dropdown-item {{ 'active' if request.path == url_for('admin_search_feedback') }}" href="{{ url_for('admin_search_feedback') }}"><i class="fas fa-comment-dots me-1"></i> Search Feedback</a></li>
                             </ul>
                         </li>
                         {% endif %}

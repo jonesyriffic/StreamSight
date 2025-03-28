@@ -314,6 +314,11 @@ class SearchFeedback(db.Model):
     helpful_insights = db.Column(db.Boolean, default=False)    # AI insights were helpful
     helpful_diversity = db.Column(db.Boolean, default=False)   # Good variety of results
     
+    @property
+    def rating_text(self):
+        """Return the text representation of the rating"""
+        return self.RATING_CHOICES.get(self.rating, 'Unknown')
+    
     def to_dict(self):
         """Convert feedback to dictionary"""
         return {

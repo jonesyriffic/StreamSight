@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Search Feedback Analytics{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Search Feedback Analytics</h1>
+            <p class="text-muted">User feedback on search result quality</p>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Responses</h5>
+                    <h2 class="display-4 text-center">{{ total_feedback }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Average Rating</h5>
+                    <h2 class="display-4 text-center">{{ avg_rating|round(1) }}</h2>
+                    <p class="text-muted text-center">out of 4.0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Rating Distribution</h5>
+                    <div class="row">
+                        <div class="col-3 text-center">
+                            <div>Poor</div>
+                            <h4>{{ rating_distribution.poor }}</h4>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-danger" style="width: {% if total_feedback > 0 %}{{ (rating_distribution.poor / total_feedback * 100)|round }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div>Fair</div>
+                            <h4>{{ rating_distribution.fair }}</h4>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-warning" style="width: {% if total_feedback > 0 %}{{ (rating_distribution.fair / total_feedback * 100)|round }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div>Good</div>
+                            <h4>{{ rating_distribution.good }}</h4>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-info" style="width: {% if total_feedback > 0 %}{{ (rating_distribution.good / total_feedback * 100)|round }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <div>Excellent</div>
+                            <h4>{{ rating_distribution.excellent }}</h4>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" style="width: {% if total_feedback > 0 %}{{ (rating_distribution.excellent / total_feedback * 100)|round }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Helpful Aspects -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">What Users Found Helpful</h5>
+                    <div class="row mt-3">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h6 class="text-center">Relevance</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-primary" style="width: {{ helpful_aspects.relevance|round }}%">
+                                    {{ helpful_aspects.relevance|round }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h6 class="text-center">Speed</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-primary" style="width: {{ helpful_aspects.speed|round }}%">
+                                    {{ helpful_aspects.speed|round }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h6 class="text-center">AI Insights</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-primary" style="width: {{ helpful_aspects.insights|round }}%">
+                                    {{ helpful_aspects.insights|round }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-center">Result Diversity</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-primary" style="width: {{ helpful_aspects.diversity|round }}%">
+                                    {{ helpful_aspects.diversity|round }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Feedback -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Feedback</h5>
+                    {% if feedbacks %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Search Query</th>
+                                    <th>Rating</th>
+                                    <th>Helpful Aspects</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for feedback in feedbacks %}
+                                <tr>
+                                    <td>{{ feedback.submitted_at|humanize }}</td>
+                                    <td>
+                                        {% if feedback.search_log and feedback.search_log.user %}
+                                            <a href="{{ url_for('admin_view_user', user_id=feedback.search_log.user.id) }}">
+                                                {{ feedback.search_log.user.name or feedback.search_log.user.email }}
+                                            </a>
+                                        {% else %}
+                                            Anonymous
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if feedback.search_log %}
+                                            "{{ feedback.search_log.query }}"
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if feedback.rating == 4 %}bg-success
+                                            {% elif feedback.rating == 3 %}bg-info
+                                            {% elif feedback.rating == 2 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ feedback.rating_text }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if feedback.helpful_relevance %}<span class="badge bg-secondary me-1">Relevance</span>{% endif %}
+                                        {% if feedback.helpful_speed %}<span class="badge bg-secondary me-1">Speed</span>{% endif %}
+                                        {% if feedback.helpful_insights %}<span class="badge bg-secondary me-1">Insights</span>{% endif %}
+                                        {% if feedback.helpful_diversity %}<span class="badge bg-secondary me-1">Diversity</span>{% endif %}
+                                    </td>
+                                    <td>{{ feedback.comment }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-3">
+                        No feedback has been submitted yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
