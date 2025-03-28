@@ -844,7 +844,7 @@ def admin_dashboard():
     pending_approval = User.query.filter_by(is_approved=False).order_by(User.created_at.desc()).all()
     
     # Get search analytics summary for the dashboard
-    total_searches = SearchLog.query.count()
+    total_searches = db.session.query(SearchLog).count()
     
     return render_template('admin/dashboard.html',
                          total_users=total_users,
@@ -867,8 +867,8 @@ def admin_search_analytics():
     page = request.args.get('page', 1, type=int)
     per_page = 20  # Number of results per page
     
-    # Build base query
-    base_query = SearchLog.query
+    # Build base query using db.session instead of model.query
+    base_query = db.session.query(SearchLog)
     
     # Apply filters
     if user_id:
@@ -955,7 +955,7 @@ def admin_search_analytics():
     
     # Get paginated recent searches
     recent_searches_query = base_query.order_by(SearchLog.executed_at.desc())
-    pagination = recent_searches_query.paginate(page=page, per_page=per_page)
+    pagination = db.paginate(recent_searches_query, page=page, per_page=per_page)
     recent_searches = pagination.items
     
     # Get all users for filter dropdown
