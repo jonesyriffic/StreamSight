@@ -251,8 +251,6 @@ class SearchLog(db.Model):
     
     # Relationship with user
     user = db.relationship('User', backref=db.backref('searches', lazy='dynamic'))
-    # Relationship with feedback
-    feedback = db.relationship('SearchFeedback', backref='search_log', uselist=False, cascade='all, delete-orphan')
     
     def to_dict(self):
         """Convert search log to dictionary"""
@@ -264,8 +262,8 @@ class SearchLog(db.Model):
                 'name': self.user.name,
                 'team_specialization': self.user.team_specialization
             }
-        
-        result = {
+            
+        return {
             'id': self.id,
             'query': self.query,
             'category_filter': self.category_filter,
@@ -278,60 +276,4 @@ class SearchLog(db.Model):
             'highest_relevance_score': self.highest_relevance_score,
             'avg_relevance_score': self.avg_relevance_score,
             'user': user_data
-        }
-        
-        if self.feedback:
-            result['feedback'] = self.feedback.to_dict()
-            
-        return result
-        
-        
-class SearchFeedback(db.Model):
-    """User feedback on search results quality"""
-    
-    # Rating choices
-    RATING_POOR = 1
-    RATING_FAIR = 2
-    RATING_GOOD = 3
-    RATING_EXCELLENT = 4
-    
-    RATING_CHOICES = {
-        RATING_POOR: 'Poor',
-        RATING_FAIR: 'Fair',
-        RATING_GOOD: 'Good',
-        RATING_EXCELLENT: 'Excellent'
-    }
-    
-    id = db.Column(db.Integer, primary_key=True)
-    search_log_id = db.Column(db.Integer, db.ForeignKey('search_log.id', ondelete='CASCADE'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)  # 1-4 scale (Poor, Fair, Good, Excellent)
-    comment = db.Column(db.Text, nullable=True)     # Optional comment from user
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    
-    # What aspects of search were helpful
-    helpful_relevance = db.Column(db.Boolean, default=False)   # Results were relevant
-    helpful_speed = db.Column(db.Boolean, default=False)       # Search was fast
-    helpful_insights = db.Column(db.Boolean, default=False)    # AI insights were helpful
-    helpful_diversity = db.Column(db.Boolean, default=False)   # Good variety of results
-    
-    @property
-    def rating_text(self):
-        """Return the text representation of the rating"""
-        return self.RATING_CHOICES.get(self.rating, 'Unknown')
-    
-    def to_dict(self):
-        """Convert feedback to dictionary"""
-        return {
-            'id': self.id,
-            'search_log_id': self.search_log_id,
-            'rating': self.rating,
-            'rating_text': self.RATING_CHOICES.get(self.rating, 'Unknown'),
-            'comment': self.comment,
-            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
-            'helpful_aspects': {
-                'relevance': self.helpful_relevance,
-                'speed': self.helpful_speed,
-                'insights': self.helpful_insights,
-                'diversity': self.helpful_diversity
-            }
         }
