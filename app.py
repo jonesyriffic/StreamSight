@@ -2,6 +2,7 @@ import os
 import logging
 import uuid
 from functools import wraps
+from datetime import datetime
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
 from werkzeug.utils import secure_filename
 import json
@@ -61,7 +62,9 @@ with app.app_context():
             name='System Administrator',
             is_active=True,
             is_approved=True,
-            is_admin=True
+            is_admin=True,
+            can_upload=True,
+            team_specialization=User.TEAM_DIGITAL_PRODUCT
         )
         admin_user.set_password(admin_password)
         db.session.add(admin_user)
@@ -120,12 +123,54 @@ def index():
     # Get only recent documents for the dashboard
     recent_documents = Document.query.order_by(Document.uploaded_at.desc()).limit(5).all()
     
+    # Initialize recommended documents as an empty list
+    recommended_documents = []
+    
+    # If user is logged in and has a team specialization, get personalized recommendations
+    if current_user.is_authenticated and current_user.team_specialization:
+        # For the Product Insights team, prioritize "Industry Insights" and "Product Management"
+        if current_user.team_specialization == User.TEAM_PRODUCT_INSIGHTS:
+            industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
+            product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(1).all()
+            recommended_documents = industry_docs + product_docs
+        
+        # For the Digital Product team, prioritize "Product Management" and "Customer Service"
+        elif current_user.team_specialization == User.TEAM_DIGITAL_PRODUCT:
+            product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
+            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
+            recommended_documents = product_docs + customer_docs
+        
+        # For the Service Technology team, prioritize "Technology News" and "Customer Service"
+        elif current_user.team_specialization == User.TEAM_SERVICE_TECH:
+            tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(2).all()
+            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
+            recommended_documents = tech_docs + customer_docs
+        
+        # For the Digital Engagement team, prioritize "Customer Service" and "Industry Insights"
+        elif current_user.team_specialization == User.TEAM_DIGITAL_ENGAGEMENT:
+            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(2).all()
+            industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(1).all()
+            recommended_documents = customer_docs + industry_docs
+        
+        # For the Product Testing team, prioritize "Product Management" and "Customer Service"
+        elif current_user.team_specialization == User.TEAM_PRODUCT_TESTING:
+            product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
+            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
+            recommended_documents = product_docs + customer_docs
+        
+        # For the NextGen Products team, prioritize "Industry Insights" and "Technology News"
+        elif current_user.team_specialization == User.TEAM_NEXTGEN_PRODUCTS:
+            industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
+            tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(1).all()
+            recommended_documents = industry_docs + tech_docs
+    
     return render_template('index.html', 
                           categories=categories,
                           total_documents=total_documents,
                           total_categories=total_categories,
                           upload_month=upload_month,
-                          recent_documents=[doc.to_dict() for doc in recent_documents])
+                          recent_documents=[doc.to_dict() for doc in recent_documents],
+                          recommended_documents=[doc.to_dict() for doc in recommended_documents])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -144,6 +189,10 @@ def login():
         
         # Check if user exists and password is correct
         if user and user.check_password(password):
+            # Update last login time
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            
             login_user(user, remember=remember)
             flash('Login successful!', 'success')
             
@@ -208,15 +257,45 @@ def logout():
     flash('You have been logged out', 'info')
     return redirect(url_for('index'))
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('profile.html')
+    if request.method == 'POST':
+        # Get form data
+        team_specialization = request.form.get('team_specialization')
+        
+        # Update user profile
+        current_user.team_specialization = team_specialization if team_specialization else None
+        db.session.commit()
+        
+        flash('Profile updated successfully', 'success')
+        return redirect(url_for('profile'))
+    
+    # Pass team choices for the dropdown
+    return render_template('profile.html', team_choices=User.TEAM_CHOICES)
+
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    # Get form data
+    team_specialization = request.form.get('team_specialization')
+    
+    # Update user profile
+    current_user.team_specialization = team_specialization if team_specialization else None
+    db.session.commit()
+    
+    flash('Profile updated successfully', 'success')
+    return redirect(url_for('profile'))
 
 @app.route('/upload', methods=['GET'])
 @login_required
 @approved_required
 def upload_page():
+    # Check if user has upload permission
+    if not current_user.can_upload and not current_user.is_admin:
+        flash('You do not have permission to upload documents. Please contact an administrator.', 'danger')
+        return redirect(url_for('index'))
+    
     return render_template('upload.html')
 
 @app.route('/library')
@@ -259,6 +338,11 @@ def library():
 @login_required
 @approved_required
 def upload_document():
+    # Check if user has upload permission
+    if not current_user.can_upload and not current_user.is_admin:
+        flash('You do not have permission to upload documents. Please contact an administrator.', 'danger')
+        return redirect(url_for('index'))
+        
     if 'file' not in request.files:
         flash('No file part', 'danger')
         return redirect(url_for('upload_page'))
@@ -529,6 +613,23 @@ def toggle_active(user_id):
     
     status = 'activated' if user.is_active else 'deactivated'
     flash(f'User {user.email} has been {status}', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/<int:user_id>/toggle_upload_permission', methods=['POST'])
+@login_required
+@admin_required
+def toggle_upload_permission(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Toggle upload permission
+    user.can_upload = not user.can_upload
+    db.session.commit()
+    
+    action = 'granted' if user.can_upload else 'revoked'
+    flash(f'Upload permission {action} for user {user.email}', 'success')
     return redirect(url_for('admin_users'))
 
 # Error handlers

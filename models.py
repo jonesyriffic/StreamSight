@@ -9,6 +9,23 @@ db = SQLAlchemy()
 class User(UserMixin, db.Model):
     """User model for authentication"""
     
+    # Team specialization constants
+    TEAM_DIGITAL_PRODUCT = 'Digital Product - Help Centers'
+    TEAM_SERVICE_TECH = 'Service Technology - Salesforce CRM'
+    TEAM_DIGITAL_ENGAGEMENT = 'Digital Engagement - Chatbots and Social Platforms'
+    TEAM_PRODUCT_TESTING = 'Product Testing - UAT'
+    TEAM_PRODUCT_INSIGHTS = 'Product Insights - Adobe Data and Salesforce Data'
+    TEAM_NEXTGEN_PRODUCTS = 'NextGen Products - future industry trends'
+    
+    TEAM_CHOICES = [
+        TEAM_DIGITAL_PRODUCT,
+        TEAM_SERVICE_TECH,
+        TEAM_DIGITAL_ENGAGEMENT,
+        TEAM_PRODUCT_TESTING,
+        TEAM_PRODUCT_INSIGHTS,
+        TEAM_NEXTGEN_PRODUCTS
+    ]
+    
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
@@ -16,6 +33,9 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_approved = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
+    can_upload = db.Column(db.Boolean, default=False)  # New permission layer for upload capability
+    team_specialization = db.Column(db.String(100), nullable=True)  # User's team specialization
+    last_login = db.Column(db.DateTime, nullable=True)  # Track last login for recommendations
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
     
@@ -44,6 +64,9 @@ class User(UserMixin, db.Model):
             'is_active': self.is_active,
             'is_approved': self.is_approved,
             'is_admin': self.is_admin,
+            'can_upload': self.can_upload,
+            'team_specialization': self.team_specialization,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
             'created_at': self.created_at.isoformat(),
             'approved_at': self.approved_at.isoformat() if self.approved_at else None
         }

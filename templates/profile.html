@@ -7,8 +7,11 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h2 class="mb-0">User Profile</h2>
+                    {% if current_user.is_admin %}
+                    <span class="badge bg-primary">Administrator</span>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,78 +22,121 @@
                         {% endif %}
                     {% endwith %}
                     
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <strong>Name:</strong>
+                    <form method="post" action="{{ url_for('update_profile') }}">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Name:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ current_user.name or 'Not provided' }}
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            {{ current_user.name or 'Not provided' }}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Email:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ current_user.email }}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <strong>Email:</strong>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="team_specialization" class="form-label"><strong>Team Specialization:</strong></label>
+                            </div>
+                            <div class="col-md-8">
+                                <select name="team_specialization" id="team_specialization" class="form-select">
+                                    <option value="" {% if not current_user.team_specialization %}selected{% endif %}>-- Select Your Team --</option>
+                                    {% for team in team_choices %}
+                                        <option value="{{ team }}" {% if current_user.team_specialization == team %}selected{% endif %}>{{ team }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select the team that best matches your role to get personalized recommendations.</div>
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            {{ current_user.email }}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Member Since:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ current_user.created_at.strftime('%B %d, %Y') }}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <strong>Member Since:</strong>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Last Login:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {% if current_user.last_login %}
+                                    {{ current_user.last_login.strftime('%B %d, %Y at %H:%M') }}
+                                {% else %}
+                                    First login
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            {{ current_user.created_at.strftime('%B %d, %Y') }}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Documents Uploaded:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ current_user.documents|length }}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <strong>Documents Uploaded:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {{ current_user.documents|length }}
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <strong>Account Status:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            {% if current_user.is_active %}
-                                {% if current_user.is_approved %}
-                                    <span class="badge bg-success">Active & Approved</span>
-                                    {% if current_user.approved_at %}
-                                        <small class="text-muted d-block mt-1">Approved on {{ current_user.approved_at.strftime('%B %d, %Y') }}</small>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Account Status:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {% if current_user.is_active %}
+                                    {% if current_user.is_approved %}
+                                        <span class="badge bg-success">Active & Approved</span>
+                                        {% if current_user.approved_at %}
+                                            <small class="text-muted d-block mt-1">Approved on {{ current_user.approved_at.strftime('%B %d, %Y') }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending Approval</span>
+                                        <small class="text-muted d-block mt-1">Your account is awaiting administrator approval.</small>
                                     {% endif %}
                                 {% else %}
-                                    <span class="badge bg-warning">Pending Approval</span>
-                                    <small class="text-muted d-block mt-1">Your account is awaiting administrator approval.</small>
+                                    <span class="badge bg-danger">Deactivated</span>
+                                    <small class="text-muted d-block mt-1">Please contact an administrator for assistance.</small>
                                 {% endif %}
-                            {% else %}
-                                <span class="badge bg-danger">Deactivated</span>
-                                <small class="text-muted d-block mt-1">Please contact an administrator for assistance.</small>
-                            {% endif %}
+                            </div>
                         </div>
-                    </div>
-                    
-                    {% if current_user.is_admin %}
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <strong>Role:</strong>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <strong>Permission Level:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {% if current_user.can_upload %}
+                                    <span class="badge bg-success">Document Management</span>
+                                    <small class="text-muted d-block mt-1">You can upload and manage documents</small>
+                                {% else %}
+                                    <span class="badge bg-secondary">View Only</span>
+                                    <small class="text-muted d-block mt-1">You can view documents but not upload</small>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            <span class="badge bg-primary">Administrator</span>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
                         </div>
-                    </div>
-                    {% endif %}
+                    </form>
                 </div>
                 <div class="card-footer">
-                    <div class="d-flex justify-content-end">
-                        <a href="{{ url_for('library') }}" class="btn btn-primary">View My Documents</a>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('library') }}" class="btn btn-primary">
+                            <i class="fas fa-book me-2"></i> View My Documents
+                        </a>
                     </div>
                 </div>
             </div>

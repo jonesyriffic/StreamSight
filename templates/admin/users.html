@@ -30,7 +30,10 @@
                         <th>Email</th>
                         <th>Status</th>
                         <th>Role</th>
+                        <th>Team</th>
+                        <th>Permissions</th>
                         <th>Registered</th>
+                        <th>Last Login</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -58,7 +61,22 @@
                             <span class="badge bg-secondary">User</span>
                             {% endif %}
                         </td>
+                        <td>
+                            {% if user.team_specialization %}
+                                <span class="badge bg-info">{{ user.team_specialization }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Not specified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.can_upload %}
+                                <span class="badge bg-success">Upload</span>
+                            {% else %}
+                                <span class="badge bg-secondary">View Only</span>
+                            {% endif %}
+                        </td>
                         <td>{{ user.created_at }}</td>
+                        <td>{{ user.last_login or 'Never' }}</td>
                         <td>
                             <div class="btn-group">
                                 {% if not user.is_approved %}
@@ -82,11 +100,22 @@
                                 
                                 <form action="{{ url_for('toggle_admin', user_id=user.id) }}" method="post" class="d-inline"
                                       onsubmit="return confirm('Are you sure you want to {% if user.is_admin %}remove{% else %}grant{% endif %} admin privileges for this user?');">
-                                    <button type="submit" class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-primary{% endif %}">
+                                    <button type="submit" class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-primary{% endif %} me-1">
                                         {% if user.is_admin %}
                                         <i class="fas fa-level-down-alt me-1"></i> Remove Admin
                                         {% else %}
                                         <i class="fas fa-crown me-1"></i> Make Admin
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                
+                                <form action="{{ url_for('toggle_upload_permission', user_id=user.id) }}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to {% if user.can_upload %}remove{% else %}grant{% endif %} upload permission for this user?');">
+                                    <button type="submit" class="btn btn-sm {% if user.can_upload %}btn-secondary{% else %}btn-info{% endif %}">
+                                        {% if user.can_upload %}
+                                        <i class="fas fa-lock me-1"></i> View Only
+                                        {% else %}
+                                        <i class="fas fa-upload me-1"></i> Allow Upload
                                         {% endif %}
                                     </button>
                                 </form>

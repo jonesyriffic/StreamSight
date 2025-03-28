@@ -79,9 +79,16 @@
                 <p class="flex-grow-1">Add new PDF documents to your knowledge base. Our AI will automatically categorize them and make them searchable.</p>
                 {% if current_user.is_authenticated %}
                     {% if current_user.is_approved %}
-                    <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
-                        <i class="fas fa-upload me-2"></i> Upload Documents
-                    </a>
+                        {% if current_user.can_upload or current_user.is_admin %}
+                        <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i> Upload Documents
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-lock me-2"></i> View-Only Access
+                        </button>
+                        <p class="text-muted small mt-2">Contact an administrator for upload permission.</p>
+                        {% endif %}
                     {% else %}
                     <button class="btn btn-secondary" disabled>
                         <i class="fas fa-clock me-2"></i> Waiting for Approval
@@ -147,6 +154,58 @@
         </div>
     </div>
 </div>
+
+<!-- Team Recommendations -->
+{% if current_user.is_authenticated and current_user.team_specialization and recommended_documents %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-star text-warning me-2"></i> 
+                    Recommendations for {{ current_user.team_specialization }}
+                </h3>
+                <span class="badge bg-primary">Personalized</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Category</th>
+                            <th>Uploaded</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in recommended_documents %}
+                        <tr>
+                            <td>{{ doc.filename }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if doc.category == 'Industry Insights' %}bg-info
+                                    {% elif doc.category == 'Technology News' %}bg-success
+                                    {% elif doc.category == 'Product Management' %}bg-primary
+                                    {% elif doc.category == 'Customer Service' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ doc.category }}
+                                </span>
+                            </td>
+                            <td>{{ doc.uploaded_at }}</td>
+                            <td>
+                                <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye me-1"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Recently Added Documents -->
 {% if recent_documents %}
