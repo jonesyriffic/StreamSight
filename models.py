@@ -12,22 +12,22 @@ class User(UserMixin, db.Model):
     """User model for authentication"""
     
     # Team specialization constants
-    TEAM_DIGITAL_ENGAGEMENT = 'Digital Engagement - Chatbots and Social Platforms'
-    TEAM_DIGITAL_PRODUCT = 'Digital Product - Help Centers and Deflection Funnels'
-    TEAM_NEXTGEN_PRODUCTS = 'NextGen Products - Future Industry Trends'
-    TEAM_PRODUCT_INSIGHTS = 'Product Insights - Adobe Analytics and Salesforce CRM'
-    TEAM_PRODUCT_TESTING = 'Product Testing - UAT'
-    TEAM_SERVICE_TECH = 'Service Technology - Salesforce Service Cloud'
+    TEAM_DIGITAL_ENGAGEMENT = 'Digital Engagement'
+    TEAM_DIGITAL_PRODUCT = 'Digital Product'
+    TEAM_NEXTGEN_PRODUCTS = 'NextGen Products'
+    TEAM_PRODUCT_INSIGHTS = 'Product Insights'
+    TEAM_PRODUCT_TESTING = 'Product Testing'
+    TEAM_SERVICE_TECH = 'Service Technology'
     
     # Team choices in alphabetical order for display
-    TEAM_CHOICES = [
+    TEAM_CHOICES = sorted([
         TEAM_DIGITAL_ENGAGEMENT,
         TEAM_DIGITAL_PRODUCT,
         TEAM_NEXTGEN_PRODUCTS,
         TEAM_PRODUCT_INSIGHTS,
         TEAM_PRODUCT_TESTING,
         TEAM_SERVICE_TECH
-    ]
+    ])
     
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
