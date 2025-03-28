@@ -144,3 +144,21 @@
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
+
+/* Animation for fallback search input */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+/* Style for fallback search container */
+#fallbackSearchContainer {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    margin-top: 15px;
+}

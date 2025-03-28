@@ -511,8 +511,10 @@ function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
         // Hide feedback
         feedbackElement.classList.add('d-none');
         
-        // Create user-friendly error message
+        // Create user-friendly error message and handle based on error type
         let errorText = 'Voice recognition error';
+        let showFallbackInput = false;
+        
         if (event.error === 'language-not-supported') {
             // If language is not supported, try to use a different language next time
             if (recognition.lang !== 'en-US') {
@@ -522,7 +524,8 @@ function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
                 errorText = 'English (US) not supported. Trying generic English for next attempt.';
                 recognition.lang = 'en'; // Try generic English next
             } else {
-                errorText = 'Speech recognition language not supported by your browser.';
+                errorText = 'Speech recognition not supported in this browser environment.';
+                showFallbackInput = true; // Show keyboard input instead
             }
         } else if (event.error === 'no-speech') {
             errorText = 'No speech detected. Please try speaking again.';
@@ -530,8 +533,10 @@ function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
             errorText = 'Network error occurred. Please check your connection.';
         } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
             errorText = 'Microphone access denied. Please allow microphone access.';
+            showFallbackInput = true; // Show keyboard input if microphone permission denied
         } else {
             errorText = `Voice recognition error: ${event.error}`;
+            showFallbackInput = true; // Show keyboard input for other errors
         }
         
         // Show error message
@@ -540,9 +545,42 @@ function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
         errorMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${errorText}`;
         feedbackElement.parentNode.appendChild(errorMessage);
         
-        // Remove error message after 5 seconds
+        // Create a fallback search box if needed
+        if (showFallbackInput) {
+            // Don't show fallback if there's already one
+            if (!document.getElementById('fallbackSearchContainer')) {
+                // Add a typing animation to indicate the transition to keyboard input
+                setTimeout(() => {
+                    // Create a container for the fallback message and input
+                    const fallbackContainer = document.createElement('div');
+                    fallbackContainer.id = 'fallbackSearchContainer';
+                    fallbackContainer.classList.add('mt-3', 'text-center', 'fade-in');
+                    
+                    // Add a helpful message
+                    const fallbackMessage = document.createElement('div');
+                    fallbackMessage.classList.add('mb-2');
+                    fallbackMessage.innerHTML = 'Please type your search query instead:';
+                    fallbackContainer.appendChild(fallbackMessage);
+                    
+                    // Focus on the main search input
+                    searchInput.focus();
+                    
+                    // Append the container to the page
+                    feedbackElement.parentNode.appendChild(fallbackContainer);
+                    
+                    // Change the microphone button to a keyboard button
+                    voiceButton.innerHTML = '<i class="fas fa-keyboard"></i>';
+                    voiceButton.title = "Voice search unavailable - use keyboard input";
+                    voiceButton.disabled = true;
+                    voiceButton.classList.remove('btn-info');
+                    voiceButton.classList.add('btn-secondary');
+                }, 1000);
+            }
+        }
+        
+        // Remove error message after 8 seconds (longer to give user time to read)
         setTimeout(() => {
             errorMessage.remove();
-        }, 5000);
+        }, 8000);
     };
 }
