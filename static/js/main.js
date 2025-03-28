@@ -165,7 +165,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     "How to evaluate new service technology investments?",
                     "What service technologies have the highest ROI in customer satisfaction?"
                 ]
-            }
+            },
+            
+            // Short searchable terms
+            shortTerms: [
+                "CRM trends",
+                "Chatbot ROI",
+                "Customer feedback analysis",
+                "Service automation",
+                "Agent productivity",
+                "Digital engagement metrics",
+                "Self-service portals",
+                "Voice recognition",
+                "AI customer insights",
+                "Omnichannel support",
+                "Call center metrics",
+                "Customer retention strategies",
+                "Service technology ROI",
+                "Support ticket analysis"
+            ]
         };
         
         // Combine all categories into a single array
@@ -173,7 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ...exampleQuestions.industryInsights,
             ...exampleQuestions.technologyNews,
             ...exampleQuestions.productManagement,
-            ...exampleQuestions.customerService
+            ...exampleQuestions.customerService,
+            ...exampleQuestions.shortTerms
         ];
         
         // Add team-specific questions
@@ -216,6 +235,92 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!this.value.trim()) {
                 updatePlaceholder();
             }
+        });
+        
+        // Add example search lozenges/buttons beneath the search box
+        const exampleSearchesContainer = document.getElementById('exampleSearches');
+        if (exampleSearchesContainer) {
+            // Select 3 random examples from the shuffled questions to display as clickable lozenges
+            // Prefer shorter examples for better UI (using shortTerms array preferentially)
+            const selectExampleSearches = () => {
+                // Start with short terms
+                const shortExamples = shuffleArray([...exampleQuestions.shortTerms]);
+                
+                // Get 3 examples - prefer short terms but fall back to other examples if needed
+                const selectedExamples = shortExamples.slice(0, 3);
+                
+                // Add to example searches container
+                exampleSearchesContainer.innerHTML = '';
+                
+                selectedExamples.forEach(example => {
+                    const button = document.createElement('a');
+                    button.href = `search?query=${encodeURIComponent(example)}`;
+                    button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2');
+                    
+                    // Add icon based on the type of example
+                    if (exampleQuestions.industryInsights.includes(example)) {
+                        button.innerHTML = `<i class="fas fa-chart-line me-1"></i> ${example}`;
+                    } else if (exampleQuestions.technologyNews.includes(example)) {
+                        button.innerHTML = `<i class="fas fa-microchip me-1"></i> ${example}`;
+                    } else if (exampleQuestions.productManagement.includes(example)) {
+                        button.innerHTML = `<i class="fas fa-tasks me-1"></i> ${example}`;
+                    } else if (exampleQuestions.customerService.includes(example)) {
+                        button.innerHTML = `<i class="fas fa-headset me-1"></i> ${example}`;
+                    } else {
+                        button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
+                    }
+                    
+                    exampleSearchesContainer.appendChild(button);
+                });
+            };
+            
+            // Set initial examples
+            selectExampleSearches();
+        }
+    }
+    
+    // Also add example searches to search results page
+    const searchResultsExamplesContainer = document.getElementById('searchResultsExamples');
+    if (searchResultsExamplesContainer) {
+        // Use the same array of short example searches from above
+        const shortExamples = [
+            "CRM trends",
+            "Chatbot ROI",
+            "Customer feedback analysis",
+            "Service automation",
+            "Agent productivity",
+            "Digital engagement metrics",
+            "Self-service portals",
+            "Voice recognition",
+            "AI customer insights",
+            "Omnichannel support",
+            "Call center metrics",
+            "Customer retention strategies",
+            "Service technology ROI",
+            "Support ticket analysis"
+        ];
+        
+        // Shuffle and select 3
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+        
+        const selectedExamples = shuffleArray([...shortExamples]).slice(0, 3);
+        
+        // Add to example searches container
+        searchResultsExamplesContainer.innerHTML = '';
+        
+        selectedExamples.forEach(example => {
+            const button = document.createElement('a');
+            button.href = `search?query=${encodeURIComponent(example)}`;
+            button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2');
+            button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
+            
+            searchResultsExamplesContainer.appendChild(button);
         });
     }
 });
