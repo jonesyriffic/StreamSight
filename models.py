@@ -128,12 +128,12 @@ class UserActivity(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    document_id = db.Column(db.String(36), db.ForeignKey('document.id'), nullable=True)
+    document_id = db.Column(db.String(36), db.ForeignKey('document.id', ondelete='CASCADE'), nullable=True)
     activity_type = db.Column(db.String(50), nullable=False)  # view, search, upload, summarize
     performed_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with user
-    user = db.relationship('User', backref=db.backref('activities', lazy='dynamic'))
+    user = db.relationship('User', backref=db.backref('activities', lazy='dynamic', cascade='all, delete-orphan'))
     
     def to_dict(self):
         """Convert activity to dictionary"""
@@ -166,6 +166,11 @@ class Document(db.Model):
     
     # User who uploaded this document
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    
+    # Relationship with activities
+    activities = db.relationship('UserActivity', backref='document', 
+                               cascade='all, delete-orphan', 
+                               passive_deletes=True)
     
     def to_dict(self):
         """Convert document to dictionary"""
