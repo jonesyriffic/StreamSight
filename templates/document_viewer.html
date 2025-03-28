@@ -287,10 +287,7 @@
                     document.getElementById('key-points-text').innerHTML = data.key_points;
                     
                     // Removed team relevance section - now only shown on the dashboard
-                    // Refreshing page to show updated content
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
+                    // Don't refresh the page; the updated content is already shown
                     
                     // Update timestamp if provided
                     if (data.generated_at) {
