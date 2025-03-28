@@ -228,38 +228,40 @@ def index():
         # Default recommendations - if no specific team match found
         default_docs = Document.query.order_by(Document.uploaded_at.desc()).limit(3).all()
         
+        team_name = current_user.team_specialization.lower() if current_user.team_specialization else ""
+        
         # For the Product Insights team, prioritize "Industry Insights" and "Product Management"
-        if User.TEAM_PRODUCT_INSIGHTS in current_user.team_specialization:
+        if "product insights" in team_name:
             industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
             product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = industry_docs + product_docs
         
         # For the Digital Product team, prioritize "Product Management" and "Customer Service"
-        elif User.TEAM_DIGITAL_PRODUCT in current_user.team_specialization:
+        elif "digital product" in team_name:
             product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = product_docs + customer_docs
         
         # For the Service Technology team, prioritize "Technology News" and "Customer Service"
-        elif User.TEAM_SERVICE_TECH in current_user.team_specialization:
+        elif "service tech" in team_name or "service technology" in team_name:
             tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(2).all()
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = tech_docs + customer_docs
         
         # For the Digital Engagement team, prioritize "Customer Service" and "Industry Insights"
-        elif User.TEAM_DIGITAL_ENGAGEMENT in current_user.team_specialization:
+        elif "digital engagement" in team_name:
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(2).all()
             industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = customer_docs + industry_docs
         
         # For the Product Testing team, prioritize "Product Management" and "Customer Service"
-        elif User.TEAM_PRODUCT_TESTING in current_user.team_specialization:
+        elif "product testing" in team_name:
             product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
             customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = product_docs + customer_docs
         
         # For the NextGen Products team, prioritize "Industry Insights" and "Technology News"
-        elif User.TEAM_NEXTGEN_PRODUCTS in current_user.team_specialization:
+        elif "nextgen" in team_name or "next gen" in team_name or "next generation" in team_name:
             industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
             tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(1).all()
             recommended_documents = industry_docs + tech_docs

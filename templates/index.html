@@ -81,8 +81,9 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">
                     <i class="fas fa-star text-warning me-2"></i> 
-                    Recommendations for {{ current_user.team_specialization }}
+                    Recommendations for Your Team
                 </h3>
+                <span class="badge bg-info">{{ current_user.team_specialization }}</span>
                 <span class="badge bg-primary">Personalized</span>
             </div>
             <div class="card-body">
@@ -122,30 +123,45 @@
                                         <h6 class="mb-0 fw-bold text-success">Why this matters for your team</h6>
                                     </div>
                                     
-                                    {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
-                                        <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
-                                            {% if doc.relevance_reasons[current_user.team_specialization] is mapping and doc.relevance_reasons[current_user.team_specialization].relevance_reason %}
-                                                <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization].relevance_reason|truncate(150) }}</p>
+                                    {% if doc.relevance_reasons %}
+                                        {% set found_relevance = false %}
+                                        {% set relevance_content = "" %}
+                                        {% set relevance_length = 0 %}
+                                        
+                                        {% for team_key, relevance in doc.relevance_reasons.items() %}
+                                            {% if not found_relevance and current_user.team_specialization and (team_key in current_user.team_specialization or current_user.team_specialization in team_key) %}
+                                                {% set found_relevance = true %}
                                                 
-                                                {% if doc.relevance_reasons[current_user.team_specialization].relevance_reason|length > 150 %}
-                                                    <button class="btn btn-link btn-sm text-success p-0" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#relevanceModal{{ loop.index }}">
-                                                        Read more
-                                                    </button>
-                                                {% endif %}
-                                            {% else %}
-                                                <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
-                                                
-                                                {% if doc.relevance_reasons[current_user.team_specialization]|length > 150 %}
-                                                    <button class="btn btn-link btn-sm text-success p-0" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#relevanceModal{{ loop.index }}">
-                                                        Read more
-                                                    </button>
+                                                {% if relevance is mapping and relevance.relevance_reason %}
+                                                    {% set relevance_content = relevance.relevance_reason %}
+                                                    {% set relevance_length = relevance.relevance_reason|length %}
+                                                {% else %}
+                                                    {% set relevance_content = relevance %}
+                                                    {% set relevance_length = relevance|length %}
                                                 {% endif %}
                                             {% endif %}
-                                        </div>
+                                        {% endfor %}
+                                        
+                                        {% if found_relevance %}
+                                            <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
+                                                <p class="card-text small mb-1">{{ relevance_content|truncate(150) }}</p>
+                                                
+                                                {% if relevance_length > 150 %}
+                                                    <button class="btn btn-link btn-sm text-success p-0" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#relevanceModal{{ loop.index }}">
+                                                        Read more
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if not found_relevance %}
+                                            <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
+                                                <p class="card-text small mb-1">This document contains insights relevant to your team's work and can help with current initiatives.</p>
+                                            </div>
+                                        {% endif %}
+                                        
                                         
                                         <!-- Modal for full relevance reason -->
                                         <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
@@ -171,10 +187,21 @@
                                                                 <strong>Why this is relevant for you</strong>
                                                             </div>
                                                             <div class="card-body">
-                                                                {% if doc.relevance_reasons[current_user.team_specialization] is mapping and doc.relevance_reasons[current_user.team_specialization].relevance_reason %}
-                                                                    <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization].relevance_reason }}</p>
+                                                                {% set relevance_text = "" %}
+                                                                {% for team_key, relevance in doc.relevance_reasons.items() %}
+                                                                    {% if not relevance_text and current_user.team_specialization and (team_key in current_user.team_specialization or current_user.team_specialization in team_key) %}
+                                                                        {% if relevance is mapping and relevance.relevance_reason %}
+                                                                            {% set relevance_text = relevance.relevance_reason %}
+                                                                        {% else %}
+                                                                            {% set relevance_text = relevance %}
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                                
+                                                                {% if relevance_text %}
+                                                                    <p class="mb-0">{{ relevance_text }}</p>
                                                                 {% else %}
-                                                                    <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization] }}</p>
+                                                                    <p class="mb-0">This document contains insights relevant to your team's work and can help with current initiatives in the {{ doc.category }} domain.</p>
                                                                 {% endif %}
                                                             </div>
                                                         </div>
