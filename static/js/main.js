@@ -349,7 +349,17 @@ function initializeVoiceSearch() {
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.lang = 'en-US'; // Set recognition language to English
+    
+    // Try to use browser's preferred language or fall back to English
+    try {
+        // Get browser's language preference
+        const browserLang = navigator.language || 'en';
+        recognition.lang = browserLang;
+        console.log('Using speech recognition language:', browserLang);
+    } catch (error) {
+        console.warn('Error setting language, using default:', error);
+        recognition.lang = 'en'; // Fallback to generic English without region
+    }
 
     // Set up voice search for main search box on homepage
     setupVoiceSearch(
@@ -473,15 +483,31 @@ function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
         // Hide feedback
         feedbackElement.classList.add('d-none');
         
+        // Create user-friendly error message
+        let errorText = 'Voice recognition error';
+        if (event.error === 'language-not-supported') {
+            errorText = 'Language not supported. Try a different browser or language setting.';
+            // Try to set a more compatible language on next attempt
+            recognition.lang = 'en'; // Generic English
+        } else if (event.error === 'no-speech') {
+            errorText = 'No speech detected. Please try speaking again.';
+        } else if (event.error === 'network') {
+            errorText = 'Network error occurred. Please check your connection.';
+        } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            errorText = 'Microphone access denied. Please allow microphone access.';
+        } else {
+            errorText = `Voice recognition error: ${event.error}`;
+        }
+        
         // Show error message
         const errorMessage = document.createElement('div');
         errorMessage.classList.add('alert', 'alert-warning', 'mt-2');
-        errorMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>Voice recognition error: ${event.error}`;
+        errorMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${errorText}`;
         feedbackElement.parentNode.appendChild(errorMessage);
         
-        // Remove error message after 3 seconds
+        // Remove error message after 5 seconds
         setTimeout(() => {
             errorMessage.remove();
-        }, 3000);
+        }, 5000);
     };
 }
