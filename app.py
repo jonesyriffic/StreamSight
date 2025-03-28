@@ -736,13 +736,31 @@ def search():
         all_categories = db.session.query(Document.category).distinct().all()
         categories = [category[0] for category in all_categories]
         
+        # Pass search log ID for feedback form if a log was created
+        search_log_id = None
+        has_feedback = False
+        
+        try:
+            if 'search_log' in locals() and search_log:
+                search_log_id = search_log.id
+                # Check if feedback already exists
+                has_feedback = search_log.feedback is not None
+                
+                # Only show feedback form for authenticated users
+                if not current_user.is_authenticated:
+                    search_log_id = None  # Don't show feedback form for anonymous users
+        except Exception as feedback_check_error:
+            logger.error(f"Error checking feedback status: {str(feedback_check_error)}")
+        
         return render_template('search_results.html', 
                               results=results, 
                               query=query,
                               selected_category=category_filter,
                               categories=categories,
                               search_info=search_info,
-                              ai_response=ai_response)
+                              ai_response=ai_response,
+                              search_log_id=search_log_id,
+                              has_feedback=has_feedback)
     except Exception as e:
         logger.error(f"Search error: {str(e)}")
         
@@ -774,7 +792,9 @@ def search():
                               error=error_message,
                               selected_category=category_filter,
                               categories=categories,
-                              ai_response=None)
+                              ai_response=None,
+                              search_log_id=None,  # No feedback form for error case
+                              has_feedback=False)
 
 @app.route('/document/<doc_id>')
 def view_document(doc_id):

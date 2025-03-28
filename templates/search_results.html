@@ -62,6 +62,79 @@
 </div>
 {% endif %}
 
+{% if search_log_id and not has_feedback %}
+<div class="card mb-4 border-warning bg-dark" id="feedbackCard">
+    <div class="card-header bg-warning text-dark">
+        <i class="fas fa-star me-2"></i> <strong>How helpful was this search?</strong>
+    </div>
+    <div class="card-body">
+        <form id="searchFeedbackForm">
+            <div class="mb-3">
+                <label class="form-label">Rate the quality of these search results:</label>
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="rating" id="rating1" value="1">
+                        <label class="form-check-label" for="rating1">Poor</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="rating" id="rating2" value="2">
+                        <label class="form-check-label" for="rating2">Fair</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="rating" id="rating3" value="3">
+                        <label class="form-check-label" for="rating3">Good</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="rating" id="rating4" value="4">
+                        <label class="form-check-label" for="rating4">Excellent</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">What made these results helpful? (Optional)</label>
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="helpfulRelevance" name="helpful_relevance">
+                        <label class="form-check-label" for="helpfulRelevance">Results were relevant</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="helpfulSpeed" name="helpful_speed">
+                        <label class="form-check-label" for="helpfulSpeed">Search was fast</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="helpfulInsights" name="helpful_insights">
+                        <label class="form-check-label" for="helpfulInsights">AI insights were helpful</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="helpfulDiversity" name="helpful_diversity">
+                        <label class="form-check-label" for="helpfulDiversity">Good variety of results</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="comment" class="form-label">Additional Comments (Optional)</label>
+                <textarea class="form-control" id="comment" name="comment" rows="2" placeholder="Any additional feedback..."></textarea>
+            </div>
+            
+            <div class="text-end">
+                <button type="button" id="skipFeedback" class="btn btn-outline-secondary me-2">Skip</button>
+                <button type="submit" class="btn btn-warning">Submit Feedback</button>
+            </div>
+        </form>
+        
+        <div id="feedbackSuccess" class="alert alert-success mt-3 d-none">
+            <i class="fas fa-check-circle me-2"></i> Thank you for your feedback!
+        </div>
+        
+        <div id="feedbackError" class="alert alert-danger mt-3 d-none">
+            <i class="fas fa-exclamation-circle me-2"></i> <span id="errorMessage">Error submitting feedback.</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% if results|length == 0 %}
 <div class="text-center py-5">
     <div class="card bg-dark p-4">
@@ -201,5 +274,84 @@ First result structure:
     </div>
 </div>
 {% endfor %}
+{% endif %}
+
+{% if search_log_id %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchLogId = {{ search_log_id }};
+    const feedbackCard = document.getElementById('feedbackCard');
+    const searchFeedbackForm = document.getElementById('searchFeedbackForm');
+    const skipFeedbackBtn = document.getElementById('skipFeedback');
+    const feedbackSuccess = document.getElementById('feedbackSuccess');
+    const feedbackError = document.getElementById('feedbackError');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Handle form submission
+    if (searchFeedbackForm) {
+        searchFeedbackForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const rating = document.querySelector('input[name="rating"]:checked');
+            if (!rating) {
+                errorMessage.textContent = 'Please select a rating';
+                feedbackError.classList.remove('d-none');
+                return;
+            }
+            
+            const formData = {
+                rating: parseInt(rating.value),
+                comment: document.getElementById('comment').value,
+                helpful_relevance: document.getElementById('helpfulRelevance').checked,
+                helpful_speed: document.getElementById('helpfulSpeed').checked,
+                helpful_insights: document.getElementById('helpfulInsights').checked,
+                helpful_diversity: document.getElementById('helpfulDiversity').checked
+            };
+            
+            // Submit feedback via API
+            fetch(`/api/search-feedback/${searchLogId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and hide form
+                    searchFeedbackForm.classList.add('d-none');
+                    feedbackSuccess.classList.remove('d-none');
+                    feedbackError.classList.add('d-none');
+                    
+                    // Hide the feedback card after 3 seconds
+                    setTimeout(() => {
+                        feedbackCard.classList.add('d-none');
+                    }, 3000);
+                } else {
+                    // Show error message
+                    errorMessage.textContent = data.message || 'Error submitting feedback';
+                    feedbackError.classList.remove('d-none');
+                    feedbackSuccess.classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorMessage.textContent = 'Network error. Please try again.';
+                feedbackError.classList.remove('d-none');
+                feedbackSuccess.classList.add('d-none');
+            });
+        });
+    }
+    
+    // Handle skip button
+    if (skipFeedbackBtn) {
+        skipFeedbackBtn.addEventListener('click', function() {
+            feedbackCard.classList.add('d-none');
+        });
+    }
+});
+</script>
 {% endif %}
 {% endblock %}
