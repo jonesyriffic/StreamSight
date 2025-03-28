@@ -158,7 +158,17 @@
                                         
                                         {% if not found_relevance %}
                                             <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
-                                                <p class="card-text small mb-1">This document includes specific insights for {{ current_user.team_specialization }} work priorities and highlights key opportunities for your current projects.</p>
+                                                {% if doc.category == 'Industry Insights' %}
+                                                    <p class="card-text small mb-1">The market insights in this report will help you improve your {{ current_user.team_specialization }} solutions. You can apply the data trends to your current projects.</p>
+                                                {% elif doc.category == 'Technology News' %}
+                                                    <p class="card-text small mb-1">These technology updates directly impact your {{ current_user.team_specialization }} toolset. You can use these developments to enhance your team's capabilities.</p>
+                                                {% elif doc.category == 'Product Management' %}
+                                                    <p class="card-text small mb-1">The product strategies outlined here can strengthen your {{ current_user.team_specialization }} approach. You'll find specific methods to improve your workflow.</p>
+                                                {% elif doc.category == 'Customer Service' %}
+                                                    <p class="card-text small mb-1">These customer service tactics will optimize your {{ current_user.team_specialization }} operations. You can implement these techniques in your current processes.</p>
+                                                {% else %}
+                                                    <p class="card-text small mb-1">This {{ doc.category }} document contains specific techniques that will enhance your {{ current_user.team_specialization }} initiatives.</p>
+                                                {% endif %}
                                             </div>
                                         {% endif %}
                                         
@@ -201,7 +211,17 @@
                                                                 {% if relevance_text %}
                                                                     <p class="mb-0">{{ relevance_text }}</p>
                                                                 {% else %}
-                                                                    <p class="mb-0">The {{ doc.category }} insights in this document directly support {{ current_user.team_specialization }} goals and can provide valuable context for decision-making in your current projects.</p>
+                                                                    {% if doc.category == 'Industry Insights' %}
+                                                                        <p class="mb-0">This industry report highlights market trends that directly impact your {{ current_user.team_specialization }} work. You can use these insights to refine your strategies and align your projects with emerging customer expectations.</p>
+                                                                    {% elif doc.category == 'Technology News' %}
+                                                                        <p class="mb-0">The technology innovations covered in this document have direct applications for your {{ current_user.team_specialization }} tools and systems. You can leverage these advancements to improve your team's technical capabilities and service delivery.</p>
+                                                                    {% elif doc.category == 'Product Management' %}
+                                                                        <p class="mb-0">This document outlines product strategies that can enhance your {{ current_user.team_specialization }} approaches. You'll find methodologies that can streamline your workflows and improve cross-functional collaboration.</p>
+                                                                    {% elif doc.category == 'Customer Service' %}
+                                                                        <p class="mb-0">The customer service practices detailed here will help your {{ current_user.team_specialization }} team improve customer satisfaction metrics. You can implement these specific techniques to address common pain points in your service delivery.</p>
+                                                                    {% else %}
+                                                                        <p class="mb-0">This {{ doc.category }} content provides targeted information that will strengthen your {{ current_user.team_specialization }} initiatives. The specific data points can inform your decision-making process.</p>
+                                                                    {% endif %}
                                                                 {% endif %}
                                                             </div>
                                                         </div>
@@ -219,7 +239,17 @@
                                         <div class="border-start border-warning ps-3 pt-2 pb-2 mt-2 mb-2">
                                             <p class="card-text small mb-0">
                                                 <i class="fas fa-info-circle me-1 text-warning"></i> 
-                                                This {{ doc.category }} document contains key insights that will help {{ current_user.team_specialization }} teams improve their strategies and implementation approaches.
+                                                {% if doc.category == 'Industry Insights' %}
+                                                    The market data in this report can help your {{ current_user.team_specialization }} team optimize customer engagement metrics and adapt to changing industry conditions.
+                                                {% elif doc.category == 'Technology News' %}
+                                                    This technology update highlights innovations that can enhance your {{ current_user.team_specialization }} toolset and improve your technical capabilities.
+                                                {% elif doc.category == 'Product Management' %}
+                                                    The product frameworks detailed here will help you strengthen your {{ current_user.team_specialization }} approach and improve cross-functional collaboration.
+                                                {% elif doc.category == 'Customer Service' %}
+                                                    These customer service best practices can help your {{ current_user.team_specialization }} team optimize service delivery and improve satisfaction scores.
+                                                {% else %}
+                                                    This document contains specific insights that will help you improve your {{ current_user.team_specialization }} operations and implementation approaches.
+                                                {% endif %}
                                             </p>
                                         </div>
                                     {% endif %}
