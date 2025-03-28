@@ -216,8 +216,12 @@
 <script src="{{ url_for('static', filename='js/pdfjs-init.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Set PDF URL
-        const pdfUrl = "{{ document.filepath }}";
+        // Extract filename from filepath
+        const filepath = "{{ document.filepath }}";
+        const filename = filepath.split('/').pop();
+        
+        // Create the correct URL to access the file via our serve_upload endpoint
+        const pdfUrl = "/uploads/" + filename;
         
         // Initialize PDF viewer
         initPdfViewer(pdfUrl);

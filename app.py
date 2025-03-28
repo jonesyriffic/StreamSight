@@ -2,7 +2,7 @@ import os
 import logging
 import uuid
 from functools import wraps
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
 from werkzeug.utils import secure_filename
 import json
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -353,6 +353,17 @@ def view_document(doc_id):
     else:
         flash('Document not found', 'danger')
         return redirect(url_for('index'))
+        
+@app.route('/uploads/<filename>')
+def serve_upload(filename):
+    """
+    Serve uploaded PDF files from the uploads folder
+    """
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, mimetype='application/pdf')
+    except Exception as e:
+        logger.error(f"Error serving file {filename}: {str(e)}")
+        return "File not found", 404
 
 @app.route('/api/documents')
 def get_documents():
