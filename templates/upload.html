@@ -25,7 +25,7 @@
                     or industry insights. Our AI will automatically categorize your documents,
                     making them searchable with natural language queries.
                 </p>
-                <form action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data">
+                <form id="uploadForm" action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data">
                     <div class="mb-4">
                         <label for="files" class="form-label fw-bold">
                             Select PDF document(s) to upload
@@ -35,10 +35,64 @@
                             <i class="fas fa-info-circle me-1"></i> Only PDF files are supported (max 16MB each)
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg">
+                    <button type="submit" id="uploadButton" class="btn btn-primary btn-lg">
                         <i class="fas fa-upload me-2"></i> Upload Documents
                     </button>
                 </form>
+                
+                <!-- Upload progress indicator (hidden by default) -->
+                <div id="uploadProgress" class="mt-4 text-center d-none">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="text-primary">Uploading documents...</h4>
+                    <p class="text-light">This may take a moment as we process each file. Please don't refresh the page.</p>
+                    <div class="progress mt-3">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p id="progressStatus" class="mt-2">Preparing files...</p>
+                </div>
+                
+                <script>
+                    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+                        // Get the number of files being uploaded
+                        const fileInput = document.getElementById('files');
+                        const numFiles = fileInput.files.length;
+                        
+                        if (numFiles > 0) {
+                            // Show progress indicator
+                            document.getElementById('uploadButton').disabled = true;
+                            document.getElementById('uploadProgress').classList.remove('d-none');
+                            
+                            // Set up simulated progress
+                            let progress = 0;
+                            const progressBar = document.getElementById('progressBar');
+                            const progressStatus = document.getElementById('progressStatus');
+                            
+                            // For a more realistic feel, we'll simulate progress
+                            // Since we can't actually track server-side progress
+                            progressStatus.textContent = `Processing ${numFiles} file${numFiles > 1 ? 's' : ''}...`;
+                            
+                            const interval = setInterval(function() {
+                                // Increment more slowly as we approach 90%
+                                if (progress < 50) {
+                                    progress += 5;
+                                } else if (progress < 75) {
+                                    progress += 2;
+                                } else if (progress < 90) {
+                                    progress += 0.5;
+                                }
+                                
+                                if (progress >= 90) {
+                                    clearInterval(interval);
+                                    progressStatus.textContent = 'Almost done... Finalizing uploads';
+                                }
+                                
+                                progressBar.style.width = progress + '%';
+                            }, 500);
+                        }
+                    });
+                </script>
             </div>
         </div>
     </div>

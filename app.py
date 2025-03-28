@@ -425,11 +425,15 @@ def upload_document():
                     # Continue even if relevance generation fails - this isn't critical
                 
                 # Track upload activity for badges
-                new_badges = BadgeService.track_activity(
-                    user_id=current_user.id,
-                    activity_type='upload',
-                    document_id=new_document.id
-                )
+                try:
+                    new_badges = BadgeService.track_activity(
+                        user_id=current_user.id,
+                        activity_type='upload',
+                        document_id=new_document.id
+                    )
+                except Exception as badge_error:
+                    logger.error(f"Error tracking badge activity: {str(badge_error)}")
+                    new_badges = None
                 
                 # If new badges were earned, save them for notification at the end
                 if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
@@ -494,10 +498,14 @@ def search():
         # Track search activity if user is logged in
         if current_user.is_authenticated:
             # Record activity for badge tracking
-            new_badges = BadgeService.track_activity(
-                user_id=current_user.id,
-                activity_type='search'
-            )
+            try:
+                new_badges = BadgeService.track_activity(
+                    user_id=current_user.id,
+                    activity_type='search'
+                )
+            except Exception as badge_error:
+                logger.error(f"Error tracking search badge activity: {str(badge_error)}")
+                new_badges = None
             
             # If new badges were earned, show notification
             if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
@@ -526,11 +534,15 @@ def view_document(doc_id):
         # Track document view activity if user is logged in
         if current_user.is_authenticated:
             # Record activity for badge tracking
-            new_badges = BadgeService.track_activity(
-                user_id=current_user.id,
-                activity_type='view',
-                document_id=doc_id
-            )
+            try:
+                new_badges = BadgeService.track_activity(
+                    user_id=current_user.id,
+                    activity_type='view',
+                    document_id=doc_id
+                )
+            except Exception as badge_error:
+                logger.error(f"Error tracking document view badge activity: {str(badge_error)}")
+                new_badges = None
             
             # If new badges were earned, show notification
             if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
@@ -590,11 +602,15 @@ def generate_document_summary_api(doc_id):
         result = generate_document_summary(doc_id)
         
         # Track summarize activity for badge
-        new_badges = BadgeService.track_activity(
-            user_id=current_user.id,
-            activity_type='summarize',
-            document_id=doc_id
-        )
+        try:
+            new_badges = BadgeService.track_activity(
+                user_id=current_user.id,
+                activity_type='summarize',
+                document_id=doc_id
+            )
+        except Exception as badge_error:
+            logger.error(f"Error tracking summary badge activity: {str(badge_error)}")
+            new_badges = None
         
         # If new badges were earned, add to result
         if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
