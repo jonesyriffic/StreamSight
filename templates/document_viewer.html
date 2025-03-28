@@ -132,6 +132,28 @@
                 </a>
             </div>
         </div>
+
+        <!-- Team specialization reminder for users who haven't set it -->
+        {% if current_user.is_authenticated and not current_user.team_specialization %}
+        <div class="card mb-4 border-info bg-info bg-opacity-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <i class="fas fa-lightbulb fa-2x text-info"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1 text-info">Personalize your document experience</h5>
+                        <p class="mb-2">
+                            Set your team specialization in your profile to see why this document is relevant to your specific role.
+                        </p>
+                        <a href="{{ url_for('profile') }}" class="btn btn-sm btn-info">
+                            <i class="fas fa-user-edit me-1"></i> Update Your Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         
         <!-- AI Insights Section -->
         <div class="card mb-4">

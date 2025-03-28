@@ -25,6 +25,26 @@
     </div>
 </div>
 
+<!-- Personalization reminder for users without team specialization -->
+{% if current_user.is_authenticated and not current_user.team_specialization %}
+<div class="alert alert-info mb-4">
+    <div class="d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+            <i class="fas fa-user-tag fa-2x"></i>
+        </div>
+        <div>
+            <h4 class="alert-heading mb-1">Want personalized document recommendations?</h4>
+            <p class="mb-0">
+                Set your team specialization in your profile to see documents most relevant to your role.
+                <a href="{{ url_for('profile') }}" class="alert-link ms-2">
+                    <i class="fas fa-arrow-right me-1"></i> Update Profile
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="card bg-dark shadow mb-4">
     <div class="card-header">
         <h2 class="h4 mb-0">
