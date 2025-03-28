@@ -1,0 +1,38 @@
+# Gunicorn configuration file for large file uploads
+
+# Binding
+bind = "0.0.0.0:5000"
+
+# Worker processes
+workers = 1
+threads = 2
+
+# Timeouts 
+timeout = 300  # 5 minutes - increased for large file uploads
+keepalive = 5
+
+# Server mechanics
+daemon = False
+reload = True
+reuse_port = True
+
+# Logging
+loglevel = "info"
+accesslog = "-"  # stdout
+errorlog = "-"   # stderr
+
+# Large request handling
+limit_request_line = 0       # 0 = unlimited
+limit_request_fields = 0     # 0 = unlimited
+limit_request_field_size = 0 # 0 = unlimited
+
+# Maximum request body size (100MB - important!)
+# Note: Gunicorn doesn't directly support max_body_size like Nginx
+# We use Flask settings for this in app.py
+# But we need to make sure we don't time out before completing large uploads
+worker_class = "gthread"
+worker_connections = 1000
+
+# Python-specific settings for large file handling
+post_fork = lambda server, worker: worker.log.info("Worker spawned (pid: %s)", worker.pid)
+post_worker_init = lambda worker: worker.log.info("Worker initialized with large file support")
