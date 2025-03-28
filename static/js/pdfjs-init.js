@@ -6,15 +6,20 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
 /**
- * Initialize the PDF links with the given PDF URL
+ * Initialize the PDF viewer with the given PDF URL
  * @param {string} pdfUrl - URL to the PDF file
  */
 function initPdfViewer(pdfUrl) {
-    // Get all PDF related links
+    // Get all PDF related elements
+    const pdfViewer = document.getElementById('pdf-viewer');
     const pdfDownloadLink = document.getElementById('pdf-download-link');
     const pdfViewLink = document.getElementById('pdf-view-link');
-    const directDownloadBtn = document.getElementById('direct-download-btn');
     const downloadBtn = document.getElementById('download-btn');
+    
+    // Set the src attribute for the iframe
+    if (pdfViewer) {
+        pdfViewer.src = pdfUrl;
+    }
     
     // Set the href for all PDF links
     if (pdfDownloadLink) {
@@ -23,10 +28,6 @@ function initPdfViewer(pdfUrl) {
     
     if (pdfViewLink) {
         pdfViewLink.href = pdfUrl;
-    }
-    
-    if (directDownloadBtn) {
-        directDownloadBtn.href = pdfUrl;
     }
     
     // Add event listener for the main download button if it exists
