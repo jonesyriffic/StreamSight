@@ -40,23 +40,24 @@
     .key-points-list {
         padding-left: 1.5rem;
         margin-bottom: 1.5rem;
+        list-style-type: none;
     }
     
     .key-points-list li {
-        margin-bottom: 0.75rem;
+        margin-bottom: 1rem;
         position: relative;
         line-height: 1.5;
+        padding-left: 1.2rem;
     }
     
     .key-points-list li::before {
-        content: "";
+        content: "•";
         position: absolute;
-        left: -1.2rem;
-        top: 0.5rem;
-        width: 0.5rem;
-        height: 0.5rem;
-        background-color: var(--bs-info);
-        border-radius: 50%;
+        left: 0;
+        top: 0;
+        color: var(--bs-info);
+        font-size: 1.2rem;
+        font-weight: bold;
     }
     
     .insight-item {
@@ -67,6 +68,21 @@
         color: var(--bs-info);
         font-weight: 600;
         letter-spacing: 0.01em;
+    }
+    
+    /* Improved formatting for document insights */
+    .document-insights h3 {
+        color: var(--bs-light);
+        font-size: 1.3rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.5rem;
+    }
+    
+    .key-points-section, .summary-section {
+        margin-bottom: 2rem;
     }
     
     .insight-description {

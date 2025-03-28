@@ -168,37 +168,18 @@ def generate_document_summary(document_id):
                     if not clean_line:
                         continue
                     
-                    # Process markdown bold formatting
-                    if "**" in clean_line:
-                        # Parse and format bold sections
-                        bold_count = clean_line.count("**")
-                        if bold_count >= 2 and bold_count % 2 == 0:
-                            # Replace pairs of ** with <strong> and </strong>
-                            formatted_line = clean_line
-                            is_open = True
-                            for _ in range(bold_count // 2):
-                                if is_open:
-                                    formatted_line = formatted_line.replace("**", "<strong>", 1)
-                                    is_open = False
-                                else:
-                                    formatted_line = formatted_line.replace("**", "</strong>", 1)
-                                    is_open = True
-                            
-                            # Format title-description pattern if present (Title: Description)
-                            if ":" in formatted_line and "<strong>" in formatted_line:
-                                parts = formatted_line.split(":", 1)
-                                if "</strong>" in parts[0]:
-                                    title = parts[0].strip()
-                                    description = parts[1].strip() if len(parts) > 1 else ""
-                                    formatted_line = f"{title}:<span class='insight-description'>{description}</span>"
-                            
-                            bullet_items.append(f"<li class='insight-item'>{formatted_line}</li>")
-                        else:
-                            # If markdown is malformed, just use the raw line
-                            bullet_items.append(f"<li class='insight-item'>{clean_line}</li>")
-                    else:
-                        # No markdown, use line as-is
-                        bullet_items.append(f"<li class='insight-item'>{clean_line}</li>")
+                    # Use regex to properly handle bold formatting
+                    formatted_line = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', clean_line)
+                    
+                    # Format title-description pattern if present (Title: Description)
+                    if ":" in formatted_line and "<strong>" in formatted_line:
+                        parts = formatted_line.split(":", 1)
+                        if "</strong>" in parts[0]:
+                            title = parts[0].strip()
+                            description = parts[1].strip() if len(parts) > 1 else ""
+                            formatted_line = f"{title}:<span class='insight-description'>{description}</span>"
+                    
+                    bullet_items.append(f"<li class='insight-item'>{formatted_line}</li>")
             
             if bullet_items:
                 key_points_html = f"<div class='key-points-section'><h3>Key Points</h3><ul class='key-points-list'>{' '.join(bullet_items)}</ul></div>"
@@ -208,11 +189,19 @@ def generate_document_summary(document_id):
             # Format summary as HTML
             summary_content = summary_text.replace(summary_marker, "").strip()
             if summary_content:
+                # Process markdown for bold formatting first
+                summary_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', summary_content)
+                
                 # Format with paragraphs
-                formatted_summary = summary_content.replace("\n\n", "</p><p>")
-                # Handle single newlines inside paragraphs
-                formatted_summary = formatted_summary.replace("\n", "<br>")
-                summary_html = f"<div class='summary-section'><h3>Summary</h3><p>{formatted_summary}</p></div>"
+                formatted_summary = ""
+                paragraphs = summary_content.split("\n\n")
+                for paragraph in paragraphs:
+                    if paragraph.strip():
+                        # Handle single newlines inside paragraphs
+                        paragraph = paragraph.replace("\n", "<br>")
+                        formatted_summary += f"<p>{paragraph}</p>"
+                
+                summary_html = f"<div class='summary-section'><h3>Summary</h3>{formatted_summary}</div>"
             else:
                 summary_html = "<div class='summary-section'><h3>Summary</h3><p>No summary information available.</p></div>"
             
