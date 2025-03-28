@@ -39,7 +39,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-9">
+    <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">{{ document.filename }}</h5>
@@ -48,9 +48,58 @@
                 <iframe id="pdf-viewer" src="about:blank"></iframe>
             </div>
         </div>
+        
+        <!-- AI Insights Section -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">AI Insights</h5>
+                <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %}
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="summary-loading" class="d-none text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating AI insights...</p>
+                </div>
+                
+                <div id="summary-content" class="{% if not document.summary %}d-none{% endif %}">
+                    <h6 class="text-info mb-3">Executive Summary</h6>
+                    <div id="summary-text" class="mb-4">
+                        {% if document.summary %}
+                            {{ document.summary|safe }}
+                        {% else %}
+                            <p class="text-muted">No summary available yet. Click the Generate button to create one.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <h6 class="text-info mb-3">Key Insights</h6>
+                    <div id="key-points-text">
+                        {% if document.key_points %}
+                            {{ document.key_points|safe }}
+                        {% else %}
+                            <p class="text-muted">No key points available yet.</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if document.summary_generated_at %}
+                    <div class="text-muted small mt-3">
+                        <i class="fas fa-clock me-1"></i> Generated: {{ document.summary_generated_at }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div id="summary-error" class="d-none alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="error-message">An error occurred while generating insights.</span>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">Insight Info</h5>
@@ -138,6 +187,65 @@
                     alert('PDF viewer is still loading. Please try again in a moment.');
                 }
             }
+        });
+        
+        // Generate/Regenerate Summary functionality
+        document.getElementById('generate-summary-btn').addEventListener('click', function() {
+            // Show loading state
+            document.getElementById('summary-loading').classList.remove('d-none');
+            document.getElementById('summary-content').classList.add('d-none');
+            document.getElementById('summary-error').classList.add('d-none');
+            
+            // Send AJAX request to generate summary
+            fetch('/api/generate-summary/{{ document.id }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading state
+                document.getElementById('summary-loading').classList.add('d-none');
+                
+                if (data.success) {
+                    // Update UI with new summary and key points
+                    document.getElementById('summary-text').innerHTML = data.summary;
+                    document.getElementById('key-points-text').innerHTML = data.key_points;
+                    
+                    // Update timestamp if provided
+                    if (data.generated_at) {
+                        const timestampElement = document.querySelector('#summary-content .text-muted.small');
+                        if (timestampElement) {
+                            timestampElement.innerHTML = `<i class="fas fa-clock me-1"></i> Generated: ${data.generated_at}`;
+                        } else {
+                            const newTimestamp = document.createElement('div');
+                            newTimestamp.className = 'text-muted small mt-3';
+                            newTimestamp.innerHTML = `<i class="fas fa-clock me-1"></i> Generated: ${data.generated_at}`;
+                            document.getElementById('summary-content').appendChild(newTimestamp);
+                        }
+                    }
+                    
+                    // Show content
+                    document.getElementById('summary-content').classList.remove('d-none');
+                    
+                    // Update button text to "Regenerate"
+                    this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Regenerate';
+                } else {
+                    // Show error
+                    document.getElementById('error-message').textContent = data.error || 'An error occurred while generating insights.';
+                    document.getElementById('summary-error').classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                // Hide loading, show error
+                document.getElementById('summary-loading').classList.add('d-none');
+                document.getElementById('error-message').textContent = 'Network error: ' + error.message;
+                document.getElementById('summary-error').classList.remove('d-none');
+                console.error('Error:', error);
+            });
         });
     });
 </script>

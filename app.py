@@ -10,6 +10,7 @@ from email_validator import validate_email, EmailNotValidError
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
+from utils.document_ai import generate_document_summary
 from models import db, Document, User
 
 # Set up logging for debugging
@@ -348,7 +349,7 @@ def search():
 def view_document(doc_id):
     document = Document.query.get(doc_id)
     if document:
-        return render_template('document_viewer.html', document=document.to_dict())
+        return render_template('document_viewer.html', document=document)
     else:
         flash('Document not found', 'danger')
         return redirect(url_for('index'))
@@ -370,6 +371,34 @@ def get_document(doc_id):
 def get_categories():
     categories = db.session.query(Document.category).distinct().all()
     return jsonify([category[0] for category in categories])
+
+@app.route('/api/generate-summary/<doc_id>', methods=['POST'])
+@login_required
+@approved_required
+def generate_document_summary_api(doc_id):
+    """API endpoint to generate a summary for a document"""
+    try:
+        # Check if document exists
+        document = Document.query.get(doc_id)
+        if not document:
+            return jsonify({'success': False, 'error': 'Document not found'}), 404
+        
+        # Check if user owns the document or is admin
+        if document.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({'success': False, 'error': 'Permission denied'}), 403
+        
+        # Generate summary using our AI utility
+        result = generate_document_summary(doc_id)
+        
+        # Format the timestamp if present
+        if result.get('success') and document.summary_generated_at:
+            result['generated_at'] = document.summary_generated_at.isoformat()
+            
+        return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"Error generating summary: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/document/delete/<doc_id>', methods=['POST'])
 @login_required
