@@ -371,7 +371,7 @@ def register():
         if email.lower().endswith('@sky.uk') or email.lower().endswith('@nbcuni.com'):
             new_user.is_approved = True
             new_user.approved_at = datetime.utcnow()
-            new_user.can_upload = True  # Also grant upload permission
+            # Don't automatically grant upload permission - this is limited to admins
             logger.info(f"Auto-approved user with email domain: {email}")
             flash_message = 'Registration successful! Your account has been automatically approved. Please log in.'
         else:
