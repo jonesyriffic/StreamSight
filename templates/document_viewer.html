@@ -101,14 +101,28 @@
 <div class="row">
     <div class="col-md-8">
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">{{ document.filename }}</h5>
+                <a id="direct-download-btn" href="" class="btn btn-sm btn-outline-info" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
+                </a>
             </div>
-            <div id="pdf-container">
-                <object id="pdf-viewer" data="" type="application/pdf" width="100%" height="100%">
-                    <p>It appears you don't have a PDF plugin for this browser. 
-                    You can <a id="pdf-download-link" href="">click here to download the PDF file</a>.</p>
-                </object>
+            <div id="pdf-container" class="card-body text-center">
+                <div class="d-flex flex-column align-items-center">
+                    <div class="mb-3">
+                        <i class="fas fa-file-pdf text-danger fa-4x mb-3"></i>
+                        <h5>{{ document.filename }}</h5>
+                    </div>
+                    <p class="mb-4">PDF ready for viewing or download</p>
+                    <div class="d-flex gap-3">
+                        <a id="pdf-view-link" href="" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-eye me-2"></i> View PDF
+                        </a>
+                        <a id="pdf-download-link" href="" download class="btn btn-info">
+                            <i class="fas fa-download me-2"></i> Download
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -186,18 +200,14 @@
         
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="card-title mb-0">Search in this Insight</h5>
+                <h5 class="card-title mb-0">Document Information</h5>
             </div>
             <div class="card-body">
-                <form id="search-document-form">
-                    <div class="mb-3">
-                        <input type="text" id="document-search-input" class="form-control" 
-                               placeholder="Search term...">
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search me-2"></i> Find
-                    </button>
-                </form>
+                <div class="mb-3">
+                    <p><strong>Document Type:</strong> PDF</p>
+                    <p><strong>Size:</strong> {{ (document.filepath|length / 1024)|round(1) }} KB</p>
+                </div>
+                <p class="text-muted small">For searching within the document, please open it in a new tab and use your browser's search functionality (Ctrl+F or Cmd+F).</p>
             </div>
         </div>
         
@@ -206,8 +216,11 @@
                 <h5 class="card-title mb-0">Actions</h5>
             </div>
             <div class="card-body">
+                <a href="{{ url_for('library') }}" class="btn btn-secondary w-100 mb-2">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Library
+                </a>
                 <a href="javascript:void(0)" class="btn btn-info w-100 mb-2" id="download-btn">
-                    <i class="fas fa-download me-2"></i> Download
+                    <i class="fas fa-download me-2"></i> Download PDF
                 </a>
             </div>
         </div>
@@ -229,26 +242,9 @@
         // Initialize PDF viewer
         initPdfViewer(pdfUrl);
         
-        // Download button functionality
-        document.getElementById('download-btn').addEventListener('click', function() {
-            // Create a temporary link to download the PDF
-            const a = document.createElement('a');
-            a.href = pdfUrl;
-            a.download = "{{ document.filename }}";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        });
+        // The download button is now handled in the initPdfViewer function
         
-        // Document search functionality - display a message that search is not available in basic PDF viewer
-        document.getElementById('search-document-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const searchTerm = document.getElementById('document-search-input').value.trim();
-            if (searchTerm) {
-                // Alert the user that they need to use browser's search functionality
-                alert('The built-in PDF search is not available. Please use your browser\'s search functionality (Ctrl+F or Cmd+F) to search within the document.');
-            }
-        });
+        // We're no longer using the search form as we've replaced it with instructions in the UI
         
         // Generate/Regenerate Summary functionality
         document.getElementById('generate-summary-btn').addEventListener('click', function() {

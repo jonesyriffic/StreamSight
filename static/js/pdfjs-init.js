@@ -6,25 +6,34 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
 /**
- * Initialize the PDF viewer with the given PDF URL
+ * Initialize the PDF links with the given PDF URL
  * @param {string} pdfUrl - URL to the PDF file
  */
 function initPdfViewer(pdfUrl) {
-    const container = document.getElementById('pdf-container');
-    const pdfObject = document.getElementById('pdf-viewer');
-    const downloadLink = document.getElementById('pdf-download-link');
+    // Get all PDF related links
+    const pdfDownloadLink = document.getElementById('pdf-download-link');
+    const pdfViewLink = document.getElementById('pdf-view-link');
+    const directDownloadBtn = document.getElementById('direct-download-btn');
+    const downloadBtn = document.getElementById('download-btn');
     
-    if (!container || !pdfObject) {
-        console.error('PDF container or viewer element not found');
-        return;
+    // Set the href for all PDF links
+    if (pdfDownloadLink) {
+        pdfDownloadLink.href = pdfUrl;
     }
     
-    // Set the data attribute of the object to the PDF URL
-    pdfObject.setAttribute('data', pdfUrl);
+    if (pdfViewLink) {
+        pdfViewLink.href = pdfUrl;
+    }
     
-    // Set the download link href
-    if (downloadLink) {
-        downloadLink.setAttribute('href', pdfUrl);
+    if (directDownloadBtn) {
+        directDownloadBtn.href = pdfUrl;
+    }
+    
+    // Add event listener for the main download button if it exists
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            window.location.href = pdfUrl;
+        });
     }
     
     console.log('PDF viewer initialized with URL:', pdfUrl);
