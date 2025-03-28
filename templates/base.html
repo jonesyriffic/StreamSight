@@ -21,24 +21,43 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
             <div class="container">
-                <a class="navbar-brand" href="{{ url_for('index') }}">
-                    <i class="fas fa-search me-2"></i>
-                    DocuSearch AI
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                    <i class="fas fa-robot text-info me-2"></i>
+                    <span>DocuSearch AI</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('index') }}">
-                                <i class="fas fa-home me-1"></i> Home
+                                <i class="fas fa-home me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('library') }}">
+                                <i class="fas fa-book me-1"></i> Library
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('upload_page') }}">
+                                <i class="fas fa-upload me-1"></i> Upload
                             </a>
                         </li>
                     </ul>
+                    <form class="d-flex ms-auto" action="{{ url_for('search') }}" method="get">
+                        <div class="input-group">
+                            <input type="text" name="query" class="form-control" 
+                                   placeholder="Quick search..." aria-label="Quick search">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </nav>

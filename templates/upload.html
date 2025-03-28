@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Documents{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Upload New Documents</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Home
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Add to Your Knowledge Base</h2>
+                <p class="card-text mb-4">
+                    Upload PDF documents related to product management, customer service, 
+                    or industry insights. Our AI will automatically categorize your documents,
+                    making them searchable with natural language queries.
+                </p>
+                <form action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="file" class="form-label fw-bold">
+                            Select PDF document to upload
+                        </label>
+                        <input class="form-control form-control-lg" type="file" id="file" name="file" accept=".pdf" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i> Only PDF files are supported (max 16MB)
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-upload me-2"></i> Upload Document
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <div class="card bg-dark border-info">
+            <div class="card-header bg-info-subtle text-info-emphasis">
+                <h3 class="mb-0"><i class="fas fa-info-circle me-2"></i> How It Works</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <div class="h1 text-info mb-2">
+                            <i class="fas fa-file-upload"></i>
+                        </div>
+                        <h4>1. Upload</h4>
+                        <p>Upload PDF documents from your knowledge base</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <div class="h1 text-info mb-2">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4>2. AI Processing</h4>
+                        <p>Our AI reads and categorizes the document content</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="h1 text-info mb-2">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4>3. Search</h4>
+                        <p>Search with natural language to find what you need</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

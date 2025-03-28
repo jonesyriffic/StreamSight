@@ -45,20 +45,85 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
+    # Get all documents and categories for statistics
     documents = Document.query.order_by(Document.uploaded_at.desc()).all()
-    return render_template('index.html', documents=[doc.to_dict() for doc in documents])
+    categories = db.session.query(Document.category).distinct().all()
+    categories = [category[0] for category in categories]
+    
+    # Get statistics for dashboard
+    total_documents = Document.query.count()
+    total_categories = len(categories)
+    
+    # Calculate uploads this month
+    from datetime import datetime
+    current_month = datetime.utcnow().month
+    current_year = datetime.utcnow().year
+    upload_month = Document.query.filter(
+        db.extract('month', Document.uploaded_at) == current_month,
+        db.extract('year', Document.uploaded_at) == current_year
+    ).count()
+    
+    # Get only recent documents for the dashboard
+    recent_documents = Document.query.order_by(Document.uploaded_at.desc()).limit(5).all()
+    
+    return render_template('index.html', 
+                          categories=categories,
+                          total_documents=total_documents,
+                          total_categories=total_categories,
+                          upload_month=upload_month,
+                          recent_documents=[doc.to_dict() for doc in recent_documents])
+
+@app.route('/upload', methods=['GET'])
+def upload_page():
+    return render_template('upload.html')
+
+@app.route('/library')
+def library():
+    # Get filter parameters
+    category_filter = request.args.get('category', 'all')
+    sort_by = request.args.get('sort', 'date_desc')
+    
+    # Query base
+    query = Document.query
+    
+    # Apply category filter if not 'all'
+    if category_filter != 'all':
+        query = query.filter_by(category=category_filter)
+    
+    # Apply sorting
+    if sort_by == 'date_desc':
+        query = query.order_by(Document.uploaded_at.desc())
+    elif sort_by == 'date_asc':
+        query = query.order_by(Document.uploaded_at.asc())
+    elif sort_by == 'name_asc':
+        query = query.order_by(Document.filename.asc())
+    elif sort_by == 'name_desc':
+        query = query.order_by(Document.filename.desc())
+    
+    # Execute query
+    documents = query.all()
+    
+    # Get all categories for the filter dropdown
+    categories = db.session.query(Document.category).distinct().all()
+    categories = [category[0] for category in categories]
+    
+    return render_template('library.html',
+                          documents=[doc.to_dict() for doc in documents],
+                          categories=categories,
+                          category_filter=category_filter,
+                          sort_by=sort_by)
 
 @app.route('/upload', methods=['POST'])
 def upload_document():
     if 'file' not in request.files:
         flash('No file part', 'danger')
-        return redirect(request.url)
+        return redirect(url_for('upload_page'))
     
     file = request.files['file']
     
     if file.filename == '':
         flash('No selected file', 'danger')
-        return redirect(request.url)
+        return redirect(url_for('upload_page'))
     
     if file and allowed_file(file.filename):
         try:
@@ -89,14 +154,14 @@ def upload_document():
             db.session.commit()
             
             flash(f'Document "{original_filename}" uploaded successfully!', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('library'))
         except Exception as e:
             logger.error(f"Error during file upload: {str(e)}")
             flash(f'Error processing document: {str(e)}', 'danger')
-            return redirect(url_for('index'))
+            return redirect(url_for('upload_page'))
     else:
         flash('Invalid file type. Only PDF files are allowed.', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('upload_page'))
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -182,7 +247,8 @@ def delete_document(doc_id):
     else:
         flash('Document not found', 'danger')
     
-    return redirect(url_for('index'))
+    # Redirect back to library instead of index
+    return redirect(url_for('library'))
 
 # Error handlers
 @app.errorhandler(404)
