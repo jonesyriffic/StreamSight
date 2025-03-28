@@ -15,6 +15,7 @@ from utils.ai_search import search_documents, categorize_content
 from utils.document_ai import generate_document_summary, generate_friendly_name
 from utils.relevance_generator import generate_relevance_reasons
 from utils.badge_service import BadgeService
+from utils.text_processor import clean_html, format_timestamp
 from models import db, Document, User, Badge, UserActivity
 
 # Set up logging for debugging
@@ -609,7 +610,7 @@ def view_document(doc_id):
                 for badge in new_badges.get('new_badges'):
                     flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
         
-        return render_template('document_viewer.html', document=document)
+        return render_template('document_viewer.html', document=document.to_dict())
     else:
         flash('Document not found', 'danger')
         return redirect(url_for('index'))
@@ -784,7 +785,7 @@ def admin_view_user(user_id):
         return redirect(url_for('admin_users'))
         
     # Get user's documents
-    documents = Document.query.filter_by(user_id=user.id).order_by(Document.uploaded_at.desc()).all()
+    documents = [doc.to_dict() for doc in Document.query.filter_by(user_id=user.id).order_by(Document.uploaded_at.desc()).all()]
     
     # Get user's earned badges
     user_badges = BadgeService.get_user_badges(user_id)

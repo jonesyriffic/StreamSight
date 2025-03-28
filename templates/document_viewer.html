@@ -145,7 +145,7 @@
                 <div id="summary-content" class="insights-section {% if not document.summary %}d-none{% endif %}">
                     <div id="key-points-text">
                         {% if document.key_points %}
-                            {{ document.key_points|safe }}
+                            {{ document.key_points }}
                         {% else %}
                             <div class='key-points-section'>
                                 <h3>Key Points</h3>
@@ -156,7 +156,7 @@
                     
                     <div id="summary-text" class="mb-4">
                         {% if document.summary %}
-                            {{ document.summary|safe }}
+                            {{ document.summary }}
                         {% else %}
                             <div class='summary-section'>
                                 <h3>Summary</h3>
@@ -167,7 +167,7 @@
                     
                     <div id="relevance-text">
                         {% if document.relevance_reasons and document.relevance_reasons.streaming_services %}
-                            {{ document.relevance_reasons.streaming_services|safe }}
+                            {{ document.relevance_reasons.streaming_services }}
                         {% else %}
                             <div class='relevance-section'>
                                 <h3>Relevance to Streaming Services</h3>
@@ -208,7 +208,7 @@
                         {{ document.category }}
                     </span>
                 </p>
-                <p><strong>Uploaded:</strong> <br>{{ document.uploaded_at }}</p>
+                <p><strong>Uploaded:</strong> <br>{{ document.relative_time if document.relative_time else document.uploaded_at }}</p>
                 <p><strong>Document Name:</strong> <br>{{ document.friendly_name if document.friendly_name else document.filename }}</p>
                 <p><strong>Original Filename:</strong> <br>{{ document.filename }}</p>
             </div>

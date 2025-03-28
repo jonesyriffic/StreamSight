@@ -4,6 +4,7 @@ import uuid
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from utils.text_processor import clean_html, format_timestamp
 
 db = SQLAlchemy()
 
@@ -179,6 +180,21 @@ class Document(db.Model):
     
     def to_dict(self):
         """Convert document to dictionary"""
+        # Clean HTML from the summary and key points
+        cleaned_summary = clean_html(self.summary) if self.summary else None
+        cleaned_key_points = clean_html(self.key_points) if self.key_points else None
+        
+        # Format timestamps
+        relative_time = format_timestamp(self.uploaded_at) if self.uploaded_at else None
+        
+        # Process relevance reasons if they exist
+        if self.relevance_reasons and isinstance(self.relevance_reasons, dict):
+            cleaned_relevance = {}
+            for team, reason in self.relevance_reasons.items():
+                cleaned_relevance[team] = clean_html(reason)
+        else:
+            cleaned_relevance = self.relevance_reasons
+        
         return {
             'id': self.id,
             'filename': self.filename,
@@ -186,12 +202,13 @@ class Document(db.Model):
             'filepath': self.filepath,
             'text': self.text,
             'category': self.category,
-            'uploaded_at': self.uploaded_at.isoformat(),
+            'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None,
             'user_id': self.user_id,
-            'summary': self.summary,
-            'key_points': self.key_points,
-            'relevance_reasons': self.relevance_reasons,
-            'summary_generated_at': self.summary_generated_at.isoformat() if self.summary_generated_at else None
+            'summary': cleaned_summary,
+            'key_points': cleaned_key_points,
+            'relevance_reasons': cleaned_relevance,
+            'summary_generated_at': self.summary_generated_at.isoformat() if self.summary_generated_at else None,
+            'relative_time': relative_time  # Add relative time as a new field
         }
         
 # Association table for user-badge relationship (many-to-many)
