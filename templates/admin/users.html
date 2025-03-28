@@ -78,7 +78,7 @@
                         <td>{{ user.created_at }}</td>
                         <td>{{ user.last_login or 'Never' }}</td>
                         <td>
-                            <div class="btn-group">
+                            <div class="btn-group mb-2">
                                 {% if not user.is_approved %}
                                 <form action="{{ url_for('approve_user', user_id=user.id) }}" method="post" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-success me-1">
@@ -119,6 +119,58 @@
                                         {% endif %}
                                     </button>
                                 </form>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <!-- Edit User Profile Button -->
+                                <button type="button" class="btn btn-sm btn-info me-1" data-bs-toggle="modal" data-bs-target="#editUserModal{{ user.id }}">
+                                    <i class="fas fa-user-edit me-1"></i> Edit Profile
+                                </button>
+                                
+                                <!-- Reset Password Button -->
+                                <form action="{{ url_for('reset_user_password', user_id=user.id) }}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to reset the password for {{ user.email }}? A new temporary password will be generated.');">
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-key me-1"></i> Reset Password
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Edit User Profile Modal -->
+                            <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1" aria-labelledby="editUserModalLabel{{ user.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content bg-dark text-light">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editUserModalLabel{{ user.id }}">Edit User: {{ user.email }}</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form action="{{ url_for('admin_update_user', user_id=user.id) }}" method="post">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="name{{ user.id }}" class="form-label">Name</label>
+                                                    <input type="text" class="form-control" id="name{{ user.id }}" name="name" value="{{ user.name or '' }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="email{{ user.id }}" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="email{{ user.id }}" name="email" value="{{ user.email }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="team_specialization{{ user.id }}" class="form-label">Team Specialization</label>
+                                                    <select class="form-select" id="team_specialization{{ user.id }}" name="team_specialization">
+                                                        <option value="">-- Select Team --</option>
+                                                        {% for team in team_choices %}
+                                                        <option value="{{ team }}" {% if user.team_specialization == team %}selected{% endif %}>{{ team }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>

@@ -38,6 +38,7 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime, nullable=True)  # Track last login for recommendations
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
+    needs_password_change = db.Column(db.Boolean, default=False)  # Flag for temporary password
     
     # Relationship with documents
     documents = db.relationship('Document', backref='uploader', lazy=True)

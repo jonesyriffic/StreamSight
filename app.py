@@ -177,6 +177,10 @@ def index():
 def login():
     # If already logged in, redirect to index
     if current_user.is_authenticated:
+        # Check if user needs to change password first
+        if current_user.needs_password_change:
+            flash('You need to change your temporary password before continuing.', 'warning')
+            return redirect(url_for('change_password'))
         return redirect(url_for('index'))
     
     # Handle login form submission
@@ -190,11 +194,26 @@ def login():
         
         # Check if user exists and password is correct
         if user and user.check_password(password):
+            # Check account status
+            if not user.is_active:
+                flash('Your account has been deactivated. Please contact an administrator.', 'danger')
+                return redirect(url_for('login'))
+            
+            if not user.is_approved:
+                flash('Your account is pending approval. Please check back later.', 'warning')
+                return redirect(url_for('login'))
+                
             # Update last login time
             user.last_login = datetime.utcnow()
             db.session.commit()
             
             login_user(user, remember=remember)
+            
+            # Check if user needs to change password
+            if user.needs_password_change:
+                flash('You must change your temporary password before continuing.', 'warning')
+                return redirect(url_for('change_password'))
+                
             flash('Login successful!', 'success')
             
             # Redirect to requested page or index
@@ -567,7 +586,7 @@ def admin_dashboard():
 def admin_users():
     # Get all users
     users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/users.html', users=users)
+    return render_template('admin/users.html', users=users, team_choices=User.TEAM_CHOICES)
 
 @app.route('/admin/user/<int:user_id>/approve', methods=['POST'])
 @login_required
@@ -642,6 +661,107 @@ def toggle_upload_permission(user_id):
     action = 'granted' if user.can_upload else 'revoked'
     flash(f'Upload permission {action} for user {user.email}', 'success')
     return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/<int:user_id>/update', methods=['POST'])
+@login_required
+@admin_required
+def admin_update_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Get form data
+    name = request.form.get('name')
+    email = request.form.get('email')
+    team_specialization = request.form.get('team_specialization')
+    
+    # Validate email
+    try:
+        if email != user.email:  # Only validate if email has changed
+            valid = validate_email(email)
+            email = valid.email
+            
+            # Check if email already exists for another user
+            existing_user = User.query.filter(User.email == email, User.id != user.id).first()
+            if existing_user:
+                flash(f'Email {email} is already in use by another user', 'danger')
+                return redirect(url_for('admin_users'))
+    except EmailNotValidError as e:
+        flash(f'Invalid email: {str(e)}', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Update user information
+    user.name = name
+    user.email = email
+    user.team_specialization = team_specialization if team_specialization else None
+    
+    db.session.commit()
+    
+    flash(f'User {user.email} profile updated successfully', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/<int:user_id>/reset_password', methods=['POST'])
+@login_required
+@admin_required
+def reset_user_password(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    # Generate a random temporary password (mix of letters, numbers, and special characters)
+    import random
+    import string
+    
+    characters = string.ascii_letters + string.digits + '!@#$%^&*'
+    temp_password = ''.join(random.choices(characters, k=12))
+    
+    # Update user's password and set the flag for forced password change
+    user.set_password(temp_password)
+    user.needs_password_change = True
+    db.session.commit()
+    
+    flash(f'Password for {user.email} has been reset. Temporary password: {temp_password}', 'warning')
+    flash('Please copy this password and provide it to the user. They will be prompted to change it on next login.', 'info')
+    
+    return redirect(url_for('admin_users'))
+
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Handle password change, including forced change after reset"""
+    if request.method == 'POST':
+        # Get form data
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate inputs
+        if not current_user.needs_password_change:
+            # Only verify current password if not a forced change
+            if not current_user.check_password(current_password):
+                flash('Current password is incorrect', 'danger')
+                return render_template('change_password.html', forced_change=current_user.needs_password_change)
+        
+        if new_password != confirm_password:
+            flash('New passwords do not match', 'danger')
+            return render_template('change_password.html', forced_change=current_user.needs_password_change)
+        
+        if len(new_password) < 8:
+            flash('Password must be at least 8 characters long', 'danger')
+            return render_template('change_password.html', forced_change=current_user.needs_password_change)
+            
+        # Update password
+        current_user.set_password(new_password)
+        current_user.needs_password_change = False
+        db.session.commit()
+        
+        flash('Password updated successfully', 'success')
+        return redirect(url_for('index'))
+        
+    # GET request - show form
+    return render_template('change_password.html', forced_change=current_user.needs_password_change)
 
 # Error handlers
 @app.errorhandler(404)

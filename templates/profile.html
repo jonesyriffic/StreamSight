@@ -131,9 +131,14 @@
                 </div>
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
-                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-home me-2"></i> Dashboard
-                        </a>
+                        <div>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-home me-2"></i> Dashboard
+                            </a>
+                            <a href="{{ url_for('change_password') }}" class="btn btn-warning">
+                                <i class="fas fa-key me-2"></i> Change Password
+                            </a>
+                        </div>
                         <a href="{{ url_for('library') }}" class="btn btn-primary">
                             <i class="fas fa-book me-2"></i> View My Documents
                         </a>
