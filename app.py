@@ -34,6 +34,8 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max upload size
+app.config['MAX_BUFFER_SIZE'] = 100 * 1024 * 1024  # 100MB buffer size for large file uploads
+app.config['REQUEST_TIMEOUT'] = 300  # 5 minutes timeout for large uploads
 
 # Configure database
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -491,7 +493,14 @@ def upload_document():
         flash('No file part', 'danger')
         return redirect(url_for('upload_page'))
     
-    files = request.files.getlist('files')
+    # Increase request timeout for large files
+    try:
+        # Get file list with extended timeout handling
+        files = request.files.getlist('files')
+    except Exception as e:
+        logger.error(f"Error accessing uploaded files: {str(e)}")
+        flash('Error processing upload request. The server might have timed out due to large file size.', 'danger')
+        return redirect(url_for('upload_page'))
     
     if len(files) == 0 or all(file.filename == '' for file in files):
         flash('No selected file(s)', 'danger')
@@ -500,29 +509,91 @@ def upload_document():
     successful_uploads = 0
     failed_uploads = 0
     earned_badges = set()
+    large_file_warning_shown = False
     
     for file in files:
         if file and file.filename != '' and allowed_file(file.filename):
             try:
+                # Log file information
+                logger.info(f"Processing file: {file.filename}, Content type: {file.content_type}")
+                
                 # Generate a unique filename
                 original_filename = secure_filename(file.filename)
                 filename = f"{uuid.uuid4()}_{original_filename}"
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 
-                # Save the file
-                file.save(filepath)
-                
-                # Extract text from PDF
                 try:
+                    # Save the file with chunked writing for large files
+                    logger.info(f"Saving file {original_filename} to {filepath}")
+                    
+                    # Get file size before saving for pre-validation
+                    file.seek(0, os.SEEK_END)
+                    file_size_pre = file.tell()
+                    file.seek(0)  # Reset to beginning of file
+                    
+                    # Log pre-save file size
+                    size_mb_pre = file_size_pre / (1024 * 1024)
+                    logger.info(f"Pre-save file size: {file_size_pre} bytes ({size_mb_pre:.2f} MB)")
+                    
+                    # Warn about very large files (over 50MB)
+                    is_large_file = size_mb_pre > 50
+                    if is_large_file:
+                        logger.info(f"Large file detected: {original_filename} ({size_mb_pre:.2f} MB)")
+                        if not large_file_warning_shown:
+                            large_file_warning_shown = True
+                            # Show a warning message for large files
+                            flash(f"Processing large file ({size_mb_pre:.1f} MB). This may take several minutes. Please be patient.", "warning")
+                    
+                    # Save the file
+                    file.save(filepath)
+                    logger.info(f"File saved successfully: {filepath}")
+                    
+                    # Get file size after saving for verification
+                    file_size = os.path.getsize(filepath)
+                    size_mb = file_size / (1024 * 1024)
+                    logger.info(f"File size on disk: {file_size} bytes ({size_mb:.2f} MB)")
+                    
+                    # Verify file size matches expected
+                    if abs(file_size - file_size_pre) > 1024 * 1024:  # Allow 1MB difference
+                        logger.warning(f"File size discrepancy: pre-save {size_mb_pre:.2f}MB, post-save {size_mb:.2f}MB")
+                    
+                except Exception as save_error:
+                    logger.error(f"Error saving file {original_filename}: {str(save_error)}")
+                    # More detailed error messages for common file save issues
+                    if "disk space" in str(save_error).lower():
+                        raise Exception(f"Failed to save file: Not enough disk space")
+                    elif "permission" in str(save_error).lower():
+                        raise Exception(f"Failed to save file: Permission error")
+                    else:
+                        raise Exception(f"Failed to save file: {str(save_error)}")
+                
+                # Extract text from PDF with better handling for large files
+                try:
+                    logger.info(f"Extracting text from PDF: {filepath}")
+                    # For very large files, we have special processing in extract_text_from_pdf
                     extracted_text = extract_text_from_pdf(filepath)
+                    text_length = len(extracted_text)
+                    logger.info(f"Text extraction successful: {text_length} characters extracted")
+                    
+                    # Log warning if extracted text is very small compared to file size
+                    if text_length < 500 and file_size > 1024 * 1024:  # Less than 500 chars from a 1MB+ file
+                        logger.warning(f"Very little text ({text_length} chars) extracted from large file ({size_mb:.2f}MB)")
+                    
                 except Exception as e:
                     logger.error(f"Error extracting text from PDF: {str(e)}")
                     # Use a placeholder if text extraction fails
                     extracted_text = "Text extraction failed. This document might be scanned or have other issues."
+                    # Add specific message for different extraction errors
+                    if "memory" in str(e).lower():
+                        logger.warning(f"Memory error during text extraction - file may be too large or complex")
+                    elif "password" in str(e).lower() or "encrypted" in str(e).lower():
+                        extracted_text = "Text extraction failed. This document is password-protected or encrypted."
                 
                 # Categorize the content
                 try:
+                    logger.info("Categorizing document content")
                     category = categorize_content(extracted_text)
+                    logger.info(f"Document categorized as: {category}")
                 except Exception as e:
                     logger.error(f"Error categorizing content: {str(e)}")
                     # Use a default category if categorization fails

@@ -32,7 +32,7 @@
                         </label>
                         <input class="form-control form-control-lg" type="file" id="files" name="files" accept=".pdf" multiple required>
                         <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i> Only PDF files are supported (max 16MB each)
+                            <i class="fas fa-info-circle me-1"></i> Only PDF files are supported (max 100MB each)
                         </div>
                     </div>
                     <button type="submit" id="uploadButton" class="btn btn-primary btn-lg">
@@ -60,6 +60,22 @@
                         const numFiles = fileInput.files.length;
                         
                         if (numFiles > 0) {
+                            // Calculate total size of all files
+                            let totalSize = 0;
+                            let largeFileDetected = false;
+                            let largeFileName = '';
+                            
+                            for (let i = 0; i < fileInput.files.length; i++) {
+                                const file = fileInput.files[i];
+                                totalSize += file.size;
+                                
+                                // Check for individual large files (> 50MB)
+                                if (file.size > 50 * 1024 * 1024) {
+                                    largeFileDetected = true;
+                                    largeFileName = file.name;
+                                }
+                            }
+                            
                             // Show progress indicator
                             document.getElementById('uploadButton').disabled = true;
                             document.getElementById('uploadProgress').classList.remove('d-none');
@@ -69,27 +85,66 @@
                             const progressBar = document.getElementById('progressBar');
                             const progressStatus = document.getElementById('progressStatus');
                             
-                            // For a more realistic feel, we'll simulate progress
-                            // Since we can't actually track server-side progress
-                            progressStatus.textContent = `Processing ${numFiles} file${numFiles > 1 ? 's' : ''}...`;
+                            // For large files, show a different message and slow down the progress simulation
+                            if (largeFileDetected) {
+                                progressStatus.textContent = `Processing large file(s). This may take several minutes...`;
+                                
+                                // Add additional message for large files
+                                const largeSizeWarning = document.createElement('p');
+                                largeSizeWarning.className = 'text-warning mt-3';
+                                largeSizeWarning.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Large file detected. The server is processing your upload. Please be patient and <strong>do not refresh</strong> the page.';
+                                document.getElementById('uploadProgress').appendChild(largeSizeWarning);
+                            } else {
+                                progressStatus.textContent = `Processing ${numFiles} file${numFiles > 1 ? 's' : ''}...`;
+                            }
+                            
+                            // Calculate interval based on file size - slower for larger files
+                            const baseInterval = 500;
+                            const sizeAdjustedInterval = largeFileDetected ? 2000 : baseInterval;
                             
                             const interval = setInterval(function() {
-                                // Increment more slowly as we approach 90%
-                                if (progress < 50) {
-                                    progress += 5;
-                                } else if (progress < 75) {
-                                    progress += 2;
-                                } else if (progress < 90) {
-                                    progress += 0.5;
+                                // Increment more slowly for large files
+                                let increment = 0;
+                                
+                                if (largeFileDetected) {
+                                    // Very slow progress for large files
+                                    if (progress < 30) {
+                                        increment = 0.5;
+                                    } else if (progress < 60) {
+                                        increment = 0.3;
+                                    } else if (progress < 85) {
+                                        increment = 0.1;
+                                    } else {
+                                        increment = 0.05;
+                                    }
+                                } else {
+                                    // Normal progress for regular files
+                                    if (progress < 50) {
+                                        increment = 5;
+                                    } else if (progress < 75) {
+                                        increment = 2;
+                                    } else if (progress < 90) {
+                                        increment = 0.5;
+                                    } else {
+                                        increment = 0.1;
+                                    }
                                 }
+                                
+                                progress += increment;
                                 
                                 if (progress >= 90) {
                                     clearInterval(interval);
                                     progressStatus.textContent = 'Almost done... Finalizing uploads';
                                 }
                                 
+                                if (largeFileDetected && progress >= 25 && progress < 26) {
+                                    progressStatus.textContent = 'Extracting content from large document...';
+                                } else if (largeFileDetected && progress >= 60 && progress < 61) {
+                                    progressStatus.textContent = 'Processing document content with AI...';
+                                }
+                                
                                 progressBar.style.width = progress + '%';
-                            }, 500);
+                            }, sizeAdjustedInterval);
                         }
                     });
                 </script>
