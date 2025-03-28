@@ -166,7 +166,15 @@ class BadgeService:
             if badge_type in user_badge_types:
                 current_level = user_badge_types[badge_type].level
             
-            next_level_index = Badge.BADGE_LEVELS.index(current_level) + 1 if current_level else 0
+            # Find the lowest level badge of this type if user has none
+            if current_level is None:
+                entry_badge = Badge.query.filter_by(type=badge_type, level=Badge.LEVEL_BRONZE).first()
+                if entry_badge:
+                    next_badges[badge_type] = entry_badge.to_dict()
+                continue
+            
+            # If user has a badge, find the next level
+            next_level_index = Badge.BADGE_LEVELS.index(current_level) + 1
             if next_level_index < len(Badge.BADGE_LEVELS):
                 next_level = Badge.BADGE_LEVELS[next_level_index]
                 next_badge = Badge.query.filter_by(type=badge_type, level=next_level).first()
