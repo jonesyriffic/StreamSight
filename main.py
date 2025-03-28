@@ -122,6 +122,32 @@ def regenerate_document_relevance():
     except Exception as e:
         logging.error(f"Error regenerating document relevance reasons: {str(e)}")
 
+# Function to regenerate concise relevance reasons
+def regenerate_concise_relevance():
+    """Regenerate concise relevance reasons for all documents"""
+    try:
+        with app.app_context():
+            from utils.relevance_generator import generate_relevance_reasons
+            from models import Document
+            
+            # Get all documents from the database
+            documents = Document.query.all()
+            logging.info(f"Found {len(documents)} documents to process for concise relevance")
+            
+            for doc in documents:
+                # Generate new concise relevance reasons directly from document
+                relevance = generate_relevance_reasons(doc)
+                
+                # Update the document
+                doc.relevance_reasons = relevance
+                logging.info(f"Updated concise relevance for document {doc.id}")
+            
+            # Commit all changes
+            db.session.commit()
+            logging.info("All documents updated with concise relevance reasons")
+    except Exception as e:
+        logging.error(f"Error regenerating concise relevance reasons: {str(e)}")
+
 # For Gunicorn, we need to be careful about initialization that happens on module load
 # We're moving these to a function that's only called by the development server
 
@@ -136,8 +162,8 @@ def run_dev_initializations():
     # Set up search analytics database
     setup_search_analytics()
     
-    # Regenerate document relevance data
-    regenerate_document_relevance()
+    # Regenerate document relevance data with concise format
+    regenerate_concise_relevance()
 
 # Only run these operations when starting the development server directly
 if __name__ == "__main__":
