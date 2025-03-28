@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import logging
 from openai import OpenAI
 from collections import defaultdict
@@ -27,7 +28,8 @@ def search_documents(query, document_repository, category_filter="all"):
         List of search results with document info and relevance scores
     """
     try:
-        logger.debug(f"Searching for: '{query}' with category filter: {category_filter}")
+        start_time = time.time()
+        logger.debug(f"Searching for: '{query}' with category filter: '{category_filter}'")
         
         # Get documents filtered by category if needed
         if category_filter and category_filter.lower() != "all":
@@ -38,6 +40,15 @@ def search_documents(query, document_repository, category_filter="all"):
         if not documents:
             logger.warning("No documents found for search")
             return []
+        
+        # Log the number of documents to be searched
+        doc_count = len(documents)
+        logger.info(f"Searching through {doc_count} documents")
+        
+        # Estimate search time based on number of documents - rough estimate
+        estimated_time_per_doc = 1.5  # seconds per document for AI processing
+        total_estimated_time = doc_count * estimated_time_per_doc
+        logger.info(f"Estimated search time: {total_estimated_time:.1f} seconds")
         
         # For each document, check relevance and extract snippets
         results = []
@@ -90,6 +101,7 @@ def search_documents(query, document_repository, category_filter="all"):
                         "document": {
                             "id": doc["id"],
                             "filename": doc["filename"],
+                            "friendly_name": doc.get("friendly_name"),
                             "category": doc["category"]
                         },
                         "relevance_score": result_content.get("relevance_score", 0),
@@ -102,8 +114,23 @@ def search_documents(query, document_repository, category_filter="all"):
         # Sort results by relevance score (highest first)
         results.sort(key=lambda x: x["relevance_score"], reverse=True)
         
-        logger.debug(f"Search returned {len(results)} relevant results")
-        return results
+        # Calculate and log elapsed time
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(f"Search completed in {elapsed_time:.2f} seconds, found {len(results)} relevant results")
+        
+        # Add timing information to the results
+        search_info = {
+            "elapsed_time": round(elapsed_time, 2),
+            "documents_searched": doc_count,
+            "results_found": len(results)
+        }
+        
+        # Add metadata to results
+        return {
+            "results": results,
+            "search_info": search_info
+        }
     
     except Exception as e:
         logger.error(f"Error during document search: {str(e)}")

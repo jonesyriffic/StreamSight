@@ -563,8 +563,15 @@ def search():
         
         logger.info("Performing search using OpenAI API")
         try:
-            results = search_documents(query, document_repository, category_filter)
-            logger.info(f"Search completed, found {len(results)} relevant results")
+            search_result = search_documents(query, document_repository, category_filter)
+            results = search_result['results']
+            search_info = search_result['search_info']
+            
+            logger.info(f"Search complete - Results found: {search_info['results_found']}, Time: {search_info['elapsed_time']}s")
+            
+            # Debug log to check the structure
+            if results:
+                logger.debug(f"First result structure: {json.dumps(results[0], default=str)}")
         except Exception as search_error:
             logger.error(f"Error during document search: {str(search_error)}")
             import traceback
@@ -598,7 +605,8 @@ def search():
                               results=results, 
                               query=query,
                               selected_category=category_filter,
-                              categories=categories)
+                              categories=categories,
+                              search_info=search_info)
     except Exception as e:
         logger.error(f"Search error: {str(e)}")
         
