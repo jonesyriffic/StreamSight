@@ -367,8 +367,10 @@ def register():
         new_user = User(email=email, name=name)
         new_user.set_password(password)
         
-        # Auto-approve users with Sky or NBCUniversal email domains
-        if email.lower().endswith('@sky.uk') or email.lower().endswith('@nbcuni.com'):
+        # Auto-approve users with Sky, NBCUniversal, or andrewjones.uk email domains
+        if (email.lower().endswith('@sky.uk') or 
+            email.lower().endswith('@nbcuni.com') or 
+            email.lower().endswith('@andrewjones.uk')):
             new_user.is_approved = True
             new_user.approved_at = datetime.utcnow()
             # Don't automatically grant upload permission - this is limited to admins
