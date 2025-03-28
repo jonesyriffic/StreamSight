@@ -91,6 +91,19 @@ def generate_team_relevance(team, document_info):
         str: Relevance reason for this team
     """
     try:
+        # Team context information
+        team_context = {
+            "Digital Engagement": "Focus on chatbots, AI assistants, and social platforms",
+            "Digital Product": "Responsible for self-service help centers and deflection funnels",
+            "NextGen Products": "Incubator for upcoming trends, technologies, and next-gen services",
+            "Product Insights": "Works with data analysis, Adobe analytics, and Salesforce CRM analytics",
+            "Product Testing": "Handles user acceptance testing (UAT) and validation",
+            "Service Technology": "Works with Salesforce Service Cloud, agent tooling, live chat, translation tools, and telephony"
+        }
+        
+        # Get context for this team
+        current_team_context = team_context.get(team, "Works on specialized product management areas")
+        
         # Craft prompt for generating relevance
         prompt = f"""
         Document Information:
@@ -100,13 +113,19 @@ def generate_team_relevance(team, document_info):
         Text excerpt: {document_info['text_excerpt']}
         
         Team specialization: {team}
+        Team context: {current_team_context}
         
-        Generate an EXTREMELY CONCISE explanation (MAXIMUM 2 VERY SHORT sentences) on why this document is relevant specifically 
-        for someone on the {team} team. The TOTAL length must be UNDER 150 characters. Include:
-        1. One key insight from the document that's relevant to their role
-        2. One brief impact or action item for their work
+        Generate an EXTREMELY SPECIFIC and CONCISE explanation (MAXIMUM 2 VERY SHORT sentences) on why this document is relevant specifically 
+        for someone on the {team} team who {current_team_context.lower()}. The TOTAL length must be UNDER 150 characters.
         
-        NEVER exceed 2 short sentences. Keep it extremely brief. Make it personalized to their role and don't mention the date.
+        Rules:
+        1. Be SPECIFIC - mention exact data, metrics, or findings from the document
+        2. Connect a specific insight directly to the team's work based on their context
+        3. Use second-person language (e.g., "helps you", "enables your team to")
+        4. NEVER use generic statements that could apply to any document
+        5. NEVER exceed 2 short sentences or 150 characters total
+        
+        Make it personalized to their role (using "you" and "your") and don't mention the date.
         
         Respond with a JSON object in this format:
         {{
@@ -120,7 +139,10 @@ def generate_team_relevance(team, document_info):
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are an AI assistant that creates personalized document recommendations. You respond in JSON format."},
+                {
+                    "role": "system", 
+                    "content": "You are an AI assistant that creates highly specific and personalized document recommendations based on actual document content. You focus on concrete details and metrics from documents, not generic descriptions. You always use second-person language (you/your) to make relevance reasons feel personalized. You respond in JSON format."
+                },
                 {"role": "user", "content": prompt}
             ],
             response_format={"type": "json_object"},
@@ -159,44 +181,44 @@ def get_team_specific_fallback(team, document_info):
     
     if "Digital Product" in team:
         if "industry insights" in category:
-            fallback_reason = "Market trends inform help center roadmap. Apply insights to improve user navigation."
+            fallback_reason = "The market trends help you improve your help center design. You can apply these insights to enhance user navigation."
         elif "technology news" in category:
-            fallback_reason = "New tech enhances help center UX. Implement ideas to boost self-service features."
+            fallback_reason = "This tech can enhance your help center UX. You can implement these ideas to boost your self-service features."
         else:
-            fallback_reason = "Strategic insights for help centers. Use to prioritize development initiatives."
+            fallback_reason = "These insights apply to your help center work. You can use them to prioritize your development roadmap."
             
     elif "Service Technology" in team:
         if "technology news" in category:
-            fallback_reason = "CRM updates impact Salesforce work. Implement these changes in your Service Cloud setup."
+            fallback_reason = "These CRM updates impact your Salesforce work. You can implement these changes in your Service Cloud setup."
         else:
-            fallback_reason = "Insights improve CRM processes. Apply to optimize agent productivity workflows."
+            fallback_reason = "These findings will improve your CRM processes. You can apply them to optimize your agent productivity."
             
     elif "Digital Engagement" in team:
         if "customer service" in category:
-            fallback_reason = "Strategies enhance chatbots. Use to improve AI response accuracy and customer satisfaction."
+            fallback_reason = "These strategies will enhance your chatbots. You can use them to improve your AI response accuracy."
         else:
-            fallback_reason = "Metrics optimize digital channels. Implement to boost social platform engagement."
+            fallback_reason = "These metrics will help optimize your digital channels. You can boost your social platform engagement."
             
     elif "Product Testing" in team:
         if "product management" in category:
-            fallback_reason = "Testing methods improve UAT. Implement these approaches in your validation framework."
+            fallback_reason = "These testing methods will improve your UAT work. You can implement them in your validation framework."
         else:
-            fallback_reason = "Insights for validation procedures. Apply to enhance your test coverage strategy."
+            fallback_reason = "These insights apply to your validation procedures. You can enhance your test coverage strategy."
             
     elif "Product Insights" in team:
         if "industry insights" in category:
-            fallback_reason = "Data approaches enhance analytics. Use to improve your Adobe dashboards."
+            fallback_reason = "These data approaches will enhance your analytics work. You can improve your Adobe dashboard designs."
         else:
-            fallback_reason = "Frameworks for customer insights. Apply to strengthen data-driven decisions."
+            fallback_reason = "These frameworks apply to your customer insights work. You can strengthen your data-driven decisions."
             
     elif "NextGen Products" in team:
         if "industry insights" in category or "technology news" in category:
-            fallback_reason = "Technologies for innovation work. Explore these trends in your emerging products."
+            fallback_reason = "These technologies apply to your innovation work. You can explore them in your emerging product designs."
         else:
-            fallback_reason = "Strategies for trend analysis. Use to identify opportunities in service evolution."
+            fallback_reason = "These strategies help with your trend analysis. You can identify new opportunities in service evolution."
     
     else:
-        fallback_reason = "Insights relevant to your work. Apply to enhance team outcomes."
+        fallback_reason = "These insights directly apply to your work. You can use them to enhance your team's outcomes."
         
     # Return just the fallback reason string, not a dictionary
     return fallback_reason
