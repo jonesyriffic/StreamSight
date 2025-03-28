@@ -15,6 +15,9 @@ openai = OpenAI(api_key=OPENAI_API_KEY)
 # do not change this unless explicitly requested by the user
 MODEL = "gpt-4o"
 
+# Maximum context size for the AI response generation
+MAX_CONTEXT_SIZE = 15000  # Characters
+
 def search_documents(query, document_repository, category_filter="all"):
     """
     Search through documents using OpenAI to find relevant information.
@@ -186,3 +189,72 @@ def categorize_content(text):
     except Exception as e:
         logger.error(f"Error categorizing content: {str(e)}")
         return "Uncategorized"
+
+def generate_search_response(query, search_results):
+    """
+    Generate a comprehensive AI response to a search query based on document search results.
+    
+    Args:
+        query: Original search query from the user
+        search_results: List of document search results containing relevant passages
+        
+    Returns:
+        String containing the generated response or an indication of insufficient information
+    """
+    try:
+        logger.debug(f"Generating AI response for query: '{query}'")
+        
+        # If there are no results, inform that we don't have relevant information
+        if not search_results or len(search_results["results"]) == 0:
+            return "I don't have enough information in the document library to answer this question confidently. Please try a different query or check back later when more documents are available."
+        
+        # Extract relevant passages from all documents and combine into context
+        context_parts = []
+        
+        # For each result, extract the relevant passages and document info
+        for result in search_results["results"]:
+            doc_info = f"\nDocument: {result['document'].get('friendly_name') or result['document']['filename']} (Category: {result['document']['category']})"
+            context_parts.append(doc_info)
+            
+            for passage in result["passages"]:
+                passage_text = f"- {passage['text']} [{passage.get('location', 'Unknown location')}]"
+                context_parts.append(passage_text)
+        
+        # Combine context parts but limit to avoid token overflow
+        context = "\n".join(context_parts)
+        if len(context) > MAX_CONTEXT_SIZE:
+            context = context[:MAX_CONTEXT_SIZE] + "... [additional content truncated]"
+        
+        # Create prompt for generating the response
+        prompt = f"""
+        You are a helpful AI assistant that provides answers based on information in documents.
+        
+        USER QUERY: "{query}"
+        
+        RELEVANT INFORMATION FROM DOCUMENTS:
+        {context}
+        
+        Provide a clear, concise answer to the query based ONLY on the information in these documents.
+        When the information is insufficient to fully answer the query, acknowledge the limitations.
+        If you need to make assumptions, clearly state them.
+        Format your response for readability with bullet points where appropriate.
+        When quoting information, indicate the source document.
+        DO NOT make up information that isn't present in the provided documents.
+        """
+        
+        # Call OpenAI API for answer generation
+        response = openai.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=800
+        )
+        
+        ai_response = response.choices[0].message.content.strip()
+        logger.debug(f"Generated AI response of {len(ai_response)} characters")
+        
+        return ai_response
+    
+    except Exception as e:
+        logger.error(f"Error generating search response: {str(e)}")
+        return "Sorry, I encountered an error while trying to generate a response. Please try again."

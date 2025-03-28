@@ -48,6 +48,15 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
+
+# Add custom Jinja filter for newlines to <br>
+@app.template_filter('nl2br')
+def nl2br(value):
+    """Convert newlines to <br> tags for use in templates"""
+    if not value:
+        return ""
+    from markupsafe import Markup
+    return Markup(value.replace('\n', '<br>'))
 login_manager.login_message_category = 'info'
 
 @login_manager.user_loader
@@ -574,6 +583,16 @@ def search():
             # Debug log to check the structure
             if results:
                 logger.debug(f"First result structure: {json.dumps(results[0], default=str)}")
+                
+            # Generate AI response based on search results
+            try:
+                logger.info(f"Generating AI response for query: '{query}'")
+                from utils.ai_search import generate_search_response
+                ai_response = generate_search_response(query, search_result)
+                logger.info(f"AI response generated successfully ({len(ai_response)} characters)")
+            except Exception as ai_error:
+                logger.error(f"Error generating AI response: {str(ai_error)}")
+                ai_response = "I couldn't generate a response based on the search results at this time. Please review the document excerpts below for relevant information."
         except Exception as search_error:
             logger.error(f"Error during document search: {str(search_error)}")
             import traceback
@@ -640,7 +659,8 @@ def search():
                               query=query,
                               selected_category=category_filter,
                               categories=categories,
-                              search_info=search_info)
+                              search_info=search_info,
+                              ai_response=ai_response)
     except Exception as e:
         logger.error(f"Search error: {str(e)}")
         
@@ -671,7 +691,8 @@ def search():
                               query=query, 
                               error=error_message,
                               selected_category=category_filter,
-                              categories=categories)
+                              categories=categories,
+                              ai_response=None)
 
 @app.route('/document/<doc_id>')
 def view_document(doc_id):
