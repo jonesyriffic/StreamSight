@@ -101,12 +101,12 @@ def generate_team_relevance(team, document_info):
         
         Team specialization: {team}
         
-        Generate a VERY CONCISE explanation (MAXIMUM 2 sentences) on why this document is relevant specifically 
-        for someone on the {team} team. Include:
-        1. A specific insight from the document that's relevant to their role
-        2. A brief impact or action item for their work
+        Generate an EXTREMELY CONCISE explanation (MAXIMUM 2 VERY SHORT sentences) on why this document is relevant specifically 
+        for someone on the {team} team. The TOTAL length must be UNDER 150 characters. Include:
+        1. One key insight from the document that's relevant to their role
+        2. One brief impact or action item for their work
         
-        Keep it extremely brief, no more than 2 sentences total. Make it personalized to their role and don't mention the date or when it was published.
+        NEVER exceed 2 short sentences. Keep it extremely brief. Make it personalized to their role and don't mention the date.
         
         Respond with a JSON object in this format:
         {{
@@ -159,44 +159,44 @@ def get_team_specific_fallback(team, document_info):
     
     if "Digital Product" in team:
         if "industry insights" in category:
-            fallback_reason = "Contains market trends to inform your help center product roadmap decisions."
+            fallback_reason = "Market trends inform help center roadmap. Apply insights to improve user navigation."
         elif "technology news" in category:
-            fallback_reason = "Highlights technologies to enhance your help center user experience."
+            fallback_reason = "New tech enhances help center UX. Implement ideas to boost self-service features."
         else:
-            fallback_reason = "Offers strategic insights for your help center development initiatives."
+            fallback_reason = "Strategic insights for help centers. Use to prioritize development initiatives."
             
     elif "Service Technology" in team:
         if "technology news" in category:
-            fallback_reason = "Presents CRM updates relevant to your Salesforce implementation work."
+            fallback_reason = "CRM updates impact Salesforce work. Implement these changes in your Service Cloud setup."
         else:
-            fallback_reason = "Contains insights to improve your Salesforce CRM processes."
+            fallback_reason = "Insights improve CRM processes. Apply to optimize agent productivity workflows."
             
     elif "Digital Engagement" in team:
         if "customer service" in category:
-            fallback_reason = "Offers strategies to enhance your chatbot and social platform experiences."
+            fallback_reason = "Strategies enhance chatbots. Use to improve AI response accuracy and customer satisfaction."
         else:
-            fallback_reason = "Provides engagement metrics to optimize your digital channel initiatives."
+            fallback_reason = "Metrics optimize digital channels. Implement to boost social platform engagement."
             
     elif "Product Testing" in team:
         if "product management" in category:
-            fallback_reason = "Includes testing methodologies to improve your UAT processes."
+            fallback_reason = "Testing methods improve UAT. Implement these approaches in your validation framework."
         else:
-            fallback_reason = "Contains insights applicable to your product validation procedures."
+            fallback_reason = "Insights for validation procedures. Apply to enhance your test coverage strategy."
             
     elif "Product Insights" in team:
         if "industry insights" in category:
-            fallback_reason = "Features data approaches to enhance your Adobe and Salesforce analysis."
+            fallback_reason = "Data approaches enhance analytics. Use to improve your Adobe dashboards."
         else:
-            fallback_reason = "Presents frameworks relevant to your customer insight initiatives."
+            fallback_reason = "Frameworks for customer insights. Apply to strengthen data-driven decisions."
             
     elif "NextGen Products" in team:
         if "industry insights" in category or "technology news" in category:
-            fallback_reason = "Explores technologies directly relevant to your future industry innovation work."
+            fallback_reason = "Technologies for innovation work. Explore these trends in your emerging products."
         else:
-            fallback_reason = "Provides strategies aligned with your emerging industry trend analysis."
+            fallback_reason = "Strategies for trend analysis. Use to identify opportunities in service evolution."
     
     else:
-        fallback_reason = "Contains information relevant to your specialized work areas."
+        fallback_reason = "Insights relevant to your work. Apply to enhance team outcomes."
         
     # Return just the fallback reason string, not a dictionary
     return fallback_reason

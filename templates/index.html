@@ -81,7 +81,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">
                     <i class="fas fa-star text-warning me-2"></i> 
-                    Recommendations for Your Team
+                    Recommendations for you
                 </h3>
                 <span class="badge bg-info">{{ current_user.team_specialization }}</span>
                 <span class="badge bg-primary">Personalized</span>
@@ -158,7 +158,7 @@
                                         
                                         {% if not found_relevance %}
                                             <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
-                                                <p class="card-text small mb-1">This document contains insights relevant to your team's work and can help with current initiatives.</p>
+                                                <p class="card-text small mb-1">This document includes specific insights for {{ current_user.team_specialization }} work priorities and highlights key opportunities for your current projects.</p>
                                             </div>
                                         {% endif %}
                                         
@@ -201,7 +201,7 @@
                                                                 {% if relevance_text %}
                                                                     <p class="mb-0">{{ relevance_text }}</p>
                                                                 {% else %}
-                                                                    <p class="mb-0">This document contains insights relevant to your team's work and can help with current initiatives in the {{ doc.category }} domain.</p>
+                                                                    <p class="mb-0">The {{ doc.category }} insights in this document directly support {{ current_user.team_specialization }} goals and can provide valuable context for decision-making in your current projects.</p>
                                                                 {% endif %}
                                                             </div>
                                                         </div>
@@ -219,7 +219,7 @@
                                         <div class="border-start border-warning ps-3 pt-2 pb-2 mt-2 mb-2">
                                             <p class="card-text small mb-0">
                                                 <i class="fas fa-info-circle me-1 text-warning"></i> 
-                                                This document contains insights from the {{ doc.category }} domain that align with specific needs of the {{ current_user.team_specialization }} team.
+                                                This {{ doc.category }} document contains key insights that will help {{ current_user.team_specialization }} teams improve their strategies and implementation approaches.
                                             </p>
                                         </div>
                                     {% endif %}

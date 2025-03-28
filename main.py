@@ -233,9 +233,8 @@ def run_dev_initializations():
     # Fix relevance format issues
     fix_relevance_format()
     
-    # Regenerate document relevance data with concise format if needed
-    # Commenting this out as we've already fixed the format with fix_relevance_format
-    # regenerate_concise_relevance()
+    # Regenerate document relevance data with concise format
+    regenerate_concise_relevance()
 
 # Only run these operations when starting the development server directly
 if __name__ == "__main__":
