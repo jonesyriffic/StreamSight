@@ -87,46 +87,58 @@ def humanize_timestamp(dt):
     if not dt:
         return ""
     
+    # Convert string to datetime if needed
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except (ValueError, TypeError):
+            return dt  # Return as-is if we can't parse it
+    
     from markupsafe import Markup
     now = datetime.utcnow()
-    diff = now - dt
     
-    # Handle future dates
-    if diff.total_seconds() < 0:
-        return "in the future"
-    
-    # Less than a minute
-    if diff.total_seconds() < 60:
-        return "just now"
-    
-    # Less than an hour
-    if diff.total_seconds() < 3600:
-        minutes = int(diff.total_seconds() / 60)
-        return f"{minutes} {'minute' if minutes == 1 else 'minutes'} ago"
-    
-    # Less than a day
-    if diff.total_seconds() < 86400:
-        hours = int(diff.total_seconds() / 3600)
-        return f"{hours} {'hour' if hours == 1 else 'hours'} ago"
-    
-    # Less than a week
-    if diff.total_seconds() < 604800:
-        days = int(diff.total_seconds() / 86400)
-        return f"{days} {'day' if days == 1 else 'days'} ago"
-    
-    # Less than a month
-    if diff.total_seconds() < 2592000:
-        weeks = int(diff.total_seconds() / 604800)
-        return f"{weeks} {'week' if weeks == 1 else 'weeks'} ago"
-    
-    # Less than a year
-    if diff.total_seconds() < 31536000:
-        months = int(diff.total_seconds() / 2592000)
-        return f"{months} {'month' if months == 1 else 'months'} ago"
-    
-    # More than a year
-    years = int(diff.total_seconds() / 31536000)
-    return f"{years} {'year' if years == 1 else 'years'} ago"
+    try:
+        diff = now - dt
+        
+        # Handle future dates
+        if diff.total_seconds() < 0:
+            return "in the future"
+        
+        # Less than a minute
+        if diff.total_seconds() < 60:
+            return "just now"
+        
+        # Less than an hour
+        if diff.total_seconds() < 3600:
+            minutes = int(diff.total_seconds() / 60)
+            return f"{minutes} {'minute' if minutes == 1 else 'minutes'} ago"
+        
+        # Less than a day
+        if diff.total_seconds() < 86400:
+            hours = int(diff.total_seconds() / 3600)
+            return f"{hours} {'hour' if hours == 1 else 'hours'} ago"
+        
+        # Less than a week
+        if diff.total_seconds() < 604800:
+            days = int(diff.total_seconds() / 86400)
+            return f"{days} {'day' if days == 1 else 'days'} ago"
+        
+        # Less than a month
+        if diff.total_seconds() < 2592000:
+            weeks = int(diff.total_seconds() / 604800)
+            return f"{weeks} {'week' if weeks == 1 else 'weeks'} ago"
+        
+        # Less than a year
+        if diff.total_seconds() < 31536000:
+            months = int(diff.total_seconds() / 2592000)
+            return f"{months} {'month' if months == 1 else 'months'} ago"
+        
+        # More than a year
+        years = int(diff.total_seconds() / 31536000)
+        return f"{years} {'year' if years == 1 else 'years'} ago"
+    except Exception:
+        # If any error occurs, just return the timestamp as is
+        return str(dt)
 login_manager.login_message_category = 'info'
 
 @login_manager.user_loader
