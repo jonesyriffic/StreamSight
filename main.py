@@ -87,6 +87,17 @@ def setup_search_analytics():
     except Exception as e:
         logging.error(f"Error setting up search analytics: {str(e)}")
 
+# Function to set up search feedback
+def setup_search_feedback():
+    """Run the search feedback migration"""
+    try:
+        with app.app_context():
+            from migrate_search_feedback import run_migration
+            run_migration()
+            logging.info("Search feedback database setup completed")
+    except Exception as e:
+        logging.error(f"Error setting up search feedback: {str(e)}")
+
 # Function to regenerate document relevance reasons
 def regenerate_document_relevance():
     """Regenerate relevance reasons for all documents"""
@@ -229,6 +240,9 @@ def run_dev_initializations():
     
     # Set up search analytics database
     setup_search_analytics()
+    
+    # Set up search feedback database
+    setup_search_feedback()
     
     # Fix relevance format issues
     fix_relevance_format()

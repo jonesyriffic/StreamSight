@@ -17,7 +17,7 @@ from utils.document_ai import generate_document_summary, generate_friendly_name
 from utils.relevance_generator import generate_relevance_reasons
 from utils.badge_service import BadgeService
 from utils.text_processor import clean_html, format_timestamp
-from models import db, Document, User, Badge, UserActivity, SearchLog
+from models import db, Document, User, Badge, UserActivity, SearchLog, SearchFeedback
 from statistics import mean
 
 # Set up logging for debugging
@@ -1415,6 +1415,127 @@ def api_reset_tour():
         'success': True,
         'tour_config': tour_config
     })
+
+@app.route('/api/search-feedback/<int:search_id>', methods=['POST'])
+@login_required
+def submit_search_feedback(search_id):
+    """API endpoint to submit feedback on search results"""
+    # Find the search log entry
+    search_log = SearchLog.query.get_or_404(search_id)
+    
+    # Check if feedback already exists for this search
+    if search_log.feedback:
+        return jsonify({
+            'success': False, 
+            'message': 'Feedback already submitted for this search'
+        }), 400
+    
+    try:
+        data = request.json
+        
+        # Validate rating
+        if 'rating' not in data or not isinstance(data['rating'], int) or data['rating'] < 1 or data['rating'] > 4:
+            return jsonify({
+                'success': False,
+                'message': 'Rating must be a number from 1 to 4'
+            }), 400
+            
+        # Create new feedback entry
+        feedback = SearchFeedback(
+            search_log_id=search_id,
+            rating=data['rating'],
+            comment=data.get('comment', ''),
+            helpful_relevance=data.get('helpful_relevance', False),
+            helpful_speed=data.get('helpful_speed', False),
+            helpful_insights=data.get('helpful_insights', False),
+            helpful_diversity=data.get('helpful_diversity', False)
+        )
+        
+        db.session.add(feedback)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Feedback submitted successfully',
+            'feedback': feedback.to_dict()
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error submitting search feedback: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error submitting feedback: {str(e)}'
+        }), 500
+
+@app.route('/api/search-feedback/<int:search_id>', methods=['GET'])
+@login_required
+def get_search_feedback(search_id):
+    """API endpoint to get feedback for a specific search"""
+    # Find the search log entry
+    search_log = SearchLog.query.get_or_404(search_id)
+    
+    # Check if the user is allowed to view this feedback
+    if search_log.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({
+            'success': False,
+            'message': 'You do not have permission to view this feedback'
+        }), 403
+    
+    # Return the feedback if it exists
+    if search_log.feedback:
+        return jsonify({
+            'success': True,
+            'feedback': search_log.feedback.to_dict()
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'No feedback found for this search'
+        }), 404
+
+# Add admin endpoint for feedback analytics
+@app.route('/admin/search-feedback', methods=['GET'])
+@login_required
+@admin_required
+def admin_search_feedback():
+    """Admin page for search feedback analytics"""
+    # Get all search logs with feedback
+    feedbacks = db.session.query(SearchFeedback).join(SearchLog).order_by(SearchFeedback.submitted_at.desc()).all()
+    
+    # Calculate statistics
+    total_feedback = len(feedbacks)
+    
+    # Calculate average ratings
+    if total_feedback > 0:
+        avg_rating = sum(f.rating for f in feedbacks) / total_feedback
+        
+        # Calculate distribution of ratings
+        rating_distribution = {
+            'excellent': len([f for f in feedbacks if f.rating == SearchFeedback.RATING_EXCELLENT]),
+            'good': len([f for f in feedbacks if f.rating == SearchFeedback.RATING_GOOD]),
+            'fair': len([f for f in feedbacks if f.rating == SearchFeedback.RATING_FAIR]),
+            'poor': len([f for f in feedbacks if f.rating == SearchFeedback.RATING_POOR])
+        }
+        
+        # Calculate percentage of helpful aspects
+        helpful_aspects = {
+            'relevance': sum(1 for f in feedbacks if f.helpful_relevance) / total_feedback * 100,
+            'speed': sum(1 for f in feedbacks if f.helpful_speed) / total_feedback * 100,
+            'insights': sum(1 for f in feedbacks if f.helpful_insights) / total_feedback * 100,
+            'diversity': sum(1 for f in feedbacks if f.helpful_diversity) / total_feedback * 100
+        }
+    else:
+        avg_rating = 0
+        rating_distribution = {'excellent': 0, 'good': 0, 'fair': 0, 'poor': 0}
+        helpful_aspects = {'relevance': 0, 'speed': 0, 'insights': 0, 'diversity': 0}
+    
+    return render_template('admin/search_feedback.html',
+                           feedbacks=feedbacks,
+                           total_feedback=total_feedback,
+                           avg_rating=avg_rating,
+                           rating_distribution=rating_distribution,
+                           helpful_aspects=helpful_aspects)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
