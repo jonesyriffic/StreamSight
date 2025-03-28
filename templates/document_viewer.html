@@ -291,17 +291,34 @@
                     // Update button text to "Regenerate"
                     this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Regenerate';
                 } else {
-                    // Show error
+                    // Show user-friendly error message (hide technical details)
                     document.getElementById('error-message').textContent = data.error || 'An error occurred while generating insights.';
+                    
+                    // If there's a technical error, log it to console for debugging
+                    if (data.technical_error) {
+                        console.error('Technical error:', data.technical_error);
+                    }
+                    
+                    // Show the error alert
                     document.getElementById('summary-error').classList.remove('d-none');
+                    
+                    // Ensure the generate button is still clickable for retry
+                    this.disabled = false;
                 }
             })
             .catch(error => {
                 // Hide loading, show error
                 document.getElementById('summary-loading').classList.add('d-none');
-                document.getElementById('error-message').textContent = 'Network error: ' + error.message;
+                
+                // Show user-friendly message but log technical details
+                document.getElementById('error-message').textContent = 'Network or server error occurred. Please try again later.';
                 document.getElementById('summary-error').classList.remove('d-none');
-                console.error('Error:', error);
+                
+                // Log technical details to console
+                console.error('Network/fetch error:', error);
+                
+                // Enable retry
+                this.disabled = false;
             });
         });
     });

@@ -11,6 +11,8 @@ from models import db, Document
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 openai = OpenAI(api_key=OPENAI_API_KEY)
 
+logger = logging.getLogger(__name__)
+
 def generate_document_summary(document_id):
     """
     Generate a summary and key points for a document using OpenAI API
@@ -219,8 +221,16 @@ def generate_document_summary(document_id):
         }
     
     except Exception as e:
-        logging.error(f"Error generating summary: {str(e)}")
+        logger.error(f"Error generating summary: {str(e)}")
+        # Check for API-specific errors
+        if "OpenAI API" in str(e) or "API key" in str(e):
+            return {
+                "success": False,
+                "error": "There was an issue connecting to the AI service. Please try again later or contact your administrator.",
+                "technical_error": str(e)
+            }
         return {
             "success": False,
-            "error": str(e)
+            "error": "Failed to generate summary for this document.",
+            "technical_error": str(e)
         }

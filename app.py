@@ -396,10 +396,20 @@ def upload_document():
                 file.save(filepath)
                 
                 # Extract text from PDF
-                extracted_text = extract_text_from_pdf(filepath)
+                try:
+                    extracted_text = extract_text_from_pdf(filepath)
+                except Exception as e:
+                    logger.error(f"Error extracting text from PDF: {str(e)}")
+                    # Use a placeholder if text extraction fails
+                    extracted_text = "Text extraction failed. This document might be scanned or have other issues."
                 
                 # Categorize the content
-                category = categorize_content(extracted_text)
+                try:
+                    category = categorize_content(extracted_text)
+                except Exception as e:
+                    logger.error(f"Error categorizing content: {str(e)}")
+                    # Use a default category if categorization fails
+                    category = "Uncategorized"
                 
                 # Create new document in database with current user as uploader
                 new_document = Document(
@@ -443,8 +453,20 @@ def upload_document():
                 successful_uploads += 1
                 
             except Exception as e:
-                error_filename = original_filename if 'original_filename' in locals() else file.filename
+                # Safely determine the filename for the error message
+                try:
+                    error_filename = original_filename if 'original_filename' in locals() else file.filename
+                except:
+                    # Absolute fallback if both approaches fail
+                    error_filename = "unknown file"
+                
                 logger.error(f"Error during file upload '{error_filename}': {str(e)}")
+                
+                # Check if it's an OpenAI API error
+                if "OpenAI API" in str(e):
+                    logger.error(f"OpenAI API error detected during upload: {str(e)}")
+                    flash("There was an issue with the AI service. Document was uploaded but without AI processing.", "warning")
+                
                 failed_uploads += 1
         else:
             if file.filename != '':  # Only count non-empty files as failures
@@ -522,10 +544,31 @@ def search():
                               categories=categories)
     except Exception as e:
         logger.error(f"Search error: {str(e)}")
-        flash(f'Error during search: {str(e)}', 'danger')
-        all_categories = db.session.query(Document.category).distinct().all()
-        categories = [category[0] for category in all_categories]
-        return render_template('search_results.html', results=[], query=query, error=str(e), categories=categories)
+        
+        # Check for OpenAI API errors and provide a user-friendly message
+        if "OpenAI API" in str(e) or "API key" in str(e):
+            logger.error(f"OpenAI API error during search: {str(e)}")
+            error_message = "There was an issue with the AI search service. Please try again later."
+        else:
+            error_message = "An error occurred while searching documents. Please try again with different search terms."
+            
+        # Log the detailed error but show a user-friendly message
+        flash(error_message, 'danger')
+        
+        # Still get categories to maintain the UI
+        try:
+            all_categories = db.session.query(Document.category).distinct().all()
+            categories = [category[0] for category in all_categories]
+        except:
+            # Absolute fallback if even this query fails
+            categories = []
+        
+        return render_template('search_results.html', 
+                              results=[], 
+                              query=query, 
+                              error=error_message,
+                              selected_category=category_filter,
+                              categories=categories)
 
 @app.route('/document/<doc_id>')
 def view_document(doc_id):
@@ -623,7 +666,22 @@ def generate_document_summary_api(doc_id):
     
     except Exception as e:
         logger.error(f"Error generating summary: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        
+        # Check for OpenAI API errors and provide a user-friendly message
+        if "OpenAI API" in str(e) or "API key" in str(e):
+            logger.error(f"OpenAI API error during summary generation: {str(e)}")
+            return jsonify({
+                'success': False, 
+                'error': "There was an issue connecting to the AI service. Please try again later.",
+                'technical_error': str(e)
+            }), 500
+        
+        # Return a generic user-friendly error message but include technical details
+        return jsonify({
+            'success': False, 
+            'error': "Unable to generate summary. Please try again later.",
+            'technical_error': str(e)
+        }), 500
 
 @app.route('/document/delete/<doc_id>', methods=['POST'])
 @login_required
