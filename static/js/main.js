@@ -352,7 +352,7 @@ function initializeVoiceSearch() {
             if (searchContainer && !searchContainer.querySelector('.voice-search-unavailable')) {
                 const unavailableMessage = document.createElement('small');
                 unavailableMessage.classList.add('text-muted', 'mt-1', 'd-block', 'voice-search-unavailable');
-                unavailableMessage.innerHTML = 'Voice search is not available in this environment.';
+                unavailableMessage.innerHTML = 'Voice search is not currently available.';
                 searchContainer.parentNode.appendChild(unavailableMessage);
             }
         });
