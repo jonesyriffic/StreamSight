@@ -71,8 +71,12 @@ def generate_team_relevance(team, document_info):
         
         Team specialization: {team}
         
-        Generate a short, punchy explanation (max 40 words) on why this document is relevant specifically 
-        for someone on the {team} team. Focus on professional value and actionable insights.
+        Generate a detailed explanation (2-3 sentences) on why this document is relevant specifically 
+        for someone on the {team} team. Include:
+        1. A specific insight or data point from the document that's relevant to their role
+        2. How it could impact their work or decision-making
+        3. A potential action item or takeaway for them
+        
         Make it personalized to their role and don't mention the date or when it was published.
         
         Response format:
@@ -91,7 +95,7 @@ def generate_team_relevance(team, document_info):
                 {"role": "user", "content": prompt}
             ],
             response_format={"type": "json_object"},
-            max_tokens=100
+            max_tokens=200
         )
         
         # Parse the response

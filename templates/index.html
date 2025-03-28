@@ -125,28 +125,57 @@
                             
                             <div class="card-body d-flex flex-column">
                                 <div class="mb-3 flex-grow-1">
-                                    <h6 class="mb-2 text-muted"><i class="fas fa-bullseye text-success me-1"></i> Why it's relevant for you:</h6>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-success me-2 px-2 py-1">
+                                            <i class="fas fa-lightbulb me-1"></i> Relevance
+                                        </span>
+                                        <h6 class="mb-0 fw-bold text-success">Why this matters for your team</h6>
+                                    </div>
+                                    
                                     {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
-                                        <p class="card-text small">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
+                                        <div class="border-start border-success ps-3 pt-1 pb-1 mt-2 mb-2">
+                                            <p class="card-text small mb-1">{{ doc.relevance_reasons[current_user.team_specialization]|truncate(150) }}</p>
+                                            
+                                            {% if doc.relevance_reasons[current_user.team_specialization]|length > 150 %}
+                                                <button class="btn btn-link btn-sm text-success p-0" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#relevanceModal{{ loop.index }}">
+                                                    Read more
+                                                </button>
+                                            {% endif %}
+                                        </div>
                                         
                                         <!-- Modal for full relevance reason -->
                                         <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content bg-dark text-light">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="relevanceModalLabel{{ loop.index }}">Why this document is relevant for you</h5>
+                                                    <div class="modal-header bg-dark">
+                                                        <h5 class="modal-title text-success" id="relevanceModalLabel{{ loop.index }}">
+                                                            <i class="fas fa-lightbulb me-2"></i>Document Relevance Insights
+                                                        </h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <p><strong>Document:</strong> {{ doc.friendly_name if doc.friendly_name else doc.filename }}</p>
-                                                        <p><strong>Your team:</strong> {{ current_user.team_specialization }}</p>
-                                                        <div class="alert alert-info">
-                                                            <i class="fas fa-bullseye me-2"></i>{{ doc.relevance_reasons[current_user.team_specialization] }}
+                                                        <h6 class="mb-3 text-light">{{ doc.friendly_name if doc.friendly_name else doc.filename }}</h6>
+                                                        
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <span class="badge bg-info me-2">{{ current_user.team_specialization }}</span>
+                                                            <small class="text-muted">Your team specialization</small>
+                                                        </div>
+                                                        
+                                                        <div class="card bg-dark-subtle border-success mb-3">
+                                                            <div class="card-header bg-success bg-opacity-25 text-success">
+                                                                <i class="fas fa-bullseye me-1"></i>
+                                                                <strong>Why this is relevant for you</strong>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <p class="mb-0">{{ doc.relevance_reasons[current_user.team_specialization] }}</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-primary">
-                                                            <i class="fas fa-eye me-1"></i> View Document
+                                                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-success">
+                                                            <i class="fas fa-eye me-1"></i> View Full Document
                                                         </a>
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                                     </div>
@@ -154,21 +183,19 @@
                                             </div>
                                         </div>
                                     {% else %}
-                                        <p class="card-text small text-muted"><i class="fas fa-info-circle me-1"></i> Recommended based on your team specialization</p>
+                                        <div class="border-start border-warning ps-3 pt-2 pb-2 mt-2 mb-2">
+                                            <p class="card-text small mb-0">
+                                                <i class="fas fa-info-circle me-1 text-warning"></i> 
+                                                This document was recommended based on your team specialization and recent industry trends.
+                                            </p>
+                                        </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div class="d-flex mt-auto justify-content-between">
+                                <div class="d-flex mt-auto justify-content-center">
                                     <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
                                         <i class="fas fa-eye me-1"></i> View Document
                                     </a>
-                                    {% if doc.relevance_reasons and doc.relevance_reasons[current_user.team_specialization] %}
-                                    <button type="button" class="btn btn-outline-secondary" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#relevanceModal{{ loop.index }}">
-                                        <i class="fas fa-info-circle"></i> Details
-                                    </button>
-                                    {% endif %}
                                 </div>
                             </div>
                         </div>
