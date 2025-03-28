@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - NextGen Insight Spark{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">User Profile</h2>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Name:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ current_user.name or 'Not provided' }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Email:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ current_user.email }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Member Since:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ current_user.created_at.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Documents Uploaded:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ current_user.documents|length }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-end">
+                        <a href="{{ url_for('library') }}" class="btn btn-primary">View My Documents</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
