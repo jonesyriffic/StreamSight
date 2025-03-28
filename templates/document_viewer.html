@@ -129,9 +129,9 @@
         <!-- AI Insights Section -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">AI Insights</h5>
+                <h5 class="card-title mb-0">Document Insights</h5>
                 <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %}
+                    <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %} Insights
                 </button>
             </div>
             <div class="card-body">
@@ -143,21 +143,36 @@
                 </div>
                 
                 <div id="summary-content" class="insights-section {% if not document.summary %}d-none{% endif %}">
-                    <h6 class="text-info">Executive Summary</h6>
-                    <div id="summary-text" class="mb-4">
-                        {% if document.summary %}
-                            {{ document.summary|safe }}
-                        {% else %}
-                            <p class="text-muted">No summary available yet. Click the Generate button to create one.</p>
-                        {% endif %}
-                    </div>
-                    
-                    <h6 class="text-info">Key Insights</h6>
                     <div id="key-points-text">
                         {% if document.key_points %}
                             {{ document.key_points|safe }}
                         {% else %}
-                            <p class="text-muted">No key points available yet.</p>
+                            <div class='key-points-section'>
+                                <h3>Key Points</h3>
+                                <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="summary-text" class="mb-4">
+                        {% if document.summary %}
+                            {{ document.summary|safe }}
+                        {% else %}
+                            <div class='summary-section'>
+                                <h3>Summary</h3>
+                                <p class="text-muted">No summary available yet. Click the Generate button to create one.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="relevance-text">
+                        {% if document.relevance_reasons and document.relevance_reasons.streaming_services %}
+                            {{ document.relevance_reasons.streaming_services|safe }}
+                        {% else %}
+                            <div class='relevance-section'>
+                                <h3>Relevance to Streaming Services</h3>
+                                <p class="text-muted">No relevance information available yet.</p>
+                            </div>
                         {% endif %}
                     </div>
                     
@@ -268,9 +283,14 @@
                 document.getElementById('summary-loading').classList.add('d-none');
                 
                 if (data.success) {
-                    // Update UI with new summary and key points
+                    // Update UI with new content
                     document.getElementById('summary-text').innerHTML = data.summary;
                     document.getElementById('key-points-text').innerHTML = data.key_points;
+                    
+                    // Update relevance section if provided
+                    if (data.relevance) {
+                        document.getElementById('relevance-text').innerHTML = data.relevance;
+                    }
                     
                     // Update timestamp if provided
                     if (data.generated_at) {
@@ -288,8 +308,8 @@
                     // Show content
                     document.getElementById('summary-content').classList.remove('d-none');
                     
-                    // Update button text to "Regenerate"
-                    this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Regenerate';
+                    // Update button text to "Regenerate Insights"
+                    this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Regenerate Insights';
                 } else {
                     // Show user-friendly error message (hide technical details)
                     document.getElementById('error-message').textContent = data.error || 'An error occurred while generating insights.';
