@@ -66,17 +66,7 @@
                             }
                         });
                     </script>
-                    <div class="d-flex">
-                        <div class="me-3">
-                            <label class="form-label">Filter by Category:</label>
-                            <select name="category" class="form-select">
-                                <option value="all">All Categories</option>
-                                {% for category in categories if categories %}
-                                    <option value="{{ category }}">{{ category }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
+                    <!-- Category filter removed -->
                 </form>
             </div>
         </div>

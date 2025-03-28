@@ -22,6 +22,61 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tour.css') }}">
     
+    <!-- Modernized UI Styles -->
+    <style>
+        /* Card Styles */
+        .card {
+            border-radius: 1rem;
+            border: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Category-based card gradients */
+        .card.card-insights {
+            background: linear-gradient(145deg, #0d131f, #192541);
+        }
+        
+        .card.card-tech {
+            background: linear-gradient(145deg, #0d1e14, #193327);
+        }
+        
+        .card.card-product {
+            background: linear-gradient(145deg, #0f143d, #1c2450);
+        }
+        
+        .card.card-service {
+            background: linear-gradient(145deg, #241a0d, #3d2e16);
+        }
+        
+        .card.card-default {
+            background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+        }
+        
+        /* Button styles */
+        .btn {
+            border-radius: 0.6rem;
+            padding: 0.5rem 1.2rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Badge styles */
+        .badge {
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.8rem;
+        }
+    </style>
+    
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -69,15 +124,7 @@
                         {% endif %}
                         {% endif %}
                     </ul>
-                    <form class="d-flex ms-auto me-2" action="{{ url_for('search') }}" method="get">
-                        <div class="input-group">
-                            <input type="text" name="query" class="form-control" 
-                                   placeholder="Quick search..." aria-label="Quick search">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </form>
+                    <div class="ms-auto me-2"></div>
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
                         <li class="nav-item">
