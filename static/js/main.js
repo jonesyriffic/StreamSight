@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     popoverTriggerList.map(function(popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl);
     });
+    
+    // Initialize voice search functionality
+    initializeVoiceSearch();
 
     // File input validation
     const fileInput = document.getElementById('file');
@@ -324,3 +327,161 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Voice Search functionality
+ * Uses the Web Speech API for speech recognition
+ */
+function initializeVoiceSearch() {
+    // Check if browser supports speech recognition
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        // Hide voice search buttons if speech recognition is not supported
+        const voiceButtons = document.querySelectorAll('[id^="voiceSearch"]');
+        voiceButtons.forEach(button => {
+            button.style.display = 'none';
+        });
+        console.warn('Speech recognition not supported in this browser');
+        return;
+    }
+
+    // Set up speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US'; // Set recognition language to English
+
+    // Set up voice search for main search box on homepage
+    setupVoiceSearch(
+        'voiceSearchButton', 
+        'mainSearchInput', 
+        'voiceSearchFeedback',
+        'voiceSearchText',
+        recognition
+    );
+    
+    // Set up voice search for search results page
+    setupVoiceSearch(
+        'voiceSearchResultsButton', 
+        'searchResultsInput', 
+        'voiceSearchResultsFeedback',
+        'voiceSearchResultsText',
+        recognition
+    );
+}
+
+/**
+ * Set up voice search for a specific button and input field
+ */
+function setupVoiceSearch(buttonId, inputId, feedbackId, textId, recognition) {
+    const voiceButton = document.getElementById(buttonId);
+    const searchInput = document.getElementById(inputId);
+    const feedbackElement = document.getElementById(feedbackId);
+    const textElement = document.getElementById(textId);
+    
+    // Only proceed if the elements exist
+    if (!voiceButton || !searchInput || !feedbackElement) {
+        return;
+    }
+    
+    let isListening = false;
+    
+    // Add click event to the voice search button
+    voiceButton.addEventListener('click', function() {
+        if (isListening) {
+            recognition.stop();
+            return;
+        }
+        
+        // Start listening
+        try {
+            recognition.start();
+            isListening = true;
+            
+            // Update button appearance
+            voiceButton.classList.remove('btn-info');
+            voiceButton.classList.add('btn-danger');
+            voiceButton.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            
+            // Show feedback
+            feedbackElement.classList.remove('d-none');
+            if (textElement) textElement.textContent = '';
+        } catch (error) {
+            console.error('Error starting speech recognition:', error);
+        }
+    });
+    
+    // Handle results from speech recognition
+    recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
+        // Collect interim and final transcripts
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript;
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+        
+        // Update the feedback text with the interim transcript
+        if (textElement && interimTranscript) {
+            textElement.textContent = interimTranscript;
+        }
+        
+        // If we have a final transcript, update the search input
+        if (finalTranscript) {
+            searchInput.value = finalTranscript;
+        }
+    };
+    
+    // Handle end of speech recognition
+    recognition.onend = function() {
+        isListening = false;
+        
+        // Reset button appearance
+        voiceButton.classList.remove('btn-danger');
+        voiceButton.classList.add('btn-info');
+        voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+        
+        // Hide feedback
+        feedbackElement.classList.add('d-none');
+        
+        // If the search input has a value, submit the form
+        if (searchInput.value.trim()) {
+            const form = searchInput.closest('form');
+            if (form) {
+                setTimeout(() => {
+                    form.submit();
+                }, 500); // Short delay to make sure the user sees the final text
+            }
+        }
+    };
+    
+    // Handle errors
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        isListening = false;
+        
+        // Reset button appearance
+        voiceButton.classList.remove('btn-danger');
+        voiceButton.classList.add('btn-info');
+        voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+        
+        // Hide feedback
+        feedbackElement.classList.add('d-none');
+        
+        // Show error message
+        const errorMessage = document.createElement('div');
+        errorMessage.classList.add('alert', 'alert-warning', 'mt-2');
+        errorMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>Voice recognition error: ${event.error}`;
+        feedbackElement.parentNode.appendChild(errorMessage);
+        
+        // Remove error message after 3 seconds
+        setTimeout(() => {
+            errorMessage.remove();
+        }, 3000);
+    };
+}
