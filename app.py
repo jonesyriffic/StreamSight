@@ -370,76 +370,104 @@ def upload_document():
         flash('You do not have permission to upload documents. Please contact an administrator.', 'danger')
         return redirect(url_for('index'))
         
-    if 'file' not in request.files:
+    if 'files' not in request.files:
         flash('No file part', 'danger')
         return redirect(url_for('upload_page'))
     
-    file = request.files['file']
+    files = request.files.getlist('files')
     
-    if file.filename == '':
-        flash('No selected file', 'danger')
+    if len(files) == 0 or all(file.filename == '' for file in files):
+        flash('No selected file(s)', 'danger')
         return redirect(url_for('upload_page'))
     
-    if file and allowed_file(file.filename):
-        try:
-            # Generate a unique filename
-            original_filename = secure_filename(file.filename)
-            filename = f"{uuid.uuid4()}_{original_filename}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            
-            # Save the file
-            file.save(filepath)
-            
-            # Extract text from PDF
-            extracted_text = extract_text_from_pdf(filepath)
-            
-            # Categorize the content
-            category = categorize_content(extracted_text)
-            
-            # Create new document in database with current user as uploader
-            new_document = Document(
-                filename=original_filename,
-                filepath=filepath,
-                text=extracted_text,
-                category=category,
-                user_id=current_user.id
-            )
-            
-            # Add to database
-            db.session.add(new_document)
-            db.session.commit()
-            
-            # Generate relevance reasons for each team specialization
+    successful_uploads = 0
+    failed_uploads = 0
+    earned_badges = set()
+    
+    for file in files:
+        if file and file.filename != '' and allowed_file(file.filename):
             try:
-                relevance_reasons = generate_relevance_reasons(new_document)
-                new_document.relevance_reasons = relevance_reasons
+                # Generate a unique filename
+                original_filename = secure_filename(file.filename)
+                filename = f"{uuid.uuid4()}_{original_filename}"
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
+                # Save the file
+                file.save(filepath)
+                
+                # Extract text from PDF
+                extracted_text = extract_text_from_pdf(filepath)
+                
+                # Categorize the content
+                category = categorize_content(extracted_text)
+                
+                # Create new document in database with current user as uploader
+                new_document = Document(
+                    filename=original_filename,
+                    filepath=filepath,
+                    text=extracted_text,
+                    category=category,
+                    user_id=current_user.id
+                )
+                
+                # Add to database
+                db.session.add(new_document)
                 db.session.commit()
-                logger.info(f"Generated relevance reasons for document {new_document.id}")
+                
+                # Generate relevance reasons for each team specialization
+                try:
+                    relevance_reasons = generate_relevance_reasons(new_document)
+                    new_document.relevance_reasons = relevance_reasons
+                    db.session.commit()
+                    logger.info(f"Generated relevance reasons for document {new_document.id}")
+                except Exception as e:
+                    logger.error(f"Error generating relevance reasons: {str(e)}")
+                    # Continue even if relevance generation fails - this isn't critical
+                
+                # Track upload activity for badges
+                new_badges = BadgeService.track_activity(
+                    user_id=current_user.id,
+                    activity_type='upload',
+                    document_id=new_document.id
+                )
+                
+                # If new badges were earned, save them for notification at the end
+                if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
+                    for badge in new_badges.get('new_badges'):
+                        earned_badges.add((badge['name'], badge['level']))
+                
+                successful_uploads += 1
+                
             except Exception as e:
-                logger.error(f"Error generating relevance reasons: {str(e)}")
-                # Continue even if relevance generation fails - this isn't critical
-            
-            # Track upload activity for badges
-            new_badges = BadgeService.track_activity(
-                user_id=current_user.id,
-                activity_type='upload',
-                document_id=new_document.id
-            )
-            
-            # If new badges were earned, show notification
-            if new_badges and new_badges.get('new_badges'):
-                for badge in new_badges.get('new_badges'):
-                    flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
-            
-            flash(f'Document "{original_filename}" uploaded successfully!', 'success')
-            return redirect(url_for('library'))
-        except Exception as e:
-            logger.error(f"Error during file upload: {str(e)}")
-            flash(f'Error processing document: {str(e)}', 'danger')
-            return redirect(url_for('upload_page'))
-    else:
-        flash('Invalid file type. Only PDF files are allowed.', 'danger')
+                error_filename = original_filename if 'original_filename' in locals() else file.filename
+                logger.error(f"Error during file upload '{error_filename}': {str(e)}")
+                failed_uploads += 1
+        else:
+            if file.filename != '':  # Only count non-empty files as failures
+                failed_uploads += 1
+    
+    # Show badge notifications
+    for badge_name, badge_level in earned_badges:
+        flash(f"Congratulations! You've earned the {badge_name} badge ({badge_level})!", 'success')
+    
+    # Show upload results
+    if successful_uploads > 0:
+        if successful_uploads == 1:
+            flash(f'1 document was uploaded successfully!', 'success')
+        else:
+            flash(f'{successful_uploads} documents were uploaded successfully!', 'success')
+    
+    if failed_uploads > 0:
+        if failed_uploads == 1:
+            flash(f'1 document failed to upload. Please check the file and try again.', 'warning')
+        else:
+            flash(f'{failed_uploads} documents failed to upload. Please check the files and try again.', 'warning')
+    
+    if successful_uploads == 0 and failed_uploads == 0:
+        flash('No valid files were selected for upload.', 'warning')
         return redirect(url_for('upload_page'))
+    
+    return redirect(url_for('library'))
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -472,7 +500,7 @@ def search():
             )
             
             # If new badges were earned, show notification
-            if new_badges and new_badges.get('new_badges'):
+            if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
                 for badge in new_badges.get('new_badges'):
                     flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
         
@@ -505,7 +533,7 @@ def view_document(doc_id):
             )
             
             # If new badges were earned, show notification
-            if new_badges and new_badges.get('new_badges'):
+            if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
                 for badge in new_badges.get('new_badges'):
                     flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
         
@@ -569,7 +597,7 @@ def generate_document_summary_api(doc_id):
         )
         
         # If new badges were earned, add to result
-        if new_badges and new_badges.get('new_badges'):
+        if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
             result['new_badges'] = new_badges.get('new_badges')
         
         # We don't need to format the timestamp here anymore
