@@ -1,6 +1,7 @@
 import os
 import logging
 import uuid
+import re
 from functools import wraps
 from datetime import datetime
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
@@ -552,7 +553,16 @@ def delete_document(doc_id):
         logger.error(f"Error deleting document: {str(e)}")
         flash(f'Error deleting document: {str(e)}', 'danger')
     
-    # Redirect back to library
+    # Check if we should return to the admin user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer:
+        # Extract user_id from URL if coming from admin user detail
+        match = re.search(r'/admin/user/(\d+)', referrer)
+        if match:
+            user_id = match.group(1)
+            return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to library
     return redirect(url_for('library'))
 
 # Admin Dashboard Routes
@@ -587,6 +597,24 @@ def admin_users():
     # Get all users
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/users.html', users=users, team_choices=User.TEAM_CHOICES)
+    
+@app.route('/admin/user/<int:user_id>')
+@login_required
+@admin_required
+def admin_view_user(user_id):
+    # Get user
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found', 'danger')
+        return redirect(url_for('admin_users'))
+        
+    # Get user's documents
+    documents = Document.query.filter_by(user_id=user.id).order_by(Document.uploaded_at.desc()).all()
+    
+    return render_template('admin/user_detail.html', 
+                          user=user, 
+                          documents=documents, 
+                          team_choices=User.TEAM_CHOICES)
 
 @app.route('/admin/user/<int:user_id>/approve', methods=['POST'])
 @login_required
@@ -601,6 +629,13 @@ def approve_user(user_id):
     db.session.commit()
     
     flash(f'User {user.email} has been approved', 'success')
+    
+    # Check if we should return to the user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer and str(user_id) in referrer:
+        return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to users list
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/user/<int:user_id>/toggle_admin', methods=['POST'])
@@ -622,6 +657,13 @@ def toggle_admin(user_id):
     
     action = 'granted' if user.is_admin else 'revoked'
     flash(f'Admin privileges {action} for user {user.email}', 'success')
+    
+    # Check if we should return to the user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer and str(user_id) in referrer:
+        return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to users list
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/user/<int:user_id>/toggle_active', methods=['POST'])
@@ -643,6 +685,13 @@ def toggle_active(user_id):
     
     status = 'activated' if user.is_active else 'deactivated'
     flash(f'User {user.email} has been {status}', 'success')
+    
+    # Check if we should return to the user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer and str(user_id) in referrer:
+        return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to users list
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/user/<int:user_id>/toggle_upload_permission', methods=['POST'])
@@ -660,6 +709,13 @@ def toggle_upload_permission(user_id):
     
     action = 'granted' if user.can_upload else 'revoked'
     flash(f'Upload permission {action} for user {user.email}', 'success')
+    
+    # Check if we should return to the user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer and str(user_id) in referrer:
+        return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to users list
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/user/<int:user_id>/update', methods=['POST'])
@@ -699,6 +755,13 @@ def admin_update_user(user_id):
     db.session.commit()
     
     flash(f'User {user.email} profile updated successfully', 'success')
+    
+    # Check if we should return to the user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer and str(user_id) in referrer:
+        return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to users list
     return redirect(url_for('admin_users'))
 
 @app.route('/admin/user/<int:user_id>/reset_password', methods=['POST'])
@@ -725,6 +788,12 @@ def reset_user_password(user_id):
     flash(f'Password for {user.email} has been reset. Temporary password: {temp_password}', 'warning')
     flash('Please copy this password and provide it to the user. They will be prompted to change it on next login.', 'info')
     
+    # Check if we should return to the user detail page
+    referrer = request.referrer
+    if referrer and 'admin/user/' in referrer and str(user_id) in referrer:
+        return redirect(url_for('admin_view_user', user_id=user_id))
+    
+    # Default to users list
     return redirect(url_for('admin_users'))
 
 @app.route('/change_password', methods=['GET', 'POST'])
