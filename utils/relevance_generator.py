@@ -7,6 +7,36 @@ import logging
 from models import User
 import openai
 
+# Alias for backward compatibility
+def get_document_relevance_reasons(document_info):
+    """
+    Generate personalized relevance reasons for different team specializations
+    based on document info rather than document object
+    
+    Args:
+        document_info: Dictionary with document information (id, title, category, summary, text_excerpt)
+        
+    Returns:
+        dict: Dictionary with team specializations as keys and relevance reasons as values
+    """
+    try:
+        # Get all team specializations
+        team_specializations = User.TEAM_CHOICES
+        
+        # Create a dictionary to store the relevance reasons
+        relevance_reasons = {}
+        
+        for team in team_specializations:
+            # Generate relevance reason for this team
+            relevance_reason = generate_team_relevance(team, document_info)
+            relevance_reasons[team] = relevance_reason
+        
+        return relevance_reasons
+        
+    except Exception as e:
+        logger.error(f"Error generating relevance reasons from document info: {str(e)}")
+        return {}
+
 logger = logging.getLogger(__name__)
 
 # Initialize OpenAI client
@@ -79,7 +109,7 @@ def generate_team_relevance(team, document_info):
         
         Make it personalized to their role and don't mention the date or when it was published.
         
-        Response format:
+        Respond with a JSON object in this format:
         {{
             "relevance_reason": "your explanation here"
         }}
@@ -91,7 +121,7 @@ def generate_team_relevance(team, document_info):
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are an AI assistant that creates personalized document recommendations."},
+                {"role": "system", "content": "You are an AI assistant that creates personalized document recommendations. You respond in JSON format."},
                 {"role": "user", "content": prompt}
             ],
             response_format={"type": "json_object"},
@@ -102,9 +132,9 @@ def generate_team_relevance(team, document_info):
         result = json.loads(response.choices[0].message.content)
         relevance = result.get("relevance_reason")
         
-        # If we have a valid response, return it
+        # If we have a valid response, return the JSON object with the relevance_reason
         if relevance and len(relevance) > 20:
-            return relevance
+            return result
             
         # Otherwise, fall back to the category-specific messages
         return get_team_specific_fallback(team, document_info)
@@ -126,44 +156,48 @@ def get_team_specific_fallback(team, document_info):
         str: Team-specific relevance fallback
     """
     category = document_info.get("category", "").lower()
+    fallback_reason = ""
     
     if "Digital Product" in team:
         if "industry insights" in category:
-            return "Contains market trends that can inform product roadmap decisions and help you prioritize features aligned with industry direction."
+            fallback_reason = "Contains market trends that can inform product roadmap decisions and help you prioritize features aligned with industry direction."
         elif "technology news" in category:
-            return "Highlights new technologies that can enhance your product capabilities and improve user experience with cutting-edge solutions."
+            fallback_reason = "Highlights new technologies that can enhance your product capabilities and improve user experience with cutting-edge solutions."
         else:
-            return "Offers strategic insights for product development and UX optimization relevant to your team's help center initiatives."
+            fallback_reason = "Offers strategic insights for product development and UX optimization relevant to your team's help center initiatives."
             
     elif "Service Technology" in team:
         if "technology news" in category:
-            return "Presents CRM technology updates and integration opportunities to enhance your Salesforce implementations and workflows."
+            fallback_reason = "Presents CRM technology updates and integration opportunities to enhance your Salesforce implementations and workflows."
         else:
-            return "Contains technical insights that can improve your team's Salesforce CRM implementation and customer service processes."
+            fallback_reason = "Contains technical insights that can improve your team's Salesforce CRM implementation and customer service processes."
             
     elif "Digital Engagement" in team:
         if "customer service" in category:
-            return "Offers strategies to improve chatbot user experiences and social media engagement based on recent customer interaction analysis."
+            fallback_reason = "Offers strategies to improve chatbot user experiences and social media engagement based on recent customer interaction analysis."
         else:
-            return "Provides engagement metrics and automation strategies to enhance your team's chatbot and social platform implementations."
+            fallback_reason = "Provides engagement metrics and automation strategies to enhance your team's chatbot and social platform implementations."
             
     elif "Product Testing" in team:
         if "product management" in category:
-            return "Includes testing methodologies and user acceptance criteria that can improve your team's UAT processes and quality metrics."
+            fallback_reason = "Includes testing methodologies and user acceptance criteria that can improve your team's UAT processes and quality metrics."
         else:
-            return "Contains user experience insights and testing frameworks applicable to your team's product validation procedures."
+            fallback_reason = "Contains user experience insights and testing frameworks applicable to your team's product validation procedures."
             
     elif "Product Insights" in team:
         if "industry insights" in category:
-            return "Features data analysis techniques and reporting strategies to enhance your team's Adobe and Salesforce data capabilities."
+            fallback_reason = "Features data analysis techniques and reporting strategies to enhance your team's Adobe and Salesforce data capabilities."
         else:
-            return "Presents analytical frameworks and data visualization approaches relevant to your team's customer insight initiatives."
+            fallback_reason = "Presents analytical frameworks and data visualization approaches relevant to your team's customer insight initiatives."
             
     elif "NextGen Products" in team:
         if "industry insights" in category or "technology news" in category:
-            return "Explores emerging technologies and future market directions directly relevant to your team's innovation focus areas."
+            fallback_reason = "Explores emerging technologies and future market directions directly relevant to your team's innovation focus areas."
         else:
-            return "Provides forward-looking strategies and technology adoption insights aligned with your team's future industry trend analysis."
+            fallback_reason = "Provides forward-looking strategies and technology adoption insights aligned with your team's future industry trend analysis."
     
     else:
-        return "Contains specific information relevant to your team's specialized work areas and current projects."
+        fallback_reason = "Contains specific information relevant to your team's specialized work areas and current projects."
+        
+    # Return the fallback reason in the same format as the AI-generated reason
+    return {"relevance_reason": fallback_reason}

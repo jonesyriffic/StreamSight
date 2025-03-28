@@ -87,6 +87,41 @@ def setup_search_analytics():
     except Exception as e:
         logging.error(f"Error setting up search analytics: {str(e)}")
 
+# Function to regenerate document relevance reasons
+def regenerate_document_relevance():
+    """Regenerate relevance reasons for all documents"""
+    try:
+        with app.app_context():
+            from utils.relevance_generator import get_document_relevance_reasons
+            from models import Document
+            
+            # Get all documents from the database
+            documents = Document.query.all()
+            logging.info(f"Found {len(documents)} documents to regenerate relevance for")
+            
+            for doc in documents:
+                # We need document info for the relevance generator
+                document_info = {
+                    "id": doc.id,
+                    "title": doc.friendly_name or doc.filename,
+                    "category": doc.category,
+                    "summary": doc.summary or "No summary available",
+                    "text_excerpt": doc.text[:500] if doc.text else "No text available"
+                }
+                
+                # Generate new relevance reasons
+                relevance = get_document_relevance_reasons(document_info)
+                
+                # Update the document
+                doc.relevance_reasons = relevance
+                logging.info(f"Updated relevance for document {doc.id}")
+            
+            # Commit all changes
+            db.session.commit()
+            logging.info("Document relevance reasons regenerated successfully")
+    except Exception as e:
+        logging.error(f"Error regenerating document relevance reasons: {str(e)}")
+
 # Initialize badges when server starts
 initialize_badges()
 
@@ -95,6 +130,9 @@ process_document_friendly_names()
 
 # Set up search analytics database
 setup_search_analytics()
+
+# Regenerate document relevance data
+regenerate_document_relevance()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -157,12 +157,15 @@
                     </div>
                     
                     <div id="relevance-text">
-                        {% if document.relevance_reasons and document.relevance_reasons.streaming_services %}
-                            {{ document.relevance_reasons.streaming_services }}
+                        {% if document.relevance_reasons and current_user.team_specialization and current_user.team_specialization in document.relevance_reasons %}
+                            <div class='relevance-section'>
+                                <h3>Why This Matters For Your Team</h3>
+                                <p>{{ document.relevance_reasons[current_user.team_specialization]["relevance_reason"] }}</p>
+                            </div>
                         {% else %}
                             <div class='relevance-section'>
-                                <h3>Relevance to Streaming Services</h3>
-                                <p class="text-muted">No relevance information available yet.</p>
+                                <h3>Team Relevance</h3>
+                                <p class="text-muted">No team-specific relevance information available yet. Generate insights to see relevance for your team.</p>
                             </div>
                         {% endif %}
                     </div>
@@ -281,7 +284,28 @@
                     
                     // Update relevance section if provided
                     if (data.relevance) {
-                        document.getElementById('relevance-text').innerHTML = data.relevance;
+                        // Update the relevance text with newest data
+                        const relevanceElement = document.getElementById('relevance-text');
+                        if (relevanceElement) {
+                            // First try to create a team-specific relevance HTML
+                            {% if current_user.team_specialization %}
+                            const teamRelevanceHTML = `
+                                <div class='relevance-section'>
+                                    <h3>Why This Matters For Your Team</h3>
+                                    <p>{{ '{{' }} relevanceText {{ '}}' }}</p>
+                                </div>
+                            `;
+                            
+                            // Refresh page to show the updated team-specific relevance
+                            // The page refresh is needed to access the updated document.relevance_reasons data
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                            {% else %}
+                            // Fallback to the generic relevance section
+                            relevanceElement.innerHTML = data.relevance;
+                            {% endif %}
+                        }
                     }
                     
                     // Update timestamp if provided

@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 from openai import OpenAI
 from models import db, Document
+from utils.relevance_generator import generate_relevance_reasons
 
 # Initialize OpenAI client
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -256,24 +257,29 @@ def generate_document_summary(document_id):
         document.summary = summary_html
         document.key_points = key_points_html
         
-        # If document.relevance_reasons is None, initialize it as a dict
-        if document.relevance_reasons is None:
-            document.relevance_reasons = {}
+        # Generate team-specific relevance reasons using our relevance generator
+        team_relevance_reasons = generate_relevance_reasons(document)
         
-        # Add or update the streaming service relevance
-        document.relevance_reasons["streaming_services"] = relevance_html
+        # Update the document with the generated relevance reasons
+        document.relevance_reasons = team_relevance_reasons
         
         document.summary_generated_at = datetime.utcnow()
         db.session.commit()
         
-        return {
+        # Create response object
+        response_data = {
             "success": True,
             "document_insights": document_insights,
             "summary": summary_html,
             "key_points": key_points_html,
-            "relevance": relevance_html,
             "generated_at": document.summary_generated_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         }
+        
+        # For backward compatibility, also include the old streaming service relevance
+        response_data["relevance"] = relevance_html
+        
+        # Return all the data
+        return response_data
     
     except Exception as e:
         logger.error(f"Error generating summary: {str(e)}")
