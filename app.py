@@ -241,6 +241,14 @@ def index():
     # Get only recent documents for the dashboard
     recent_documents = Document.query.order_by(Document.uploaded_at.desc()).limit(5).all()
     
+    # Get featured insights documents with key points for the carousel
+    featured_insights = Document.query.filter(
+        Document.key_points.isnot(None),
+        Document.file_available == True
+    ).order_by(
+        func.random()
+    ).limit(5).all()
+    
     # Initialize recommended documents as an empty list
     recommended_documents = []
     
@@ -260,7 +268,8 @@ def index():
                           total_categories=total_categories,
                           upload_month=upload_month,
                           recent_documents=[doc.to_dict() for doc in recent_documents],
-                          recommended_documents=[doc.to_dict() for doc in recommended_documents])
+                          recommended_documents=[doc.to_dict() for doc in recommended_documents],
+                          featured_insights=[doc.to_dict() for doc in featured_insights])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

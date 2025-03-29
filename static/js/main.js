@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Popover(popoverTriggerEl);
     });
     
+    // Initialize Featured Insights carousel
+    initializeFeaturedInsightsCarousel();
+    
     // Initialize voice search functionality
     initializeVoiceSearch();
 
@@ -327,6 +330,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Featured Insights Carousel
+ * Initializes and configures the Bootstrap carousel for Featured Insights
+ */
+function initializeFeaturedInsightsCarousel() {
+    const carousel = document.getElementById('featuredInsightsCarousel');
+    if (carousel) {
+        // Initialize the Bootstrap carousel with custom options
+        const carouselInstance = new bootstrap.Carousel(carousel, {
+            interval: 8000, // 8 seconds between slides
+            keyboard: true, // Respond to keyboard controls
+            pause: 'hover', // Pause on mouse hover
+            wrap: true // Loop back to the first slide when reaching the end
+        });
+        
+        // Ensure carousel key points content height is consistent
+        const carouselItems = carousel.querySelectorAll('.carousel-item');
+        if (carouselItems.length > 0) {
+            // Add event listener for when carousel slides
+            carousel.addEventListener('slid.bs.carousel', function() {
+                // Reset scroll position for visible slide's key points to top
+                const visibleSlide = carousel.querySelector('.carousel-item.active');
+                if (visibleSlide) {
+                    const keyPointsContainer = visibleSlide.querySelector('.carousel-key-points');
+                    if (keyPointsContainer) {
+                        keyPointsContainer.scrollTop = 0;
+                    }
+                }
+            });
+        }
+    }
+}
 
 /**
  * Voice Search functionality
