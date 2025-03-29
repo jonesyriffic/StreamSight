@@ -24,14 +24,31 @@
     
     <!-- Modernized UI Styles -->
     <style>
-        /* Main theme colors */
-        :root {
+        /* Theme colors */
+        /* Dark Theme Values */
+        [data-bs-theme=dark] {
             --primary-gradient-start: #1a2a4a;
             --primary-gradient-end: #0f172a;
             --header-gradient-start: #111827;
             --header-gradient-end: #1e293b;
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --theme-border-color: rgba(255, 255, 255, 0.1);
+            --card-background-base: #1a1a1a;
+            --card-background-accent: #2c2c2c;
+        }
+        
+        /* Light Theme Values */
+        [data-bs-theme=light] {
+            --primary-gradient-start: #e9f0fb;
+            --primary-gradient-end: #f8faff;
+            --header-gradient-start: #6a93cb;
+            --header-gradient-end: #a4b8e0;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            --theme-border-color: rgba(0, 0, 0, 0.1);
+            --card-background-base: #ffffff;
+            --card-background-accent: #f8f9fa;
         }
         
         /* Document category colors */
@@ -69,12 +86,12 @@
         }
         
         .card-header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--theme-border-color);
             padding: 1rem 1.25rem;
         }
         
         .card-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid var(--theme-border-color);
             padding: 1rem 1.25rem;
         }
         
@@ -83,29 +100,55 @@
             box-shadow: var(--card-hover-shadow);
         }
         
-        /* Category-based card gradients */
-        .card.card-insights {
+        /* Category-based card gradients - Dark Theme */
+        [data-bs-theme=dark] .card.card-insights {
             background: linear-gradient(145deg, #0d131f, #192541);
             border-left: 4px solid #0dcaf0;
         }
         
-        .card.card-tech {
+        [data-bs-theme=dark] .card.card-tech {
             background: linear-gradient(145deg, #0d1e14, #193327);
             border-left: 4px solid #20c997;
         }
         
-        .card.card-product {
+        [data-bs-theme=dark] .card.card-product {
             background: linear-gradient(145deg, #0f143d, #1c2450);
             border-left: 4px solid #0d6efd;
         }
         
-        .card.card-service {
+        [data-bs-theme=dark] .card.card-service {
             background: linear-gradient(145deg, #241a0d, #3d2e16);
             border-left: 4px solid #ffc107;
         }
         
-        .card.card-default {
+        [data-bs-theme=dark] .card.card-default {
             background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+            border-left: 4px solid #6c757d;
+        }
+        
+        /* Category-based card gradients - Light Theme */
+        [data-bs-theme=light] .card.card-insights {
+            background: linear-gradient(145deg, #e6f9ff, #cff4fc);
+            border-left: 4px solid #0dcaf0;
+        }
+        
+        [data-bs-theme=light] .card.card-tech {
+            background: linear-gradient(145deg, #e6fff3, #d1f7ec);
+            border-left: 4px solid #20c997;
+        }
+        
+        [data-bs-theme=light] .card.card-product {
+            background: linear-gradient(145deg, #e6f0ff, #cfe2ff);
+            border-left: 4px solid #0d6efd;
+        }
+        
+        [data-bs-theme=light] .card.card-service {
+            background: linear-gradient(145deg, #fff8e6, #fff3cd);
+            border-left: 4px solid #ffc107;
+        }
+        
+        [data-bs-theme=light] .card.card-default {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
             border-left: 4px solid #6c757d;
         }
         
@@ -135,23 +178,48 @@
             overflow: hidden;
         }
         
-        .table thead th {
+        /* Dark Mode Table */
+        [data-bs-theme=dark] .table thead th {
             background-color: rgba(0, 0, 0, 0.2);
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
             font-weight: 600;
         }
         
-        /* Form styles */
-        .form-control, .form-select {
+        /* Light Mode Table */
+        [data-bs-theme=light] .table thead th {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+        
+        /* Form styles - Dark Mode */
+        [data-bs-theme=dark] .form-control, 
+        [data-bs-theme=dark] .form-select {
             border-radius: 0.5rem;
             padding: 0.6rem 1rem;
             background-color: rgba(0, 0, 0, 0.2);
             border-color: rgba(255, 255, 255, 0.1);
         }
         
-        .form-control:focus, .form-select:focus {
+        [data-bs-theme=dark] .form-control:focus, 
+        [data-bs-theme=dark] .form-select:focus {
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
             background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Form styles - Light Mode */
+        [data-bs-theme=light] .form-control, 
+        [data-bs-theme=light] .form-select {
+            border-radius: 0.5rem;
+            padding: 0.6rem 1rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-bs-theme=light] .form-control:focus, 
+        [data-bs-theme=light] .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            background-color: rgba(255, 255, 255, 1);
         }
         
         /* Footer styling */
@@ -173,19 +241,116 @@
             overflow: hidden;
         }
         
-        /* Modal styling */
-        .modal-content {
+        /* Modal styling - Dark Mode */
+        [data-bs-theme=dark] .modal-content {
             border-radius: 1rem;
             border: none;
             background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
         }
         
-        .modal-header {
+        [data-bs-theme=dark] .modal-header {
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .modal-footer {
+        [data-bs-theme=dark] .modal-footer {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Modal styling - Light Mode */
+        [data-bs-theme=light] .modal-content {
+            border-radius: 1rem;
+            border: none;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        }
+        
+        [data-bs-theme=light] .modal-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-bs-theme=light] .modal-footer {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Custom Fixed Feedback Dialog Theme Adjustments */
+        [data-bs-theme=light] .fixed-dialog-container {
+            background-color: #f8f9fa;
+        }
+        
+        [data-bs-theme=light] .fixed-dialog-title {
+            color: #212529;
+        }
+        
+        [data-bs-theme=light] .fixed-dialog-close {
+            color: #212529;
+        }
+        
+        /* Theme Switch Styling */
+        .theme-switch-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-radius: 2rem;
+        }
+        
+        [data-bs-theme=light] .theme-switch-wrapper {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .theme-switch-wrapper:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        #theme-icon-light, #theme-icon-dark {
+            transition: all 0.3s ease;
+        }
+        
+        /* Customize the form switch for better appearance */
+        .form-check-input {
+            cursor: pointer;
+            width: 2.5rem;
+        }
+        
+        [data-bs-theme=light] .navbar-dark {
+            background: linear-gradient(to right, var(--header-gradient-start), var(--header-gradient-end)) !important;
+        }
+        
+        [data-bs-theme=light] footer {
+            color: #212529 !important;
+        }
+        
+        [data-bs-theme=light] footer a.text-light {
+            color: #212529 !important;
+        }
+        
+        /* Light theme navbar active styles override */
+        [data-bs-theme=light] .nav-link.active.bg-dark.bg-opacity-50 {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Light theme dropdown menu styling */
+        [data-bs-theme=light] .dropdown-menu-dark {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-bs-theme=light] .dropdown-menu-dark .dropdown-item {
+            color: #212529;
+        }
+        
+        [data-bs-theme=light] .dropdown-menu-dark .dropdown-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        [data-bs-theme=light] .dropdown-menu-dark .dropdown-item.active {
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #212529;
+        }
+        
+        [data-bs-theme=light] .dropdown-menu-dark .dropdown-divider {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
     </style>
     
@@ -239,6 +404,15 @@
                     </ul>
                     <div class="ms-auto me-2"></div>
                     <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <div class="theme-switch-wrapper nav-link d-flex align-items-center px-3 rounded-pill">
+                                <i class="fas fa-sun me-2" id="theme-icon-light"></i>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" id="theme-switch" checked>
+                                </div>
+                                <i class="fas fa-moon ms-2" id="theme-icon-dark"></i>
+                            </div>
+                        </li>
                         {% if current_user.is_authenticated %}
                         <li class="nav-item me-2">
                             <a class="nav-link px-3 rounded-pill {{ 'active bg-dark bg-opacity-50' if request.path == url_for('tour_page') }}" href="{{ url_for('tour_page') }}" id="nav-tour-link">
@@ -391,6 +565,44 @@
             
             // Add "d-js-block" class to body when JavaScript is enabled
             document.body.classList.add('d-js-block');
+            
+            // Initialize theme switcher
+            const themeSwitch = document.getElementById('theme-switch');
+            const htmlElement = document.documentElement;
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            
+            // Set initial theme based on user preference or default to dark
+            htmlElement.setAttribute('data-bs-theme', currentTheme);
+            themeSwitch.checked = currentTheme === 'dark';
+            
+            // Update the icon colors based on theme
+            updateThemeIconColors(currentTheme);
+            
+            // Handle theme toggle
+            themeSwitch.addEventListener('change', function() {
+                const newTheme = this.checked ? 'dark' : 'light';
+                htmlElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIconColors(newTheme);
+            });
+            
+            // Helper function to highlight the active theme icon
+            function updateThemeIconColors(theme) {
+                const sunIcon = document.getElementById('theme-icon-light');
+                const moonIcon = document.getElementById('theme-icon-dark');
+                
+                if (theme === 'light') {
+                    sunIcon.classList.add('text-warning');
+                    sunIcon.classList.remove('text-muted');
+                    moonIcon.classList.add('text-muted');
+                    moonIcon.classList.remove('text-info');
+                } else {
+                    sunIcon.classList.add('text-muted');
+                    sunIcon.classList.remove('text-warning');
+                    moonIcon.classList.add('text-info');
+                    moonIcon.classList.remove('text-muted');
+                }
+            }
         });
     </script>
 </body>
