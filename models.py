@@ -208,9 +208,10 @@ class Document(db.Model):
     
     def to_dict(self):
         """Convert document to dictionary"""
-        # Clean HTML from the summary and key points
-        cleaned_summary = clean_html(self.summary) if self.summary else None
-        cleaned_key_points = clean_html(self.key_points) if self.key_points else None
+        # Do NOT clean HTML from the summary and key points to preserve formatting
+        # These fields will be marked as |safe in the templates
+        summary_html = self.summary if self.summary else None
+        key_points_html = self.key_points if self.key_points else None
         
         # Format timestamps
         relative_time = format_timestamp(self.uploaded_at) if self.uploaded_at else None
@@ -246,8 +247,8 @@ class Document(db.Model):
             'category': self.category,
             'uploaded_at': self.uploaded_at.isoformat() if self.uploaded_at else None,
             'user_id': self.user_id,
-            'summary': cleaned_summary,
-            'key_points': cleaned_key_points,
+            'summary': summary_html,
+            'key_points': key_points_html,
             'relevance_reasons': cleaned_relevance,
             'summary_generated_at': self.summary_generated_at.isoformat() if self.summary_generated_at else None,
             'relative_time': relative_time,  # Add relative time as a new field
