@@ -173,7 +173,7 @@
                                         {% set relevance_length = 0 %}
                                         
                                         {% for team_key, relevance in doc.relevance_reasons.items() %}
-                                            {% if not found_relevance and current_user.team_specialization and (team_key in current_user.team_specialization or current_user.team_specialization in team_key) %}
+                                            {% if not found_relevance and current_user.team_specialization and team_key == current_user.team_specialization %}
                                                 {% set found_relevance = true %}
                                                 
                                                 {% if relevance is mapping and relevance.relevance_reason %}
@@ -249,7 +249,7 @@
                                                             <div class="card-body">
                                                                 {% set relevance_text = "" %}
                                                                 {% for team_key, relevance in doc.relevance_reasons.items() %}
-                                                                    {% if not relevance_text and current_user.team_specialization and (team_key in current_user.team_specialization or current_user.team_specialization in team_key) %}
+                                                                    {% if not relevance_text and current_user.team_specialization and team_key == current_user.team_specialization %}
                                                                         {% if relevance is mapping and relevance.relevance_reason %}
                                                                             {% set relevance_text = relevance.relevance_reason %}
                                                                         {% else %}
