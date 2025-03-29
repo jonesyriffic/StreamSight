@@ -182,9 +182,17 @@ def generate_document_summary(document_id):
                     bullet_items.append(f"<li class='insight-item'>{formatted_line}</li>")
             
             if bullet_items:
-                key_points_html = f"<div class='key-points-section'><h3>Key Points</h3><ul class='key-points-list'>{' '.join(bullet_items)}</ul></div>"
+                key_points_html = f"""<div class='key-points-section document-insights-section'>
+                    <h3 class='document-insights-heading'>Key Points</h3>
+                    <ul class='key-points-list document-insights-list'>
+                        {' '.join(bullet_items)}
+                    </ul>
+                </div>"""
             else:
-                key_points_html = "<div class='key-points-section'><h3>Key Points</h3><p>No key points extracted from document.</p></div>"
+                key_points_html = """<div class='key-points-section document-insights-section'>
+                    <h3 class='document-insights-heading'>Key Points</h3>
+                    <p class='document-insights-text'>No key points extracted from document.</p>
+                </div>"""
             
             # Format summary as HTML
             summary_content = summary_text.replace(summary_marker, "").strip()
@@ -199,17 +207,29 @@ def generate_document_summary(document_id):
                     if paragraph.strip():
                         # Handle single newlines inside paragraphs
                         paragraph = paragraph.replace("\n", "<br>")
-                        formatted_summary += f"<p>{paragraph}</p>"
+                        formatted_summary += f"<p class='document-insights-paragraph'>{paragraph}</p>"
                 
-                summary_html = f"<div class='summary-section'><h3>Summary</h3>{formatted_summary}</div>"
+                summary_html = f"""<div class='summary-section document-insights-section'>
+                    <h3 class='document-insights-heading'>Summary</h3>
+                    <div class='document-insights-content'>{formatted_summary}</div>
+                </div>"""
             else:
-                summary_html = "<div class='summary-section'><h3>Summary</h3><p>No summary information available.</p></div>"
+                summary_html = """<div class='summary-section document-insights-section'>
+                    <h3 class='document-insights-heading'>Summary</h3>
+                    <p class='document-insights-text'>No summary information available.</p>
+                </div>"""
             
             # Removed relevance section
         else:
             # Fallback for unstructured responses
-            key_points_html = "<div class='key-points-section'><h3>Key Points</h3><p>Unable to extract key points from document.</p></div>"
-            summary_html = f"<div class='summary-section'><h3>Summary</h3><p>{ai_response}</p></div>"
+            key_points_html = """<div class='key-points-section document-insights-section'>
+                <h3 class='document-insights-heading'>Key Points</h3>
+                <p class='document-insights-text'>Unable to extract key points from document.</p>
+            </div>"""
+            summary_html = f"""<div class='summary-section document-insights-section'>
+                <h3 class='document-insights-heading'>Summary</h3>
+                <p class='document-insights-paragraph'>{ai_response}</p>
+            </div>"""
         
         # Combine all sections in the desired order
         document_insights = f"""

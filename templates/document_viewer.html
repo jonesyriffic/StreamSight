@@ -23,7 +23,7 @@
         border-radius: 0.375rem;
     }
     
-    /* Improved AI Insights section styling */
+    /* Enhanced AI Insights section styling */
     .insights-section h6 {
         font-size: 1.1rem;
         font-weight: 600;
@@ -32,25 +32,47 @@
         border-bottom: 1px solid var(--bs-secondary);
     }
     
-    .insights-section p {
+    .insights-section p, .document-insights-paragraph, .document-insights-text {
         margin-bottom: 1rem;
         line-height: 1.6;
+        color: var(--bs-light);
     }
     
-    .key-points-list {
+    /* Document insights specific styling */
+    .document-insights-section {
+        margin-bottom: 2rem;
+        padding: 0.5rem 0;
+    }
+    
+    .document-insights-heading {
+        color: var(--bs-light);
+        font-size: 1.3rem;
+        margin-top: 1rem;
+        margin-bottom: 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.5rem;
+    }
+    
+    .document-insights-content {
+        padding: 0.25rem;
+    }
+    
+    /* Key points specific styling */
+    .key-points-list, .document-insights-list {
         padding-left: 1.5rem;
         margin-bottom: 1.5rem;
         list-style-type: none;
     }
     
-    .key-points-list li {
+    .key-points-list li, .document-insights-list li {
         margin-bottom: 1rem;
         position: relative;
         line-height: 1.5;
         padding-left: 1.2rem;
     }
     
-    .key-points-list li::before {
+    .key-points-list li::before, .document-insights-list li::before {
         content: "•";
         position: absolute;
         left: 0;
@@ -70,8 +92,8 @@
         letter-spacing: 0.01em;
     }
     
-    /* Improved formatting for document insights */
-    .document-insights h3 {
+    /* Document insights section styling */
+    .document-insights h3, .document-insights-section h3 {
         color: var(--bs-light);
         font-size: 1.3rem;
         margin-top: 1.5rem;
