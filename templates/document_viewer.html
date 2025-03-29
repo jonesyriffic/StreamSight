@@ -143,9 +143,14 @@
                     <i class="fas fa-download me-1"></i> Download
                 </a>
                 {% else %}
-                <span class="text-muted">
+                <span class="text-muted me-2">
                     <i class="fas fa-exclamation-circle me-1"></i> PDF file not available
                 </span>
+                {% if current_user.is_admin or current_user.can_upload %}
+                <a href="{{ url_for('reupload_document', doc_id=document.id) }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-cloud-upload-alt me-1"></i> Reupload PDF
+                </a>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -272,9 +277,30 @@
                 <a href="{{ url_for('library') }}" class="btn btn-secondary w-100 mb-2">
                     <i class="fas fa-arrow-left me-2"></i> Back to Library
                 </a>
+                
+                {% if document.file_available %}
                 <a href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-info w-100 mb-2">
                     <i class="fas fa-download me-2"></i> Download PDF
                 </a>
+                {% else %}
+                <!-- Show reupload button for missing files (admin only) -->
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('reupload_document', doc_id=document.id) }}" class="btn btn-warning w-100 mb-2">
+                    <i class="fas fa-cloud-upload-alt me-2"></i> Reupload Missing PDF
+                </a>
+                {% endif %}
+                <span class="d-block text-center text-danger small mb-2">
+                    <i class="fas fa-exclamation-circle me-1"></i> Original PDF file is missing
+                </span>
+                {% endif %}
+                
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('delete_document', doc_id=document.id) }}" 
+                   class="btn btn-outline-danger w-100 mb-2"
+                   onclick="return confirm('Are you sure you want to delete this document? This action cannot be undone.')">
+                    <i class="fas fa-trash-alt me-2"></i> Delete Document
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -11,6 +11,9 @@ import json
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy import func
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileAllowed
+from wtforms import BooleanField
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
@@ -202,6 +205,15 @@ ALLOWED_EXTENSIONS = {'pdf'}
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           
+class ReuploadDocumentForm(FlaskForm):
+    file = FileField('PDF File', validators=[
+        FileRequired(),
+        FileAllowed(['pdf'], 'PDF files only!')
+    ])
+    keep_original_name = BooleanField('Keep original filename', default=True)
+    reprocess_text = BooleanField('Extract text from new PDF', default=True)
+    regenerate_insights = BooleanField('Regenerate AI insights', default=False)
 
 @app.route('/')
 @login_required
@@ -874,6 +886,142 @@ def search():
                               selected_category=category_filter,
                               categories=categories,
                               ai_response=None)
+
+@app.route('/document/<doc_id>/reupload')
+@login_required
+@approved_required
+def reupload_document(doc_id):
+    """
+    Page to reupload a document that's missing its file
+    Admin only route to replace missing files while preserving metadata
+    """
+    # Check admin status
+    if not current_user.is_admin:
+        flash('Only administrators can reupload missing documents.', 'danger')
+        return redirect(url_for('view_document', doc_id=doc_id))
+    
+    # Get the document
+    document = Document.query.get_or_404(doc_id)
+    
+    # Create form
+    form = ReuploadDocumentForm()
+    
+    return render_template('reupload_document.html', document=document, form=form)
+
+@app.route('/document/<doc_id>/reupload', methods=['POST'])
+@login_required
+@approved_required
+def reupload_document_post(doc_id):
+    """Handle reupload form submission"""
+    # Check admin status
+    if not current_user.is_admin:
+        flash('Only administrators can reupload missing documents.', 'danger')
+        return redirect(url_for('view_document', doc_id=doc_id))
+    
+    # Get the document
+    document = Document.query.get_or_404(doc_id)
+    
+    # Create and validate form
+    form = ReuploadDocumentForm()
+    if not form.validate_on_submit():
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error in {getattr(form, field).label.text}: {error}', 'danger')
+        return redirect(url_for('reupload_document', doc_id=doc_id))
+    
+    # Process the uploaded file
+    file = form.file.data
+    
+    try:
+        # Set up filenames and paths
+        if form.keep_original_name.data:
+            # Use the original filename from the document record
+            original_filename = document.filename
+            if '/' in original_filename or '\\' in original_filename:
+                original_filename = os.path.basename(original_filename)
+        else:
+            # Use the new uploaded filename
+            original_filename = secure_filename(file.filename)
+        
+        # Generate a unique filename with UUID
+        filename = f"{uuid.uuid4()}_{original_filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        relative_filepath = os.path.join('./uploads', filename)  # Store relative path
+        
+        # Save the file with chunked writing for large files
+        logger.info(f"Saving reuploaded file for document {doc_id}: {filepath}")
+        
+        # Check file size before saving for logging
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning of file
+        size_mb = file_size / (1024 * 1024)
+        logger.info(f"Reupload file size: {file_size} bytes ({size_mb:.2f} MB)")
+        
+        # Save the file
+        with open(filepath, 'wb') as f:
+            chunk_size = 4096  # 4KB chunks
+            while True:
+                chunk = file.read(chunk_size)
+                if not chunk:
+                    break
+                f.write(chunk)
+        
+        # Verify the file was saved correctly
+        if os.path.exists(filepath):
+            actual_size = os.path.getsize(filepath)
+            logger.info(f"File saved successfully. Size on disk: {actual_size} bytes")
+            
+            # Extract text from the PDF if requested
+            if form.reprocess_text.data:
+                try:
+                    logger.info(f"Extracting text from new PDF...")
+                    document.text = extract_text_from_pdf(filepath)
+                    logger.info(f"Text extraction complete. Extracted {len(document.text)} characters")
+                except Exception as e:
+                    logger.error(f"Error extracting text: {str(e)}")
+                    flash(f'Warning: Could not extract text from the document: {str(e)}', 'warning')
+            
+            # Regenerate AI insights if requested
+            if form.regenerate_insights.data:
+                try:
+                    logger.info(f"Regenerating document insights...")
+                    if document.text:
+                        # Generate summary and key points
+                        summary_results = generate_document_summary(document.text)
+                        if summary_results:
+                            document.summary = summary_results.get('summary', '')
+                            document.key_points = summary_results.get('key_points', '')
+                            document.summary_generated_at = datetime.utcnow()
+                            
+                        # Generate relevance reasons
+                        relevance_reasons = generate_relevance_reasons(
+                            document.text, 
+                            document.category,
+                            document.friendly_name or document.filename
+                        )
+                        if relevance_reasons:
+                            document.relevance_reasons = relevance_reasons
+                except Exception as e:
+                    logger.error(f"Error regenerating insights: {str(e)}")
+                    flash(f'Warning: Could not regenerate AI insights: {str(e)}', 'warning')
+            
+            # Update document record
+            document.filepath = relative_filepath
+            document.file_available = True
+            db.session.commit()
+            
+            # Log success message
+            logger.info(f"Successfully reuploaded document: {doc_id}")
+            flash('Document successfully reuploaded!', 'success')
+        else:
+            logger.error(f"File save verification failed. File does not exist at: {filepath}")
+            flash('Error saving the file to disk. Please try again.', 'danger')
+    except Exception as e:
+        logger.error(f"Error during document reupload: {str(e)}")
+        flash(f'Error processing reupload: {str(e)}', 'danger')
+    
+    return redirect(url_for('view_document', doc_id=doc_id))
 
 @app.route('/document/<doc_id>')
 @login_required
