@@ -196,7 +196,7 @@
                 <div id="summary-content" class="insights-section {% if not document.summary %}d-none{% endif %}">
                     <div id="key-points-text">
                         {% if document.key_points %}
-                            {{ document.key_points }}
+                            {{ document.key_points|safe }}
                         {% else %}
                             <div class='key-points-section'>
                                 <h3>Key Points</h3>
@@ -207,7 +207,7 @@
                     
                     <div id="summary-text" class="mb-4">
                         {% if document.summary %}
-                            {{ document.summary }}
+                            {{ document.summary|safe }}
                         {% else %}
                             <div class='summary-section'>
                                 <h3>Summary</h3>
