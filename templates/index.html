@@ -183,6 +183,13 @@
                                                     {% set relevance_content = relevance %}
                                                     {% set relevance_length = relevance|length %}
                                                 {% endif %}
+                                                
+                                                <!-- Debug relevance information -->
+                                                <div class="d-none">
+                                                    Team key: {{ team_key }}, 
+                                                    Relevance type: {{ relevance|type }}, 
+                                                    Content: {{ relevance_content }}
+                                                </div>
                                             {% endif %}
                                         {% endfor %}
                                         
@@ -249,6 +256,13 @@
                                                                         {% else %}
                                                                             {% set relevance_text = relevance %}
                                                                         {% endif %}
+                                                                        
+                                                                        <!-- Debug relevance information -->
+                                                                        <div class="d-none">
+                                                                            Modal - Team key: {{ team_key }}, 
+                                                                            Relevance type: {{ relevance|type }}, 
+                                                                            Content: {{ relevance_text }}
+                                                                        </div>
                                                                     {% endif %}
                                                                 {% endfor %}
                                                                 

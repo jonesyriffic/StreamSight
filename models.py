@@ -224,11 +224,11 @@ class Document(db.Model):
                 if isinstance(reason, dict) and 'relevance_reason' in reason:
                     relevance_text = reason.get('relevance_reason', '')
                     cleaned_relevance[team] = {
-                        'relevance_reason': clean_html(relevance_text)
+                        'relevance_reason': relevance_text
                     }
                 else:
-                    # If it's a string, clean it directly
-                    cleaned_relevance[team] = clean_html(reason) if isinstance(reason, str) else reason
+                    # If it's a string, keep it as is (don't clean HTML as there shouldn't be any)
+                    cleaned_relevance[team] = reason
         else:
             cleaned_relevance = self.relevance_reasons
         

@@ -1,0 +1,23 @@
+Subject: Garage waits and 'vibe coding' with AI... 🚗💡
+
+What do you do when you're waiting in the garage for your car to be serviced? If you're like me, sometimes you find unexpected pockets of time to tackle interesting ideas – like using AI tools to rapidly bring an app concept to life, capturing the spirit of 'vibe coding'!
+
+While "vibe coding" often describes intuitive manual coding, I applied a similar iterative, experimental approach using AI. Instead of writing lines of code myself, I focused on prompting and refining to build something quickly.
+
+The Use Case:
+As part of my role in the Global Streaming Product team at Sky and NBCUniversal, I gather and share a significant amount of research and insights. With the current pace of change, it's challenging for our product managers and analysts to keep up and easily find the specific nuggets relevant to their areas – whether that's Salesforce Service Cloud, Live Chat, Help Centers, or Bot capabilities.
+
+The Outcome:
+Introducing StreamSight! An app I essentially prompted into existence during that garage wait and a bit more time.
+
+Backend: A database where I upload reports, white papers, etc.
+Intelligence: On upload, ChatGPT generates summaries and extracts key insights.
+Frontend: Product Managers use AI search to ask questions and get answers sourced directly from the documents.
+I've since iterated to add sign-in/authentication, gamification badges for engagement, and even personalised content recommendations based on user roles!
+
+The Speed: All in all, the core concept went from idea to functional prototype in about 2-3 hours of focused prompting.
+
+The Takeaway:
+This AI-assisted approach undoubtedly differs from traditional development (and yes, the underlying code might make a seasoned developer raise an eyebrow!), but this method of rapidly bringing ideas to life is set to transform how we brainstorm, prototype, and iterate. It's an exciting glimpse into accelerating innovation!
+
+#AICoding #RapidPrototyping #ProductManagement #Innovation #GenerativeAI #ChatGPT #LowCode #FutureOfWork #Sky #NBCUniversal #StreamSight
