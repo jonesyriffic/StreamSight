@@ -93,7 +93,7 @@ def generate_team_relevance(team, document_info):
     """
     try:
         # Import here to avoid circular imports
-        from recommendation_models import TeamResponsibility
+        from models import TeamResponsibility
         from app import app
 
         # Check if we have a database record for this team
