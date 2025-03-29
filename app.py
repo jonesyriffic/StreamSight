@@ -13,15 +13,17 @@ from email_validator import validate_email, EmailNotValidError
 from sqlalchemy import func
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import BooleanField
+from wtforms import BooleanField, StringField, PasswordField, TextAreaField, SelectField, RadioField, ValidationError, HiddenField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.ai_search import search_documents, categorize_content
 from utils.document_ai import generate_document_summary, generate_friendly_name
 from utils.relevance_generator import generate_relevance_reasons
 from utils.badge_service import BadgeService
+from utils.recommendation_service import get_user_recommendations, dismiss_recommendation, reset_dismissed_recommendations
 from utils.text_processor import clean_html, format_timestamp
-from models import db, Document, User, Badge, UserActivity, SearchLog
+from models import db, Document, User, Badge, UserActivity, SearchLog, TeamResponsibility, UserDismissedRecommendation
 from statistics import mean
 
 # Set up logging for debugging
@@ -242,52 +244,15 @@ def index():
     # Initialize recommended documents as an empty list
     recommended_documents = []
     
-    # If user is logged in and has a team specialization, get personalized recommendations
-    if current_user.is_authenticated and current_user.team_specialization:
-        # Default recommendations - if no specific team match found
-        default_docs = Document.query.order_by(Document.uploaded_at.desc()).limit(3).all()
+    # If user is logged in, get personalized recommendations using the recommendation service
+    if current_user.is_authenticated:
+        # Get recommended documents from the recommendation service
+        recommended_documents = get_user_recommendations(current_user)
         
-        team_name = current_user.team_specialization.lower() if current_user.team_specialization else ""
-        
-        # For the Product Insights team, prioritize "Industry Insights" and "Product Management"
-        if "product insights" in team_name:
-            industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
-            product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(1).all()
-            recommended_documents = industry_docs + product_docs
-        
-        # For the Digital Product team, prioritize "Product Management" and "Customer Service"
-        elif "digital product" in team_name:
-            product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
-            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
-            recommended_documents = product_docs + customer_docs
-        
-        # For the Service Technology team, prioritize "Technology News" and "Customer Service"
-        elif "service tech" in team_name or "service technology" in team_name:
-            tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(2).all()
-            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
-            recommended_documents = tech_docs + customer_docs
-        
-        # For the Digital Engagement team, prioritize "Customer Service" and "Industry Insights"
-        elif "digital engagement" in team_name:
-            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(2).all()
-            industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(1).all()
-            recommended_documents = customer_docs + industry_docs
-        
-        # For the Product Testing team, prioritize "Product Management" and "Customer Service"
-        elif "product testing" in team_name:
-            product_docs = Document.query.filter_by(category="Product Management").order_by(Document.uploaded_at.desc()).limit(2).all()
-            customer_docs = Document.query.filter_by(category="Customer Service").order_by(Document.uploaded_at.desc()).limit(1).all()
-            recommended_documents = product_docs + customer_docs
-        
-        # For the NextGen Products team, prioritize "Industry Insights" and "Technology News"
-        elif "nextgen" in team_name or "next gen" in team_name or "next generation" in team_name:
-            industry_docs = Document.query.filter_by(category="Industry Insights").order_by(Document.uploaded_at.desc()).limit(2).all()
-            tech_docs = Document.query.filter_by(category="Technology News").order_by(Document.uploaded_at.desc()).limit(1).all()
-            recommended_documents = industry_docs + tech_docs
-            
-        # Fallback to default if no team-specific recommendations were generated
+        # If no recommendations returned, fall back to most recent documents
         if not recommended_documents:
-            recommended_documents = default_docs
+            recommended_documents = Document.query.filter_by(file_available=True) \
+                .order_by(Document.uploaded_at.desc()).limit(3).all()
     
     return render_template('index.html', 
                           categories=categories,
@@ -1787,6 +1752,87 @@ def api_reset_tour():
         'success': True,
         'tour_config': tour_config
     })
+
+# Recommendation System API Routes
+@app.route('/api/recommendations', methods=['GET'])
+@login_required
+def api_recommendations():
+    """API endpoint to get personalized document recommendations"""
+    try:
+        # Get recommendations using the recommendation service
+        recommended_documents = get_user_recommendations(current_user)
+        
+        # Format recommendations for API response
+        formatted_recommendations = []
+        for doc in recommended_documents:
+            doc_dict = doc.to_dict()
+            
+            # Add team-specific relevance reason if available
+            if doc.relevance_reasons and current_user.team_specialization:
+                team_relevance = doc.relevance_reasons.get(current_user.team_specialization)
+                doc_dict['relevance_reason'] = team_relevance
+            
+            formatted_recommendations.append(doc_dict)
+        
+        return jsonify({
+            'recommendations': formatted_recommendations,
+            'count': len(formatted_recommendations)
+        })
+    except Exception as e:
+        logger.error(f"Error getting recommendations: {str(e)}")
+        return jsonify({'error': 'Failed to get recommendations', 'message': str(e)}), 500
+
+@app.route('/api/recommendations/dismiss', methods=['POST'])
+@login_required
+def api_dismiss_recommendation():
+    """API endpoint to dismiss a document recommendation"""
+    try:
+        # Get document ID from request
+        data = request.get_json()
+        document_id = data.get('document_id')
+        feedback = data.get('feedback')
+        feedback_type = data.get('feedback_type')  # not_relevant, already_seen, not_interested
+        
+        if not document_id:
+            return jsonify({'error': 'Missing document_id parameter'}), 400
+            
+        # Validate document exists
+        document = Document.query.get(document_id)
+        if not document:
+            return jsonify({'error': 'Document not found'}), 404
+            
+        # Dismiss recommendation
+        result = dismiss_recommendation(
+            user_id=current_user.id,
+            document_id=document_id,
+            feedback=feedback,
+            feedback_type=feedback_type
+        )
+        
+        if result:
+            return jsonify({'success': True, 'message': 'Recommendation dismissed'})
+        else:
+            return jsonify({'error': 'Failed to dismiss recommendation'}), 500
+    except Exception as e:
+        logger.error(f"Error dismissing recommendation: {str(e)}")
+        return jsonify({'error': 'Failed to dismiss recommendation', 'message': str(e)}), 500
+
+@app.route('/api/recommendations/reset', methods=['POST'])
+@login_required
+def api_reset_recommendations():
+    """API endpoint to reset all dismissed recommendations"""
+    try:
+        # Reset dismissed recommendations
+        count = reset_dismissed_recommendations(current_user.id)
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Reset {count} dismissed recommendations',
+            'count': count
+        })
+    except Exception as e:
+        logger.error(f"Error resetting recommendations: {str(e)}")
+        return jsonify({'error': 'Failed to reset recommendations', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

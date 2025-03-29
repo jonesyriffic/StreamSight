@@ -231,6 +231,17 @@ def check_document_availability():
         logging.error(f"Error checking document file availability: {str(e)}")
 
 # Function to run initializations for development mode only
+def setup_recommendation_system():
+    """Set up recommendation system tables and initial data"""
+    try:
+        from migrate_recommendation_system import run_migration
+        logging.info("Setting up recommendation system tables...")
+        run_migration()
+        logging.info("Recommendation system tables set up successfully")
+    except Exception as e:
+        logging.error(f"Error setting up recommendation system: {e}")
+
+
 def run_dev_initializations():
     # Initialize badges
     initialize_badges()
@@ -249,6 +260,9 @@ def run_dev_initializations():
     
     # Check document file availability
     check_document_availability()
+    
+    # Set up recommendation system
+    setup_recommendation_system()
 
 # Only run these operations when starting the development server directly
 if __name__ == "__main__":

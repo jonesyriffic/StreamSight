@@ -92,18 +92,29 @@ def generate_team_relevance(team, document_info):
         str: Relevance reason for this team
     """
     try:
-        # Team context information
-        team_context = {
-            "Digital Engagement": "Focus on chatbots, AI assistants, and social platforms",
-            "Digital Product": "Responsible for self-service help centers and deflection funnels",
-            "NextGen Products": "Incubator for upcoming trends, technologies, and next-gen services",
-            "Product Insights": "Works with data analysis, Adobe analytics, and Salesforce CRM analytics",
-            "Product Testing": "Handles user acceptance testing (UAT) and validation",
-            "Service Technology": "Works with Salesforce Service Cloud, agent tooling, live chat, translation tools, and telephony"
-        }
-        
-        # Get context for this team
-        current_team_context = team_context.get(team, "Works on specialized product management areas")
+        # Import here to avoid circular imports
+        from recommendation_models import TeamResponsibility
+        from app import app
+
+        # Check if we have a database record for this team
+        with app.app_context():
+            team_responsibility = TeamResponsibility.query.filter_by(team_name=team).first()
+            
+            if team_responsibility:
+                current_team_context = team_responsibility.description
+            else:
+                # Fallback team context information
+                team_context = {
+                    "Digital Engagement": "Focus on chatbots, AI assistants, and social platforms",
+                    "Digital Product": "Responsible for self-service help centers and deflection funnels",
+                    "NextGen Products": "Incubator for upcoming trends, technologies, and next-gen services",
+                    "Product Insights": "Works with data analysis, Adobe analytics, and Salesforce CRM analytics",
+                    "Product Testing": "Handles user acceptance testing (UAT) and validation",
+                    "Service Technology": "Works with Salesforce Service Cloud, agent tooling, live chat, translation tools, and telephony"
+                }
+                
+                # Get context for this team
+                current_team_context = team_context.get(team, "Works on specialized product management areas")
         
         # Craft prompt for generating relevance
         prompt = f"""

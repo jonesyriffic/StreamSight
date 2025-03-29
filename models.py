@@ -313,3 +313,62 @@ class SearchLog(db.Model):
             'avg_relevance_score': self.avg_relevance_score,
             'user': user_data
         }
+        
+# Recommendation system models
+class TeamResponsibility(db.Model):
+    """Team responsibility descriptions for recommendation engine"""
+    __tablename__ = 'team_responsibility'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    team_name = db.Column(db.String(100), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<TeamResponsibility {self.team_name}>"
+        
+    def to_dict(self):
+        """Convert team responsibility to dictionary"""
+        return {
+            'id': self.id,
+            'team_name': self.team_name,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class UserDismissedRecommendation(db.Model):
+    """Records of recommendations dismissed by users"""
+    __tablename__ = 'user_dismissed_recommendation'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    document_id = db.Column(db.String(36), db.ForeignKey('document.id', ondelete='CASCADE'), nullable=False)
+    dismissed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    feedback = db.Column(db.String(255), nullable=True)  # Optional feedback on why dismissed
+    
+    # Feedback type flags
+    not_relevant = db.Column(db.Boolean, default=False)  # Not relevant to my work
+    already_seen = db.Column(db.Boolean, default=False)   # Already seen this content elsewhere
+    not_interested = db.Column(db.Boolean, default=False) # Not interested in this topic
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dismissed_recommendations', lazy='dynamic'))
+    document = db.relationship('Document', backref=db.backref('dismissed_by', lazy='dynamic'))
+    
+    def __repr__(self):
+        return f"<UserDismissedRecommendation {self.user_id} - {self.document_id}>"
+        
+    def to_dict(self):
+        """Convert dismissed recommendation to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'document_id': self.document_id,
+            'dismissed_at': self.dismissed_at.isoformat() if self.dismissed_at else None,
+            'feedback': self.feedback,
+            'not_relevant': self.not_relevant,
+            'already_seen': self.already_seen,
+            'not_interested': self.not_interested
+        }
