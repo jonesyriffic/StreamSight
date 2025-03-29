@@ -933,6 +933,7 @@ def serve_document_pdf(doc_id):
             
         # Extract just the filename from the filepath
         filename = os.path.basename(document.filepath)
+        original_filename = document.filename
         
         # First try using the filename from the database
         try:
@@ -955,15 +956,55 @@ def serve_document_pdf(doc_id):
         # If we still can't find it, try using the UUID+filename pattern that might be in uploads
         try:
             # Pattern is usually UUID_filename.pdf
-            uuid_pattern = f"{doc_id.split('-')[0]}*{document.filename}"
+            uuid_pattern = f"*{original_filename}"
             possible_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], uuid_pattern))
             
             if possible_files:
                 directory = os.path.dirname(possible_files[0])
                 base_filename = os.path.basename(possible_files[0])
+                logger.info(f"Found file via pattern matching: {base_filename}")
                 return send_from_directory(directory, base_filename, mimetype='application/pdf')
         except Exception as e:
-            logger.warning(f"Could not find file using pattern matching: {uuid_pattern}, error: {str(e)}")
+            logger.warning(f"Could not find file using original filename pattern matching: {uuid_pattern}, error: {str(e)}")
+        
+        # Try finding any file that contains part of the original filename
+        try:
+            # Get just the filename without extension
+            name_without_ext = os.path.splitext(original_filename)[0]
+            alt_pattern = f"*{name_without_ext}*"
+            
+            possible_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], alt_pattern))
+            if possible_files:
+                directory = os.path.dirname(possible_files[0])
+                base_filename = os.path.basename(possible_files[0])
+                logger.info(f"Found file via partial name matching: {base_filename}")
+                return send_from_directory(directory, base_filename, mimetype='application/pdf')
+        except Exception as e:
+            logger.warning(f"Could not find file using partial name matching: {alt_pattern}, error: {str(e)}")
+        
+        # Last resort - try looking through all files in the uploads directory
+        try:
+            # List all PDF files in the uploads directory
+            all_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], "*.pdf"))
+            
+            # Filter for files that might match our document
+            similar_files = []
+            for file_path in all_files:
+                # Check if any part of the filename matches
+                file_base = os.path.basename(file_path)
+                # If filename contains part of the original or the document ID
+                if (name_without_ext.lower() in file_base.lower() or 
+                    any(part.lower() in file_base.lower() for part in doc_id.split('-'))):
+                    similar_files.append(file_path)
+            
+            if similar_files:
+                # Use the first match
+                directory = os.path.dirname(similar_files[0])
+                base_filename = os.path.basename(similar_files[0])
+                logger.info(f"Found file via similarity search: {base_filename}")
+                return send_from_directory(directory, base_filename, mimetype='application/pdf')
+        except Exception as e:
+            logger.warning(f"Could not find file using similarity search, error: {str(e)}")
             
         # If all attempts fail, return not found
         logger.error(f"Document file not found for ID {doc_id}, exhausted all search options")
