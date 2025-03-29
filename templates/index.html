@@ -697,12 +697,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// We no longer need an inline style for fade-out as we have it in custom.css
-// Adding ID-specific modal handling to prevent flickering
+// Fix all modal positioning issues
 document.querySelectorAll('.modal').forEach(modalEl => {
+    // Fix for modal positioning on show
+    modalEl.addEventListener('show.bs.modal', function(event) {
+        // Ensure the modal is always in the center, regardless of mouse position
+        document.body.style.cursor = 'default';
+        
+        // Reset any position adjustments that might have been applied
+        const dialog = this.querySelector('.modal-dialog');
+        if (dialog) {
+            dialog.style.top = '50%';
+            dialog.style.left = '50%';
+            dialog.style.transform = 'translate(-50%, -50%)';
+        }
+    });
+    
+    // Fix for modal cleanup on hide
     modalEl.addEventListener('hidden.bs.modal', function(event) {
         // This ensures the modal is completely removed from the DOM flow after hiding
         this.style.display = 'none';
+        
+        // Remove any modal backdrops that might be left
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+            backdrop.parentNode.removeChild(backdrop);
+        });
+        
+        // Reset body styles
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        // Re-show modal after a brief delay to reset state
         setTimeout(() => {
             this.style.display = '';
         }, 50);

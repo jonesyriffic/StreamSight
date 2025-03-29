@@ -270,19 +270,25 @@ body.modal-open {
 }
 
 .modal-dialog {
-    position: relative;
-    margin: 1.75rem auto;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
     pointer-events: auto;
     max-width: 500px;
+    width: 95%;
 }
 
 .modal.fade .modal-dialog {
-    transform: translate(0, -50px);
-    transition: transform 0.3s ease-out;
+    transform: translate(-50%, calc(-50% - 30px)) !important;
+    transition: all 0.3s ease-out;
+    opacity: 0;
 }
 
 .modal.show .modal-dialog {
-    transform: none;
+    transform: translate(-50%, -50%) !important;
+    opacity: 1;
 }
 
 .modal-content {
