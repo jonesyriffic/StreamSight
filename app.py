@@ -880,6 +880,13 @@ def search():
 def view_document(doc_id):
     document = Document.query.get(doc_id)
     if document:
+        # Check if file exists and update file_available status if needed
+        file_exists = document.check_file_exists()
+        if document.file_available != file_exists:
+            document.file_available = file_exists
+            db.session.commit()
+            logger.info(f"Updated document {doc_id} file_available status to {file_exists}")
+        
         # Track document view activity if user is logged in
         if current_user.is_authenticated:
             # Record activity for badge tracking
@@ -897,6 +904,10 @@ def view_document(doc_id):
             if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
                 for badge in new_badges.get('new_badges'):
                     flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
+        
+        # If file is not available, show a message to the user
+        if not document.file_available:
+            flash('The PDF file for this document is not available. Document metadata and text content are still accessible.', 'warning')
         
         return render_template('document_viewer.html', document=document.to_dict())
     else:
@@ -1006,8 +1017,18 @@ def serve_document_pdf(doc_id):
         except Exception as e:
             logger.warning(f"Could not find file using similarity search, error: {str(e)}")
             
-        # If all attempts fail, return not found
+        # If all attempts fail, update document status and return not found
         logger.error(f"Document file not found for ID {doc_id}, exhausted all search options")
+        
+        # Update document.file_available to False
+        try:
+            document.file_available = False
+            db.session.commit()
+            logger.info(f"Updated document {doc_id} file_available status to False")
+        except Exception as e:
+            logger.error(f"Failed to update document.file_available status: {str(e)}")
+            db.session.rollback()
+            
         return "File not found", 404
         
     except Exception as e:

@@ -122,6 +122,11 @@
                                 {% else %}bg-secondary{% endif %}">
                                 {{ doc.category }}
                             </span>
+                            {% if not doc.file_available %}
+                            <span class="badge bg-danger ms-1" title="PDF file missing">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </span>
+                            {% endif %}
                         </td>
                         <td>{{ doc.relative_time if doc.relative_time else doc.uploaded_at }}</td>
                         <td class="d-flex gap-2">

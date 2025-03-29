@@ -121,15 +121,32 @@
                 <h5 class="card-title mb-0">{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
             </div>
             <div id="pdf-container" class="card-body p-0">
+                {% if document.file_available %}
                 <iframe id="pdf-viewer" src="" width="100%" height="100%" frameborder="0"></iframe>
+                {% else %}
+                <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center" style="height: 100%;">
+                    <div class="mb-4">
+                        <i class="fas fa-file-pdf fa-5x text-danger"></i>
+                    </div>
+                    <h4 class="text-danger">PDF File Not Available</h4>
+                    <p class="text-muted col-md-8">Sorry, the PDF file for this document cannot be found in the system. The document metadata and text content are still available.</p>
+                    <p class="small text-muted">File ID: {{ document.id }}</p>
+                </div>
+                {% endif %}
             </div>
             <div class="card-footer d-flex justify-content-end gap-2">
+                {% if document.file_available %}
                 <a id="pdf-view-link" href="/document/{{ document.id }}/pdf" target="_blank" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
                 </a>
                 <a id="pdf-download-link" href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-sm btn-outline-info">
                     <i class="fas fa-download me-1"></i> Download
                 </a>
+                {% else %}
+                <span class="text-muted">
+                    <i class="fas fa-exclamation-circle me-1"></i> PDF file not available
+                </span>
+                {% endif %}
             </div>
         </div>
 
@@ -275,8 +292,10 @@
         // This handles the filename extraction properly and avoids filepath issues
         const pdfUrl = "/document/{{ document.id }}/pdf";
         
-        // Initialize PDF viewer
+        // Initialize PDF viewer only if file is available
+        {% if document.file_available %}
         initPdfViewer(pdfUrl);
+        {% endif %}
         
         // The download button is now handled in the initPdfViewer function
         

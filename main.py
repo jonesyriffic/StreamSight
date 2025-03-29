@@ -219,6 +219,17 @@ def fix_relevance_format():
 # For Gunicorn, we need to be careful about initialization that happens on module load
 # We're moving these to a function that's only called by the development server
 
+# Function to check document file availability
+def check_document_availability():
+    """Check and update file_available status for all documents"""
+    try:
+        with app.app_context():
+            from fix_document_availability import fix_document_availability
+            fix_document_availability()
+            logging.info("Document file availability check completed")
+    except Exception as e:
+        logging.error(f"Error checking document file availability: {str(e)}")
+
 # Function to run initializations for development mode only
 def run_dev_initializations():
     # Initialize badges
@@ -235,6 +246,9 @@ def run_dev_initializations():
     
     # Regenerate document relevance data with concise format
     regenerate_concise_relevance()
+    
+    # Check document file availability
+    check_document_availability()
 
 # Only run these operations when starting the development server directly
 if __name__ == "__main__":
