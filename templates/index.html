@@ -150,8 +150,6 @@
                                     <div class="d-flex align-items-center">
                                         <button type="button" class="btn btn-sm btn-outline-secondary me-2 dismiss-recommendation-btn" 
                                                 data-doc-id="{{ doc.id }}" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#dismissModal{{ loop.index }}"
                                                 title="Dismiss recommendation">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -329,9 +327,8 @@
                                     <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-info">
                                         <i class="fas fa-eye me-1"></i> View Document
                                     </a>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#dismissModal{{ loop.index }}">
+                                    <button type="button" class="btn btn-outline-danger btn-sm dismiss-recommendation-btn" 
+                                            data-doc-id="{{ doc.id }}">
                                         <i class="fas fa-times me-1"></i> Not for me
                                     </button>
                                 </div>
@@ -732,6 +729,194 @@ document.querySelectorAll('.modal').forEach(modalEl => {
         setTimeout(() => {
             this.style.display = '';
         }, 50);
+    });
+});
+</script>
+
+<!-- Custom Fixed Feedback Dialog -->
+<div id="fixedFeedbackDialog">
+    <div class="fixed-dialog-container">
+        <div class="fixed-dialog-header">
+            <h5 class="fixed-dialog-title">Improve Your Recommendations</h5>
+            <button type="button" class="fixed-dialog-close" id="fixedDialogClose">&times;</button>
+        </div>
+        <div class="fixed-dialog-body">
+            <p>Would you like to tell us why this document isn't relevant to you?</p>
+            <p class="small text-muted">Your feedback helps us improve future recommendations.</p>
+            
+            <form id="fixedFeedbackForm">
+                <input type="hidden" name="document_id" id="feedbackDocId" value="">
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="feedback_type" value="not_relevant" id="fixedNotRelevant">
+                    <label class="form-check-label" for="fixedNotRelevant">
+                        Not relevant to my work
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="feedback_type" value="already_seen" id="fixedAlreadySeen">
+                    <label class="form-check-label" for="fixedAlreadySeen">
+                        Already seen this content elsewhere
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="feedback_type" value="not_interested" id="fixedNotInterested">
+                    <label class="form-check-label" for="fixedNotInterested">
+                        Not interested in this topic
+                    </label>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="fixedAdditionalFeedback" class="form-label">Additional feedback (optional)</label>
+                    <textarea class="form-control" id="fixedAdditionalFeedback" name="feedback" rows="2" placeholder="Tell us more about why this isn't relevant..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="fixed-dialog-footer">
+            <button type="button" class="btn btn-secondary" id="fixedCancelBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="fixedSubmitBtn">
+                Submit & Remove
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Custom feedback dialog functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const fixedDialog = document.getElementById('fixedFeedbackDialog');
+    const closeBtn = document.getElementById('fixedDialogClose');
+    const cancelBtn = document.getElementById('fixedCancelBtn');
+    const submitBtn = document.getElementById('fixedSubmitBtn');
+    const feedbackForm = document.getElementById('fixedFeedbackForm');
+    const docIdInput = document.getElementById('feedbackDocId');
+    
+    // Event delegation for dismiss buttons
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element is a dismiss recommendation button or its child icon
+        if (e.target.classList.contains('dismiss-recommendation-btn') || 
+            (e.target.tagName === 'I' && e.target.parentElement.classList.contains('dismiss-recommendation-btn'))) {
+            
+            // Prevent the default bootstrap modal behavior
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Get the button element (could be the icon's parent)
+            const button = e.target.classList.contains('dismiss-recommendation-btn') ? 
+                           e.target : e.target.parentElement;
+            
+            // Get document ID from the button
+            const docId = button.getAttribute('data-doc-id');
+            
+            // Update the form's hidden input
+            docIdInput.value = docId;
+            
+            // Keep track of which button triggered this dialog
+            fixedDialog.setAttribute('data-trigger-button', button.id || '');
+            
+            // Reset the form
+            feedbackForm.reset();
+            
+            // Show the dialog
+            fixedDialog.classList.add('visible');
+        }
+    });
+    
+    // Close dialog when clicking close button
+    closeBtn.addEventListener('click', function() {
+        fixedDialog.classList.remove('visible');
+    });
+    
+    // Close dialog when clicking cancel button
+    cancelBtn.addEventListener('click', function() {
+        fixedDialog.classList.remove('visible');
+    });
+    
+    // Handle form submission
+    submitBtn.addEventListener('click', function() {
+        // Prepare the JSON data
+        const formData = new FormData(feedbackForm);
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
+        });
+        
+        // Create a mouse blocker overlay to prevent any interaction during animation
+        const blocker = document.createElement('div');
+        blocker.style.position = 'fixed';
+        blocker.style.top = '0';
+        blocker.style.left = '0';
+        blocker.style.width = '100%';
+        blocker.style.height = '100%';
+        blocker.style.zIndex = '2000';
+        blocker.style.backgroundColor = 'transparent';
+        document.body.appendChild(blocker);
+        
+        // Hide the dialog immediately
+        fixedDialog.classList.remove('visible');
+        
+        // Find the card element
+        const docId = jsonData.document_id;
+        let cardElement = document.querySelector(`.dismiss-recommendation-btn[data-doc-id="${docId}"]`);
+        const card = cardElement.closest('.col-md-4');
+        
+        // Send the dismiss request
+        fetch('/api/recommendations/dismiss', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Wait a short moment before animating the card
+                setTimeout(() => {
+                    // Add fade-out class to initiate animation
+                    card.classList.add('fade-out');
+                    
+                    // After the fade-out animation completes, remove the element
+                    setTimeout(() => {
+                        card.remove();
+                        // Remove the blocker overlay
+                        document.body.removeChild(blocker);
+                        
+                        // Show success alert
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                        alertDiv.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i> Recommendation dismissed. Your feedback helps us improve.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        // Add the alert at the top of the recommendation section
+                        const recommendationSection = document.querySelector('.card.bg-dark.shadow');
+                        recommendationSection.insertAdjacentElement('afterbegin', alertDiv);
+                        
+                        // Auto-dismiss after 5 seconds
+                        setTimeout(() => {
+                            alertDiv.remove();
+                        }, 5000);
+                        
+                        // If no more recommendations, refresh the page
+                        const remainingCards = document.querySelectorAll('.recommended-documents .col-md-4');
+                        if (remainingCards.length === 0) {
+                            location.reload();
+                        }
+                    }, 500);
+                }, 200);
+            } else {
+                // Show error message
+                alert('Error dismissing recommendation: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while dismissing the recommendation.');
+        });
     });
 });
 </script>
