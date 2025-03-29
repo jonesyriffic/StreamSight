@@ -2,6 +2,7 @@ import os
 import logging
 import uuid
 import re
+import glob
 from functools import wraps
 from datetime import datetime, timedelta
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
@@ -913,6 +914,64 @@ def serve_upload(filename):
     except Exception as e:
         logger.error(f"Error serving file {filename}: {str(e)}")
         return "File not found", 404
+        
+@app.route('/document/<doc_id>/pdf')
+@login_required
+def serve_document_pdf(doc_id):
+    """
+    Serve a document PDF by document ID rather than filename
+    This solves path issues by using the database record
+    """
+    try:
+        # Get the document from database
+        document = Document.query.get_or_404(doc_id)
+        
+        # Check if the user has permission to view this document
+        if not current_user.is_admin and document.user_id != current_user.id:
+            logger.warning(f"User {current_user.id} tried to access document {doc_id} without permission")
+            abort(403)
+            
+        # Extract just the filename from the filepath
+        filename = os.path.basename(document.filepath)
+        
+        # First try using the filename from the database
+        try:
+            # Check if the file exists in our uploads folder
+            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+                return send_from_directory(app.config['UPLOAD_FOLDER'], filename, mimetype='application/pdf')
+        except Exception as e:
+            logger.warning(f"Could not find file in uploads folder: {filename}, error: {str(e)}")
+        
+        # If that doesn't work, try looking for the file in the workspace
+        try:
+            # Check if the file exists at the full filepath
+            if os.path.exists(document.filepath):
+                directory = os.path.dirname(document.filepath)
+                base_filename = os.path.basename(document.filepath)
+                return send_from_directory(directory, base_filename, mimetype='application/pdf')
+        except Exception as e:
+            logger.warning(f"Could not find file at filepath: {document.filepath}, error: {str(e)}")
+            
+        # If we still can't find it, try using the UUID+filename pattern that might be in uploads
+        try:
+            # Pattern is usually UUID_filename.pdf
+            uuid_pattern = f"{doc_id.split('-')[0]}*{document.filename}"
+            possible_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], uuid_pattern))
+            
+            if possible_files:
+                directory = os.path.dirname(possible_files[0])
+                base_filename = os.path.basename(possible_files[0])
+                return send_from_directory(directory, base_filename, mimetype='application/pdf')
+        except Exception as e:
+            logger.warning(f"Could not find file using pattern matching: {uuid_pattern}, error: {str(e)}")
+            
+        # If all attempts fail, return not found
+        logger.error(f"Document file not found for ID {doc_id}, exhausted all search options")
+        return "File not found", 404
+        
+    except Exception as e:
+        logger.error(f"Error serving document PDF for ID {doc_id}: {str(e)}")
+        return "Error accessing document", 500
 
 @app.route('/api/documents')
 @login_required

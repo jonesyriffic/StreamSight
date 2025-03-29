@@ -124,10 +124,10 @@
                 <iframe id="pdf-viewer" src="" width="100%" height="100%" frameborder="0"></iframe>
             </div>
             <div class="card-footer d-flex justify-content-end gap-2">
-                <a id="pdf-view-link" href="" target="_blank" class="btn btn-sm btn-outline-primary">
+                <a id="pdf-view-link" href="/document/{{ document.id }}/pdf" target="_blank" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
                 </a>
-                <a id="pdf-download-link" href="" download class="btn btn-sm btn-outline-info">
+                <a id="pdf-download-link" href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-sm btn-outline-info">
                     <i class="fas fa-download me-1"></i> Download
                 </a>
             </div>
@@ -255,7 +255,7 @@
                 <a href="{{ url_for('library') }}" class="btn btn-secondary w-100 mb-2">
                     <i class="fas fa-arrow-left me-2"></i> Back to Library
                 </a>
-                <a href="javascript:void(0)" class="btn btn-info w-100 mb-2" id="download-btn">
+                <a href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-info w-100 mb-2">
                     <i class="fas fa-download me-2"></i> Download PDF
                 </a>
             </div>
@@ -268,12 +268,12 @@
 <script src="{{ url_for('static', filename='js/pdfjs-init.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Extract filename from filepath
-        const filepath = "{{ document.filepath }}";
-        const filename = filepath.split('/').pop();
+        // Get file ID from the document for direct access
+        const documentId = "{{ document.id }}";
         
-        // Create the correct URL to access the file via our serve_upload endpoint
-        const pdfUrl = "/uploads/" + filename;
+        // We'll update our approach to get the file directly from the database by ID
+        // This handles the filename extraction properly and avoids filepath issues
+        const pdfUrl = "/document/{{ document.id }}/pdf";
         
         // Initialize PDF viewer
         initPdfViewer(pdfUrl);
