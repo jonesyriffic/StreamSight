@@ -40,15 +40,17 @@
         
         /* Light Theme Values */
         [data-bs-theme=light] {
-            --primary-gradient-start: #e9f0fb;
-            --primary-gradient-end: #f8faff;
-            --header-gradient-start: #6a93cb;
-            --header-gradient-end: #a4b8e0;
+            --primary-gradient-start: #e3e9f3;
+            --primary-gradient-end: #eef4ff;
+            --header-gradient-start: #3a7bd5;
+            --header-gradient-end: #5886c7;
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             --theme-border-color: rgba(0, 0, 0, 0.1);
             --card-background-base: #ffffff;
             --card-background-accent: #f8f9fa;
+            --search-bg-color: #212529;
+            --search-text-color: #ffffff;
         }
         
         /* Document category colors */
@@ -328,6 +330,32 @@
         /* Light theme navbar active styles override */
         [data-bs-theme=light] .nav-link.active.bg-dark.bg-opacity-50 {
             background-color: rgba(0, 0, 0, 0.1) !important;
+            color: #212529;
+        }
+        
+        /* Light mode search card */
+        [data-bs-theme=light] .card.bg-dark {
+            background-color: #212529 !important;
+        }
+        
+        /* Search box styling for both themes */
+        .search-form .form-control {
+            color: var(--search-text-color, #fff);
+            background-color: var(--search-bg-color, rgba(0, 0, 0, 0.2));
+            border-color: var(--search-border-color, rgba(255, 255, 255, 0.1));
+        }
+        
+        /* Light theme search example buttons */
+        [data-bs-theme=light] .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-bs-theme=light] .btn-outline-secondary:hover {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
         }
         
         /* Light theme dropdown menu styling */
@@ -351,6 +379,32 @@
         
         [data-bs-theme=light] .dropdown-menu-dark .dropdown-divider {
             border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Light mode text and card styling improvements */
+        [data-bs-theme=light] .text-light {
+            color: #212529 !important;
+        }
+        
+        [data-bs-theme=light] .card.bg-dark {
+            color: #fff !important;
+        }
+        
+        [data-bs-theme=light] .card.bg-dark h2, 
+        [data-bs-theme=light] .card.bg-dark h3, 
+        [data-bs-theme=light] .card.bg-dark h4, 
+        [data-bs-theme=light] .card.bg-dark h5 {
+            color: #fff !important;
+        }
+        
+        [data-bs-theme=light] .card.bg-dark p,
+        [data-bs-theme=light] .card.bg-dark div {
+            color: #fff !important;
+        }
+        
+        /* Recommendation card relevance styling */
+        [data-bs-theme=light] .recommendation-card .border-success {
+            border-color: #198754 !important;
         }
     </style>
     
