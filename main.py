@@ -230,6 +230,16 @@ def check_document_availability():
     except Exception as e:
         logging.error(f"Error checking document file availability: {str(e)}")
 
+def fix_summary_format():
+    """Fix document summaries to ensure they don't display HTML in card views"""
+    try:
+        with app.app_context():
+            from fix_summary_format import fix_summary_format
+            fix_summary_format()
+            logging.info("Document summary format fixes completed")
+    except Exception as e:
+        logging.error(f"Error fixing document summary formats: {str(e)}")
+
 # Function to run initializations for development mode only
 def setup_recommendation_system():
     """Set up recommendation system tables and initial data"""
@@ -260,6 +270,9 @@ def run_dev_initializations():
     
     # Check document file availability
     check_document_availability()
+    
+    # Fix document summary formats
+    fix_summary_format()
     
     # Set up recommendation system
     setup_recommendation_system()

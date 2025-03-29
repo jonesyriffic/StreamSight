@@ -228,8 +228,15 @@
                     </div>
                     
                     <div id="summary-text" class="mb-4">
-                        {% if document.summary %}
-                            {{ document.summary|safe }}
+                        {% if document.key_points %}
+                            {% if "<div class=\"document-insights\">" in document.key_points %}
+                                {{ document.key_points|safe }}
+                            {% else %}
+                                <div class='summary-section'>
+                                    <h3>Summary</h3>
+                                    <p class="document-insights-paragraph">{{ document.summary }}</p>
+                                </div>
+                            {% endif %}
                         {% else %}
                             <div class='summary-section'>
                                 <h3>Summary</h3>

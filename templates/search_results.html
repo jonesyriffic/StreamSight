@@ -184,7 +184,7 @@ First result structure:
     <div class="card-body">
         {% if result.summary %}
         <h5 class="card-title">Summary</h5>
-        <p class="card-text mb-4">{{ result.summary }}</p>
+        <p class="card-text mb-4">{{ result.summary|striptags|truncate(200) }}</p>
         {% endif %}
         
         {% if result.passages %}

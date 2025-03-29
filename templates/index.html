@@ -452,7 +452,7 @@
                                     </div>
                                     
                                     {% if doc.summary %}
-                                    <p class="card-text small">{{ doc.summary|truncate(120) }}</p>
+                                    <p class="card-text small">{{ doc.summary|striptags|truncate(120) }}</p>
                                     {% else %}
                                     <p class="card-text small fst-italic text-muted">Summary not available. View the document to generate a summary.</p>
                                     {% endif %}

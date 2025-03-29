@@ -242,9 +242,26 @@ def generate_document_summary(document_id):
         </div>
         """
         
+        # Extract plain text summary for card display
+        # Use regex to remove HTML tags for the plain text summary
+        summary_plain_text = ""
+        
+        # Extract the plain text from the AI response directly
+        if key_points_marker and summary_marker:
+            # Get the summary part of the response
+            summary_start = ai_response.find(summary_marker)
+            summary_part = ai_response[summary_start:].replace(summary_marker, "").strip()
+            
+            # Clean HTML and markdown from summary for plain text
+            summary_plain_text = re.sub(r'\*\*(.*?)\*\*', r'\1', summary_part)  # Remove markdown
+            summary_plain_text = re.sub(r'<.*?>', '', summary_plain_text)  # Remove any HTML
+        else:
+            # Fallback to using AI response without HTML
+            summary_plain_text = re.sub(r'<.*?>', '', ai_response)
+        
         # Update the document in the database
-        document.summary = summary_html
-        document.key_points = key_points_html
+        document.summary = summary_plain_text  # Plain text version for card views
+        document.key_points = document_insights  # Store HTML version for detailed document view
         
         # Generate team-specific relevance reasons using our relevance generator
         team_relevance_reasons = generate_relevance_reasons(document)
@@ -259,7 +276,8 @@ def generate_document_summary(document_id):
         response_data = {
             "success": True,
             "document_insights": document_insights,
-            "summary": summary_html,
+            "summary": summary_html,  # HTML version for detailed view
+            "summary_plain": summary_plain_text,  # Plain text version for cards
             "key_points": key_points_html,
             "generated_at": document.summary_generated_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         }
