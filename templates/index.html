@@ -553,9 +553,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Close the modal
+                    // Don't close the modal immediately - we'll close it after we've set up the animation
                     const modal = bootstrap.Modal.getInstance(document.getElementById('dismissModal' + formId.replace('dismissForm', '')));
-                    modal.hide();
                     
                     // Remove the recommendation card from the DOM
                     const docId = jsonData.document_id;
@@ -569,40 +568,47 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (!cardElement) {
                         console.error('Could not find card element to remove');
+                        modal.hide(); // Hide the modal before reloading
                         location.reload(); // Fallback to page reload if we can't find the card
                         return;
                     }
                     
-                    const card = cardElement.closest('.col-md-4');
-                    card.classList.add('fade-out');
+                    // Now close the modal
+                    modal.hide();
                     
-                    // After fade animation, remove the element
+                    // Wait for modal to fully close before animating the card
                     setTimeout(() => {
-                        card.remove();
+                        const card = cardElement.closest('.col-md-4');
+                        card.classList.add('fade-out');
                         
-                        // Show success alert
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
-                        alertDiv.innerHTML = `
-                            <i class="fas fa-check-circle me-2"></i> Recommendation dismissed. Your feedback helps us improve.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        `;
-                        
-                        // Add the alert at the top of the recommendation section
-                        const recommendationSection = document.querySelector('.card.bg-dark.shadow');
-                        recommendationSection.insertAdjacentElement('afterbegin', alertDiv);
-                        
-                        // Auto-dismiss after 5 seconds
+                        // After fade animation, remove the element
                         setTimeout(() => {
-                            alertDiv.remove();
-                        }, 5000);
-                        
-                        // If no more recommendations, refresh the page
-                        const remainingCards = document.querySelectorAll('.recommended-documents .col-md-4');
-                        if (remainingCards.length === 0) {
-                            location.reload();
-                        }
-                    }, 500);
+                            card.remove();
+                            
+                            // Show success alert
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                            alertDiv.innerHTML = `
+                                <i class="fas fa-check-circle me-2"></i> Recommendation dismissed. Your feedback helps us improve.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            `;
+                            
+                            // Add the alert at the top of the recommendation section
+                            const recommendationSection = document.querySelector('.card.bg-dark.shadow');
+                            recommendationSection.insertAdjacentElement('afterbegin', alertDiv);
+                            
+                            // Auto-dismiss after 5 seconds
+                            setTimeout(() => {
+                                alertDiv.remove();
+                            }, 5000);
+                            
+                            // If no more recommendations, refresh the page
+                            const remainingCards = document.querySelectorAll('.recommended-documents .col-md-4');
+                            if (remainingCards.length === 0) {
+                                location.reload();
+                            }
+                        }, 500);
+                    }, 200);
                 } else {
                     // Show error message
                     alert('Error dismissing recommendation: ' + (data.message || 'Unknown error'));
@@ -657,15 +663,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add a style for fade-out animation
-const style = document.createElement('style');
-style.textContent = `
-.fade-out {
-    opacity: 0;
-    transition: opacity 0.5s ease-out;
-}
-`;
-document.head.appendChild(style);
+// We no longer need an inline style for fade-out as we have it in custom.css
+// Adding ID-specific modal handling to prevent flickering
+document.querySelectorAll('.modal').forEach(modalEl => {
+    modalEl.addEventListener('hidden.bs.modal', function(event) {
+        // This ensures the modal is completely removed from the DOM flow after hiding
+        this.style.display = 'none';
+        setTimeout(() => {
+            this.style.display = '';
+        }, 50);
+    });
+});
 </script>
 
 {% endblock %}
