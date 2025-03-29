@@ -1762,15 +1762,34 @@ def api_recommendations():
         # Get recommendations using the recommendation service
         recommended_documents = get_user_recommendations(current_user)
         
+        # Import relevance generator for fresh, more specific relevance reasons
+        from utils.relevance_generator import generate_team_relevance
+        
         # Format recommendations for API response
         formatted_recommendations = []
         for doc in recommended_documents:
             doc_dict = doc.to_dict()
             
-            # Add team-specific relevance reason if available
-            if doc.relevance_reasons and current_user.team_specialization:
-                team_relevance = doc.relevance_reasons.get(current_user.team_specialization)
-                doc_dict['relevance_reason'] = team_relevance
+            # Generate a fresh, enhanced relevance reason with improved specificity
+            if current_user.team_specialization:
+                # Prepare document info for relevance generation
+                document_info = {
+                    "title": doc.friendly_name if doc.friendly_name else doc.filename,
+                    "category": doc.category,
+                    "summary": doc.summary or "Not available",
+                    "key_points": doc.key_points or "Not available",
+                    "text_excerpt": doc.text[:1000] + "..." if doc.text and len(doc.text) > 1000 else (doc.text or "")
+                }
+                
+                # Get fresh relevance reason with our enhanced generator
+                team_relevance = generate_team_relevance(current_user.team_specialization, document_info)
+                
+                # Only use the fresh relevance if it's substantial enough
+                if team_relevance and len(team_relevance) >= 40:
+                    doc_dict['relevance_reason'] = team_relevance
+                # Fallback to stored relevance if available
+                elif doc.relevance_reasons:
+                    doc_dict['relevance_reason'] = doc.relevance_reasons.get(current_user.team_specialization, "")
             
             formatted_recommendations.append(doc_dict)
         

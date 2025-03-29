@@ -9,6 +9,7 @@ from sqlalchemy import desc, and_, or_, func
 from flask_login import current_user
 
 from models import Document, User, UserActivity, UserDismissedRecommendation
+from utils.relevance_generator import generate_team_relevance
 
 logger = logging.getLogger(__name__)
 

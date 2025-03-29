@@ -128,20 +128,27 @@ def generate_team_relevance(team, document_info):
         Team specialization: {team}
         Team context: {current_team_context}
         
-        Generate an ULTRA-SPECIFIC and CONCISE explanation (MAXIMUM 1-2 VERY SHORT sentences) on why this document is relevant specifically 
-        for someone on the {team} team. The TOTAL length must be UNDER 120 characters ABSOLUTE MAXIMUM.
+        You're creating a personalized relevance explanation for why this document is important specifically to the {team} team. Make it ULTRA-SPECIFIC and DIRECTLY RELEVANT to their exact role. 
         
-        Rules:
-        1. HYPER-SPECIFIC - mention exact tools, metrics, or findings from the document that relate to this team
-        2. CITE CONCRETE DATA - include specific numbers, tools, or methodologies when they exist
-        3. DIRECT CONNECTION - explain exactly how a specific insight applies to this team's work 
-        4. PERSONALIZED - Use second-person language ("you" and "your")
-        5. ACTIONABLE - Focus on what they can do with this information
-        6. SUPER CONCISE - Maximum 120 characters total (about 15-20 words)
-        7. NO GENERICS - Never mention generic "insights", "trends", "strategies" without specifics
+        The explanation should be 1-2 sentences and MUST contain:
+        1. EXACT NUMBERS from the document (percentages, metrics, statistics)
+        2. SPECIFIC TOOLS mentioned in the document (software, platforms, methodologies)
+        3. DIRECT APPLICATION to the team's work (how they can use it TODAY)
+        4. EXACT BENEFITS to their job function (time saved, improved metrics)
         
-        EXAMPLE 1: "The 35% increase in chatbot usage can help you optimize your Digital Engagement metrics."
-        EXAMPLE 2: "Implement the ServiceNow integration steps to reduce your team's ticket handling time by 20%."
+        You MUST write in second-person, use active verbs, and focus on immediate action they can take. NEVER use generic terms like "insights" or "strategies" without specific details.
+        
+        AVOID AT ALL COSTS vague statements like:
+        - "These technology updates directly impact your toolset"
+        - "You can use these developments to enhance capabilities"
+        - "This will optimize your operations"
+        
+        INSTEAD, write hyper-specific statements like:
+        - "Implement the Jenkins CI/CD pipeline on page 12 to reduce your deployment time by 62%"
+        - "Apply the 5-step NPS framework to increase your customer satisfaction scores from 7.2 to 8.6"
+        - "Configure the Salesforce custom fields described to cut your data entry time by 15 minutes per case"
+        
+        Your response should be 1-2 sentences MAXIMUM, and MUST be primarily based on SPECIFIC CONTENT from the document.
         
         Respond with a JSON object in this format:
         {{
@@ -157,7 +164,7 @@ def generate_team_relevance(team, document_info):
             messages=[
                 {
                     "role": "system", 
-                    "content": "You are an AI assistant that creates ultra-concise and hyper-specific document recommendations based on concrete document content. You MUST ALWAYS include specific metrics, numbers, tools, technologies or methodologies from the document. Your responses must be extremely brief (under 120 characters) and directly connect document contents to the user's team responsibilities. Always use second-person language (you/your), focus on actionable insights, and never use generic terms without specifics. Your recommendations must feel tailored to the exact work this team does. You respond in JSON format."
+                    "content": "You are an AI assistant that creates ultra-concise and hyper-specific document recommendations based on concrete document content. You MUST ALWAYS include specific metrics, numbers, tools, technologies or methodologies from the document. Your responses must include exact percentages, specific tools mentioned, and direct applications with measurable benefits. Always use second-person language, active verbs, and focus on immediate actionable steps. NEVER use generic phrases like 'updates directly impact your toolset' or 'enhance capabilities'. Instead, specify exactly which tools, what impacts, and what capabilities with numbers. Be ruthlessly specific - mention exact features, exact pages/sections, exact technologies, and exact benefits with metrics. Your output should be 1-2 sentences that precisely explain how the document helps this specific team's day-to-day work. You respond in JSON format."
                 },
                 {"role": "user", "content": prompt}
             ],
@@ -170,7 +177,8 @@ def generate_team_relevance(team, document_info):
         relevance = result.get("relevance_reason")
         
         # If we have a valid response, return just the relevance_reason string (not the full JSON object)
-        if relevance and len(relevance) > 20:
+        # Ensure the response is neither too short nor too long
+        if relevance and 40 <= len(relevance) <= 200:
             return relevance
             
         # Otherwise, fall back to the category-specific messages
