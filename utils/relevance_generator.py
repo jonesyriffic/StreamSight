@@ -54,12 +54,13 @@ def generate_relevance_reasons(document):
         dict: Dictionary with team specializations as keys and relevance reasons as values
     """
     try:
-        # Prepare document info for better context
+        # Prepare document info for better context - use more document text for better specificity
         document_info = {
-            "title": document.filename,
+            "title": document.friendly_name if document.friendly_name else document.filename,
             "category": document.category,
             "summary": document.summary or "Not available",
-            "text_excerpt": document.text[:300] + "..." if document.text and len(document.text) > 300 else document.text
+            "key_points": document.key_points or "Not available",
+            "text_excerpt": document.text[:1000] + "..." if document.text and len(document.text) > 1000 else document.text
         }
         
         # Get all team specializations
@@ -110,6 +111,7 @@ def generate_team_relevance(team, document_info):
         Title: {document_info['title']}
         Category: {document_info['category']}
         Summary: {document_info['summary']}
+        Key Points: {document_info['key_points']}
         Text excerpt: {document_info['text_excerpt']}
         
         Team specialization: {team}
@@ -119,13 +121,15 @@ def generate_team_relevance(team, document_info):
         for someone on the {team} team who {current_team_context.lower()}. The TOTAL length must be UNDER 150 characters.
         
         Rules:
-        1. Be SPECIFIC - mention exact data, metrics, or findings from the document
-        2. Connect a specific insight directly to the team's work based on their context
-        3. Use second-person language (e.g., "helps you", "enables your team to")
-        4. NEVER use generic statements that could apply to any document
-        5. NEVER exceed 2 short sentences or 150 characters total
+        1. Be HYPER-SPECIFIC - mention exact data, metrics, findings or technologies from the document
+        2. Cite concrete numbers, tools, or methodologies from the document when possible
+        3. Connect a specific insight directly to the team's work based on their context
+        4. Use second-person language (e.g., "helps you", "enables your team to")
+        5. NEVER use generic statements that could apply to any document
+        6. NEVER exceed 2 short sentences or 150 characters total
         
         Make it personalized to their role (using "you" and "your") and don't mention the date.
+        Focus on the MOST SPECIFIC and ACTIONABLE insight from the document for this particular team.
         
         Respond with a JSON object in this format:
         {{
@@ -141,7 +145,7 @@ def generate_team_relevance(team, document_info):
             messages=[
                 {
                     "role": "system", 
-                    "content": "You are an AI assistant that creates highly specific and personalized document recommendations based on actual document content. You focus on concrete details and metrics from documents, not generic descriptions. You always use second-person language (you/your) to make relevance reasons feel personalized. You respond in JSON format."
+                    "content": "You are an AI assistant that creates hyper-specific and personalized document recommendations based on actual document content. You focus on concrete details, metrics, methodologies, and specific findings from documents, not generic descriptions. You ALWAYS cite specific numbers, tools, technologies, or methodologies mentioned in the document. You always use second-person language (you/your) to make relevance reasons feel personalized. You respond in JSON format."
                 },
                 {"role": "user", "content": prompt}
             ],
