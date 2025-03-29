@@ -25,13 +25,18 @@ def get_user_recommendations(user, max_recommendations=3):
         list: List of recommended Document objects with relevance score and reason
     """
     try:
+        logger.info(f"Getting recommendations for user {user.id} (max: {max_recommendations})")
+        
         if not user or not user.is_authenticated:
+            logger.warning("User not authenticated, returning empty recommendations")
             return []
             
         # Get user's team specialization
         team_specialization = user.team_specialization
+        logger.info(f"User team specialization: {team_specialization}")
         
         if not team_specialization:
+            logger.warning("User has no team specialization, returning empty recommendations")
             return []
             
         # Get IDs of documents the user has already dismissed
@@ -95,8 +100,20 @@ def get_user_recommendations(user, max_recommendations=3):
         # Add other documents to fill up to max_recommendations
         while len(recommendations) < max_recommendations and other_docs:
             recommendations.append(other_docs.pop(0))
-            
-        return recommendations[:max_recommendations]
+        
+        final_recommendations = recommendations[:max_recommendations]
+        logger.info(f"Generated {len(final_recommendations)} recommendations for user {user.id}")
+        
+        # Log each recommended document
+        for i, doc in enumerate(final_recommendations):
+            doc_title = doc.friendly_name or doc.filename
+            if doc.relevance_reasons and isinstance(doc.relevance_reasons, dict) and team_specialization in doc.relevance_reasons:
+                relevance = f"Team-specific relevance: {doc.relevance_reasons.get(team_specialization)}"
+            else:
+                relevance = "No team-specific relevance found"
+            logger.info(f"Recommendation {i+1}: {doc_title} ({doc.id}) - {relevance}")
+        
+        return final_recommendations
         
     except Exception as e:
         logger.error(f"Error getting recommendations: {str(e)}")
