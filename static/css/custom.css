@@ -162,3 +162,80 @@
     background-color: rgba(var(--bs-info-rgb), 0.1);
     margin-top: 15px;
 }
+
+/* Document Insights Styling */
+.document-insights, #summary-content {
+    line-height: 1.6;
+}
+
+/* Key Points section */
+.key-points-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--bs-primary);
+    border-bottom: 1px solid var(--bs-border-color);
+    padding-bottom: 0.5rem;
+}
+
+.key-points-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 2rem;
+}
+
+.key-points-list li {
+    margin-bottom: 0.8rem;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.key-points-list li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--bs-info);
+    font-size: 1.2rem;
+    top: -0.2rem;
+}
+
+.key-points-list strong {
+    color: var(--bs-dark);
+    font-weight: 600;
+}
+
+.insight-item .insight-description {
+    margin-left: 0.3rem;
+}
+
+/* Summary section */
+.summary-section h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+    color: var(--bs-primary);
+    border-bottom: 1px solid var(--bs-border-color);
+    padding-bottom: 0.5rem;
+}
+
+.summary-section p {
+    margin-bottom: 1rem;
+}
+
+/* Timestamp */
+.summary-meta {
+    font-size: 0.85rem;
+    color: var(--bs-secondary);
+    margin-top: 1.5rem;
+    border-top: 1px dashed var(--bs-border-color);
+    padding-top: 0.75rem;
+}
+
+/* Dark mode adjustments */
+[data-bs-theme=dark] .key-points-list strong {
+    color: var(--bs-light);
+}
+
+[data-bs-theme=dark] .key-points-section h3,
+[data-bs-theme=dark] .summary-section h3 {
+    color: var(--bs-info);
+}
