@@ -553,12 +553,23 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Don't close the modal immediately - we'll close it after we've set up the animation
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('dismissModal' + formId.replace('dismissForm', '')));
+                    // Create a mouse blocker overlay to prevent any interaction during animation
+                    const blocker = document.createElement('div');
+                    blocker.style.position = 'fixed';
+                    blocker.style.top = '0';
+                    blocker.style.left = '0';
+                    blocker.style.width = '100%';
+                    blocker.style.height = '100%';
+                    blocker.style.zIndex = '2000';
+                    blocker.style.backgroundColor = 'transparent';
+                    document.body.appendChild(blocker);
+                    
+                    // Get the modal element directly using document.getElementById
+                    const modalElement = document.getElementById('dismissModal' + formId.replace('dismissForm', ''));
                     
                     // Remove the recommendation card from the DOM
                     const docId = jsonData.document_id;
-                    // First try to find with the dismiss-recommendation-btn class (may be missing in some elements)
+                    // First try to find with the dismiss-recommendation-btn class
                     let cardElement = document.querySelector(`.dismiss-recommendation-btn[data-doc-id="${docId}"]`);
                     
                     // If not found, try the modal's button which triggered this action
@@ -568,22 +579,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (!cardElement) {
                         console.error('Could not find card element to remove');
-                        modal.hide(); // Hide the modal before reloading
-                        location.reload(); // Fallback to page reload if we can't find the card
+                        // Manually close the modal completely
+                        modalElement.style.display = 'none';
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                        
+                        // Remove all modal backdrops
+                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                        
+                        // Remove blocker
+                        document.body.removeChild(blocker);
+                        
+                        // Reload the page
+                        location.reload();
                         return;
                     }
                     
-                    // Now close the modal
-                    modal.hide();
+                    // Store card reference before closing the modal
+                    const card = cardElement.closest('.col-md-4');
                     
-                    // Wait for modal to fully close before animating the card
+                    // Manually close the modal completely
+                    modalElement.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    
+                    // Remove all modal backdrops
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    
+                    // Wait a short moment before animating the card
                     setTimeout(() => {
-                        const card = cardElement.closest('.col-md-4');
+                        // Add fade-out class to initiate animation
                         card.classList.add('fade-out');
                         
-                        // After fade animation, remove the element
+                        // After the fade-out animation completes, remove the element
                         setTimeout(() => {
                             card.remove();
+                            // Remove the blocker overlay
+                            document.body.removeChild(blocker);
                             
                             // Show success alert
                             const alertDiv = document.createElement('div');
