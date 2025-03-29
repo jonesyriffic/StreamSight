@@ -3,109 +3,107 @@
 {% block title %}Reupload Missing Document{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white">
-                    <h4 class="mb-0">Reupload Missing Document</h4>
-                    <a href="{{ url_for('view_document', doc_id=document.id) }}" class="btn btn-sm btn-outline-light">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Document
-                    </a>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        You are uploading a replacement PDF file for <strong>{{ document.friendly_name if document.friendly_name else document.filename }}</strong>. This action will preserve all existing metadata, summaries, and insights.
-                    </div>
-                    
-                    <div class="mb-4">
-                        <h5 class="border-bottom pb-2 mb-3">Document Information</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Document ID:</strong> <span class="text-secondary">{{ document.id }}</span></p>
-                                <p>
-                                    <strong>Category:</strong>
-                                    <span class="badge 
-                                        {% if document.category == 'Industry Insights' %}bg-info
-                                        {% elif document.category == 'Technology News' %}bg-success
-                                        {% elif document.category == 'Product Management' %}bg-primary
-                                        {% elif document.category == 'Customer Service' %}bg-warning
-                                        {% else %}bg-secondary{% endif %}">
-                                        {{ document.category }}
-                                    </span>
-                                </p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Original Upload Date:</strong> <span class="text-secondary">{{ document.uploaded_at }}</span></p>
-                                <p><strong>Original Filename:</strong> <span class="text-secondary">{{ document.filename }}</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <form action="{{ url_for('reupload_document_post', doc_id=document.id) }}" method="POST" enctype="multipart/form-data" class="mt-4">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-4">
-                            <div class="card bg-light border">
-                                <div class="card-body">
-                                    <div class="mb-4">
-                                        <label for="file" class="form-label fw-bold">Select Replacement PDF File</label>
-                                        {{ form.file(class="form-control form-control-lg", id="file", accept=".pdf") }}
-                                        {% if form.file.errors %}
-                                            {% for error in form.file.errors %}
-                                                <div class="text-danger">{{ error }}</div>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <h6 class="border-bottom pb-2 mb-3">Processing Options</h6>
-                                    
-                                    <div class="form-check mb-3">
-                                        {{ form.keep_original_name(class="form-check-input", id="keep_original_name") }}
-                                        <label class="form-check-label" for="keep_original_name">
-                                            <strong>Keep original filename</strong> (recommended)
-                                        </label>
-                                        <small class="form-text text-muted d-block">
-                                            If checked, the system will use the original document's filename: <span class="fw-bold">{{ document.filename }}</span>
-                                        </small>
-                                    </div>
-                                    
-                                    <div class="form-check mb-3">
-                                        {{ form.reprocess_text(class="form-check-input", id="reprocess_text") }}
-                                        <label class="form-check-label" for="reprocess_text">
-                                            <strong>Extract text from new PDF</strong>
-                                        </label>
-                                        <small class="form-text text-muted d-block">
-                                            If checked, the system will extract text from the new PDF file. Otherwise, existing text will be preserved.
-                                        </small>
-                                    </div>
-                                    
-                                    <div class="form-check mb-3">
-                                        {{ form.regenerate_insights(class="form-check-input", id="regenerate_insights") }}
-                                        <label class="form-check-label" for="regenerate_insights">
-                                            <strong>Regenerate AI insights</strong>
-                                        </label>
-                                        <small class="form-text text-muted d-block">
-                                            If checked, the system will regenerate summary, key points, and relevance data based on the new document.
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('view_document', doc_id=document.id) }}" class="btn btn-outline-secondary me-md-2">
-                                <i class="fas fa-times me-1"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-cloud-upload-alt me-1"></i> Reupload Document
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Reupload Missing Document</h2>
+    <a href="{{ url_for('view_document', doc_id=document.id) }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Document
+    </a>
+</div>
+
+<div class="alert alert-info mb-4">
+    <i class="fas fa-info-circle me-2"></i>
+    You are uploading a replacement PDF file for <strong>{{ document.friendly_name if document.friendly_name else document.filename }}</strong>. This action will preserve all existing metadata, summaries, and insights.
+</div>
+
+<h5 class="mb-3">Document Information</h5>
+<hr class="mb-3">
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <p><strong>Document ID:</strong> {{ document.id }}</p>
+        <p>
+            <strong>Category:</strong>
+            <span class="badge 
+                {% if document.category == 'Industry Insights' %}bg-info
+                {% elif document.category == 'Technology News' %}bg-success
+                {% elif document.category == 'Product Management' %}bg-primary
+                {% elif document.category == 'Customer Service' %}bg-warning
+                {% else %}bg-secondary{% endif %}">
+                {{ document.category }}
+            </span>
+        </p>
+    </div>
+    <div class="col-md-6">
+        <p><strong>Original Upload Date:</strong> {{ document.uploaded_at }}</p>
+        <p><strong>Original Filename:</strong> {{ document.filename }}</p>
     </div>
 </div>
+
+<div class="card mb-4">
+    <div class="card-body p-4">
+        <form action="{{ url_for('reupload_document_post', doc_id=document.id) }}" method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-4">
+                {{ form.file(id="file", class="form-control-file", style="display: none") }}
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('file').click()">
+                    Choose File
+                </button>
+                <span class="ms-3 file-name" id="file-name">No file chosen</span>
+                
+                {% if form.file.errors %}
+                    {% for error in form.file.errors %}
+                        <div class="text-danger mt-1">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.keep_original_name(id="keep_original_name", class="form-check-input") }}
+                    <label class="form-check-label" for="keep_original_name">
+                        Keep original filename (recommended)
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.reprocess_text(id="reprocess_text", class="form-check-input") }}
+                    <label class="form-check-label" for="reprocess_text">
+                        Extract text from new PDF
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.regenerate_insights(id="regenerate_insights", class="form-check-input") }}
+                    <label class="form-check-label" for="regenerate_insights">
+                        Regenerate AI insights
+                    </label>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{{ url_for('view_document', doc_id=document.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-cloud-upload-alt me-1"></i> Reupload Document
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Update file name display when file is selected
+    document.getElementById('file').addEventListener('change', function() {
+        const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+        document.getElementById('file-name').textContent = fileName;
+    });
+</script>
 {% endblock %}
