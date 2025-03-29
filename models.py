@@ -189,6 +189,11 @@ class Document(db.Model):
         if os.path.exists(self.filepath):
             return True
             
+        # Check with current working directory as base (for relative paths)
+        cwd_path = os.path.join(os.getcwd(), self.filepath.lstrip('./'))
+        if os.path.exists(cwd_path):
+            return True
+            
         # Check in uploads folder with the filename
         uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
         if os.path.exists(os.path.join(uploads_dir, os.path.basename(self.filepath))):
