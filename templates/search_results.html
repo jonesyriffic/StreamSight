@@ -47,26 +47,46 @@
                 <i class="fas fa-info-circle me-1"></i> Searches may take up to 90 seconds to process
             </div>
             
-            <!-- Example search suggestions -->
-            <div class="d-flex flex-wrap mt-2 mb-3" id="searchResultsExamples">
-                <!-- Example search buttons will be populated by JavaScript -->
+            <!-- Direct example search buttons (inline animation) -->
+            <div class="d-flex flex-wrap mt-2 mb-3">
+                <a href="/search?query=How%20is%20voice%20recognition%20changing%20customer%20service%3F" 
+                   class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
+                   onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> How is voice recognition changing customer service?'; setTimeout(() => window.location.href=this.href, 1000);">
+                   <i class="fas fa-search me-1"></i> How is voice recognition changing customer service?
+                </a>
+                <a href="/search?query=What%20are%20the%20emerging%20trends%20in%20customer%20experience%3F" 
+                   class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
+                   onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> What are the emerging trends in customer experience?'; setTimeout(() => window.location.href=this.href, 1000);">
+                   <i class="fas fa-search me-1"></i> What are the emerging trends in customer experience?
+                </a>
+                <a href="/search?query=How%20can%20we%20improve%20call%20center%20efficiency%3F" 
+                   class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
+                   onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> How can we improve call center efficiency?'; setTimeout(() => window.location.href=this.href, 1000);">
+                   <i class="fas fa-search me-1"></i> How can we improve call center efficiency?
+                </a>
             </div>
             
             <!-- Enhanced AI Search Loading Indicator -->
-            <div id="searchInProgressOverlay" class="position-fixed top-0 start-0 w-100 h-100" 
-                 style="background-color: rgba(0,0,0,0.7); z-index: 9999; display: none; opacity: 0; visibility: hidden;">
+            <div id="aiSearchOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" 
+                 style="background-color: rgba(0,0,0,0.7); z-index: 9999;">
                 <div class="d-flex justify-content-center align-items-center h-100">
-                    <div class="loader-container">
-                        <div class="search-status">AI Search In Progress</div>
-                        <div class="search-query"></div>
-                        <div class="sparkle-emoji">
-                            <span class="star1">✨</span>
-                            <span class="star2">✨</span>
-                            <span class="star3">✨</span>
-                            <span class="star-center">✨</span>
+                    <div class="card p-4 shadow-lg" style="max-width: 500px;">
+                        <div class="text-center mb-3">
+                            <div class="sparkle-emoji">
+                                <span class="star1">✨</span>
+                                <span class="star2">✨</span>
+                                <span class="star3">✨</span>
+                                <span class="star-center">✨</span>
+                            </div>
                         </div>
-                        <p class="search-info mt-3">Searching across our document library...</p>
-                        <p class="search-info text-warning">This may take up to 90 seconds to complete</p>
+                        <h4 class="text-center">AI Search in Progress</h4>
+                        <p class="text-center mb-0">
+                            Searching for <strong id="searchQueryDisplay"></strong> across all documents...
+                        </p>
+                        <p class="text-center text-muted small mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            This search may take up to 90 seconds to complete
+                        </p>
                     </div>
                 </div>
             </div>
@@ -82,28 +102,13 @@
             <script>
                 // Shows the search in progress overlay
                 window.showSearchInProgressOverlay = function(query) {
-                    // Update the query text
-                    const searchQueryElement = document.querySelector('#searchInProgressOverlay .search-query');
-                    if (searchQueryElement) {
-                        searchQueryElement.textContent = `"${query}"`;
-                        console.log("Search results page - set query text:", query);
-                    }
+                    // Display the query text in the overlay
+                    document.getElementById('searchQueryDisplay').textContent = `"${query}"`;
                     
                     // Show the overlay
-                    const overlay = document.getElementById('searchInProgressOverlay');
-                    if (overlay) {
-                        console.log("Search results page - overlay element:", overlay);
-                        
-                        // Make overlay visible
-                        overlay.classList.add('visible');
-                        console.log("Search results page - added visible class");
-                        
-                        // Force display style to ensure it's visible
-                        overlay.style.display = 'flex';
-                        overlay.style.opacity = '1';
-                        overlay.style.visibility = 'visible';
-                        console.log("Search results page - forced styles");
-                    }
+                    document.getElementById('aiSearchOverlay').classList.remove('d-none');
+                    
+                    console.log("Search results page - set query text:", query);
                     
                     // Update button state with inline spinner
                     const searchResultsButton = document.getElementById('searchResultsButton');
@@ -217,12 +222,12 @@
 
 {% if ai_response %}
 <div class="card mb-4 border-info shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
+    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
         <div>
             <i class="fas fa-robot me-2"></i>
             <strong>AI-Generated Response</strong>
         </div>
-        <span class="badge bg-light text-info">Based on document library</span>
+        <span class="badge bg-light text-primary">Based on document library</span>
     </div>
     <div class="card-body bg-white">
         <div class="ai-response p-3" style="line-height: 1.7; font-size: 1.05rem; color: #333;">
@@ -281,7 +286,7 @@ First result structure:
         </div>
         <div>
             <span class="badge bg-secondary">Relevance: {{ result.relevance_score }}/10</span>
-            <a href="{{ url_for('view_document', doc_id=result.document.id) }}" class="btn btn-sm btn-info ms-2">
+            <a href="{{ url_for('view_document', doc_id=result.document.id) }}" class="btn btn-sm btn-primary ms-2">
                 <i class="fas fa-eye me-1"></i> View Document
             </a>
         </div>
