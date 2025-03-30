@@ -160,6 +160,14 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
     
+    # Run content type migration to add columns for web links and YouTube videos
+    try:
+        from migrate_document_types import run_migration
+        run_migration()
+        logger.info("Document content type columns set up successfully")
+    except Exception as e:
+        logger.error(f"Error setting up document content type columns: {str(e)}")
+    
     # Check if any admin users exist, if not create one
     admin_exists = User.query.filter_by(is_admin=True).first()
     if not admin_exists:

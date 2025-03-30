@@ -251,6 +251,17 @@ def setup_recommendation_system():
     except Exception as e:
         logging.error(f"Error setting up recommendation system: {e}")
 
+def setup_document_content_types():
+    """Set up document content type columns for web links and YouTube videos"""
+    try:
+        with app.app_context():
+            from migrate_document_types import run_migration
+            logging.info("Setting up document content type columns...")
+            run_migration()
+            logging.info("Document content type columns set up successfully")
+    except Exception as e:
+        logging.error(f"Error setting up document content type columns: {str(e)}")
+
 
 def run_dev_initializations():
     # Initialize badges
@@ -261,6 +272,9 @@ def run_dev_initializations():
     
     # Set up search analytics database
     setup_search_analytics()
+    
+    # Set up document content type columns
+    setup_document_content_types()
     
     # Fix relevance format issues
     fix_relevance_format()
