@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedExamples.forEach(example => {
                     const button = document.createElement('a');
                     button.href = `search?query=${encodeURIComponent(example)}`;
-                    button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2');
+                    button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2', 'no-md-convert');
                     
                     // Add icon based on the type of example
                     if (exampleQuestions.industryInsights.includes(example)) {
@@ -272,6 +272,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
                     }
+                    
+                    // Add direct onclick handler to ensure navigation works
+                    button.onclick = function(e) {
+                        e.preventDefault();
+                        window.location.href = this.href;
+                        return false;
+                    };
                     
                     exampleSearchesContainer.appendChild(button);
                 });
@@ -320,8 +327,15 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedExamples.forEach(example => {
             const button = document.createElement('a');
             button.href = `search?query=${encodeURIComponent(example)}`;
-            button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2');
+            button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2', 'no-md-convert');
             button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
+            
+            // Add direct onclick handler to ensure navigation works
+            button.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = this.href;
+                return false;
+            };
             
             searchResultsExamplesContainer.appendChild(button);
         });

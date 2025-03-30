@@ -661,10 +661,9 @@
     
     <!-- Material Design v3 Initialization -->
     <script>
-        // Keep the script minimal to avoid interference with core functionality
+        // Material Design initialization - balanced approach to fix functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize bootstrap components
-            // This ensures dropdowns work properly
             if (typeof bootstrap !== 'undefined') {
                 // Initialize dropdowns
                 var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
@@ -682,11 +681,52 @@
                 });
             }
             
-            // Add simple classes only - material design visual touches
+            // Apply Material Design styling without breaking functionality
+            // Convert Bootstrap buttons to Material buttons where classes are applied
+            document.querySelectorAll('.btn-primary').forEach(button => {
+                if (!button.classList.contains('no-md-convert')) {
+                    button.classList.add('md-btn', 'md-btn-filled');
+                }
+            });
+            
+            document.querySelectorAll('.btn-outline-primary, .btn-outline-info').forEach(button => {
+                if (!button.classList.contains('no-md-convert') && !button.getAttribute('href')?.includes('search?query=')) {
+                    button.classList.add('md-btn', 'md-btn-outlined');
+                }
+            });
+            
+            document.querySelectorAll('.btn-secondary, .btn-info').forEach(button => {
+                if (!button.classList.contains('no-md-convert')) {
+                    button.classList.add('md-btn', 'md-btn-text');
+                }
+            });
+            
+            // Convert Bootstrap cards to Material cards
+            document.querySelectorAll('.card').forEach(card => {
+                if (!card.classList.contains('no-md-convert')) {
+                    card.classList.add('md-card');
+                    
+                    // Add category styling if needed
+                    if (card.classList.contains('card-insights')) card.classList.add('card-insights');
+                    if (card.classList.contains('card-tech')) card.classList.add('card-tech');
+                    if (card.classList.contains('card-product')) card.classList.add('card-product');
+                    if (card.classList.contains('card-service')) card.classList.add('card-service');
+                }
+            });
+            
+            // Convert Bootstrap badges to Material badges
             document.querySelectorAll('.badge').forEach(badge => {
                 if (!badge.classList.contains('no-md-convert')) {
                     badge.classList.add('md-badge');
                 }
+            });
+            
+            // Fix search example buttons to ensure they work correctly
+            document.querySelectorAll('#exampleSearches a, #searchResultsExamples a').forEach(button => {
+                // Remove any event listeners by cloning the node
+                const parent = button.parentNode;
+                const clone = button.cloneNode(true);
+                parent.replaceChild(clone, button);
             });
         });
     </script>
