@@ -17,9 +17,9 @@ from wtforms import BooleanField, StringField, PasswordField, TextAreaField, Sel
 from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional
 
 from utils.pdf_processor import extract_text_from_pdf
-from utils.ai_search import search_documents, categorize_content
-from utils.document_ai import generate_document_summary, generate_friendly_name
-from utils.relevance_generator import generate_relevance_reasons
+from utils.ai_search_gemini import search_documents
+from utils.gemini_ai import generate_document_summary, generate_friendly_name
+from utils.relevance_generator_gemini import generate_relevance_reasons
 from utils.badge_service import BadgeService
 from utils.recommendation_service import get_user_recommendations, dismiss_recommendation, reset_dismissed_recommendations
 from utils.text_processor import clean_html, format_timestamp
@@ -741,10 +741,10 @@ def search():
         return render_template('search_results.html', results=[], query='', categories=categories)
     
     try:
-        # Check if the OpenAI API key exists
-        if not os.environ.get("OPENAI_API_KEY"):
-            logger.error("OpenAI API key is missing")
-            raise Exception("OpenAI API key is not configured")
+        # Check if the Gemini API key exists
+        if not os.environ.get("GEMINI_API_KEY"):
+            logger.error("Gemini API key is missing")
+            raise Exception("Gemini API key is not configured")
         
         logger.info("Building document repository for search")
         # Get document repository for search
@@ -775,7 +775,7 @@ def search():
                                   selected_category=category_filter,
                                   categories=categories)
         
-        logger.info("Performing search using OpenAI API")
+        logger.info("Performing search using Gemini API")
         try:
             search_result = search_documents(query, document_repository, category_filter)
             results = search_result['results']
@@ -790,7 +790,7 @@ def search():
             # Generate AI response based on search results
             try:
                 logger.info(f"Generating AI response for query: '{query}'")
-                from utils.ai_search import generate_search_response
+                from utils.ai_search_gemini import generate_search_response
                 ai_response = generate_search_response(query, search_result)
                 logger.info(f"AI response generated successfully ({len(ai_response)} characters)")
             except Exception as ai_error:
@@ -867,9 +867,9 @@ def search():
     except Exception as e:
         logger.error(f"Search error: {str(e)}")
         
-        # Check for OpenAI API errors and provide a user-friendly message
-        if "OpenAI API" in str(e) or "API key" in str(e):
-            logger.error(f"OpenAI API error during search: {str(e)}")
+        # Check for Gemini API errors and provide a user-friendly message
+        if "Gemini API" in str(e) or "API key" in str(e):
+            logger.error(f"Gemini API error during search: {str(e)}")
             error_message = "There was an issue with the AI search service. Please try again later."
         else:
             error_message = "An error occurred while searching documents. Please try again with different search terms."
