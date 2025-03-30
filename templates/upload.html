@@ -52,9 +52,14 @@
                             <label for="category" class="form-label">Category</label>
                             <select class="form-select" id="category" name="category" required>
                                 {% for category in categories %}
+                                {% if category == 'auto' %}
+                                <option value="{{ category }}">Auto-detect category</option>
+                                {% else %}
                                 <option value="{{ category }}">{{ category }}</option>
+                                {% endif %}
                                 {% endfor %}
                             </select>
+                            <div class="form-text">Select "Auto-detect category" to let AI determine the most appropriate category based on content.</div>
                         </div>
                         
                         <div class="mb-3">
@@ -125,9 +130,14 @@
                             <label for="weblink-category" class="form-label">Category</label>
                             <select class="form-select" id="weblink-category" name="category" required>
                                 {% for category in categories %}
+                                {% if category == 'auto' %}
+                                <option value="{{ category }}">Auto-detect category</option>
+                                {% else %}
                                 <option value="{{ category }}">{{ category }}</option>
+                                {% endif %}
                                 {% endfor %}
                             </select>
+                            <div class="form-text">Select "Auto-detect category" to let AI determine the most appropriate category based on content.</div>
                         </div>
                         
                         <div class="mb-3">
@@ -200,9 +210,14 @@
                             <label for="youtube-category" class="form-label">Category</label>
                             <select class="form-select" id="youtube-category" name="category" required>
                                 {% for category in categories %}
+                                {% if category == 'auto' %}
+                                <option value="{{ category }}">Auto-detect category</option>
+                                {% else %}
                                 <option value="{{ category }}">{{ category }}</option>
+                                {% endif %}
                                 {% endfor %}
                             </select>
+                            <div class="form-text">Select "Auto-detect category" to let AI determine the most appropriate category based on content.</div>
                         </div>
                         
                         <div class="mb-3">

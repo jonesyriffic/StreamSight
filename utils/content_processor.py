@@ -4,7 +4,9 @@ Utility module for processing different content types (PDF, web links, YouTube v
 import os
 import uuid
 import logging
+import json
 from datetime import datetime
+from openai import OpenAI
 
 from utils.pdf_processor import extract_text_from_pdf
 from utils.web_scraper import extract_text_from_url, is_valid_url
@@ -13,6 +15,18 @@ from utils.document_ai import generate_document_summary
 
 logger = logging.getLogger(__name__)
 
+# Initialize OpenAI client
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai = OpenAI(api_key=OPENAI_API_KEY)
+
+# Available document categories
+DOCUMENT_CATEGORIES = [
+    "Industry Insights",
+    "Technology News",
+    "Product Management",
+    "Customer Service"
+]
+
 def process_pdf_upload(uploaded_file, filename, category, user_id, db, Document):
     """
     Process PDF file upload
@@ -20,7 +34,7 @@ def process_pdf_upload(uploaded_file, filename, category, user_id, db, Document)
     Args:
         uploaded_file: File object from request.files
         filename: Sanitized filename
-        category: Document category
+        category: Document category (or 'auto' to auto-detect)
         user_id: User ID of uploader
         db: Database session
         Document: Document model class
@@ -48,6 +62,12 @@ def process_pdf_upload(uploaded_file, filename, category, user_id, db, Document)
         if not text or len(text.strip()) < 50:
             return None, "Could not extract meaningful text from PDF. Please check if the PDF contains text and not just images.", 400
         
+        # Detect category if auto is selected
+        if category == 'auto':
+            detected_category = detect_document_category(text, filename)
+            logger.info(f"Auto-detected category for {filename}: {detected_category}")
+            category = detected_category
+            
         # Create document record
         document = Document(
             id=doc_id,
@@ -102,6 +122,12 @@ def process_weblink(url, category, user_id, db, Document):
         # Generate unique ID for the document
         doc_id = str(uuid.uuid4())
         
+        # Detect category if auto is selected
+        if category == 'auto':
+            detected_category = detect_document_category(content, title)
+            logger.info(f"Auto-detected category for weblink {title}: {detected_category}")
+            category = detected_category
+            
         # Create document record
         document = Document(
             id=doc_id,
@@ -160,6 +186,19 @@ def process_youtube_video(url, category, user_id, db, Document):
             transcript_text = f"Video Title: {result['title']}\n\nChannel: {result['author']}\n\n"
             transcript_text += "This video does not have an available transcript. When insights are generated, they will be based on the video's title and metadata."
         
+        # Detect category if auto is selected
+        if category == 'auto':
+            # For YouTube videos without transcript, we'll base categorization on title and available info
+            if result['has_transcript']:
+                detected_category = detect_document_category(transcript_text, result['title'])
+            else:
+                # If no transcript is available, use a shorter context for category detection
+                sample_text = f"Video Title: {result['title']}\nChannel: {result['author']}"
+                detected_category = detect_document_category(sample_text, result['title'])
+                
+            logger.info(f"Auto-detected category for YouTube video '{result['title']}': {detected_category}")
+            category = detected_category
+            
         # Create document record
         document = Document(
             id=doc_id,
@@ -190,6 +229,71 @@ def process_youtube_video(url, category, user_id, db, Document):
         logger.error(f"Error processing YouTube video: {str(e)}")
         db.session.rollback()
         return None, f"Error processing YouTube video: {str(e)}", 500
+
+def detect_document_category(text, filename=None):
+    """
+    Auto-detect the document category based on its content
+    
+    Args:
+        text: Document text content
+        filename: Optional document filename for additional context
+        
+    Returns:
+        str: Detected category name from DOCUMENT_CATEGORIES list
+    """
+    try:
+        # Prepare a sample of the document text (first 2000 chars)
+        text_sample = text[:2000] if text else ""
+        
+        if not text_sample:
+            logger.warning("No text provided for category detection")
+            return DOCUMENT_CATEGORIES[0]  # Default to first category
+        
+        # Create a prompt for the AI to classify the document
+        prompt = f"""Classify this document into exactly one of these categories:
+{', '.join(DOCUMENT_CATEGORIES)}
+
+Document title/filename: {filename or 'Unknown'}
+
+Document text sample:
+{text_sample}
+
+Respond with a single JSON object with a "category" field containing your classification:
+"""
+
+        # Use OpenAI to classify the document
+        response = openai.chat.completions.create(
+            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+            messages=[
+                {"role": "system", "content": "You are a document classification expert for a professional audience."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=100
+        )
+        
+        # Parse the response
+        result = json.loads(response.choices[0].message.content)
+        category = result.get("category")
+        
+        # Validate the category against our list
+        if category in DOCUMENT_CATEGORIES:
+            logger.info(f"Auto-detected category: {category}")
+            return category
+        
+        # If category not in list, find the closest match
+        for valid_category in DOCUMENT_CATEGORIES:
+            if valid_category.lower() in category.lower():
+                logger.info(f"Using closest category match: {valid_category}")
+                return valid_category
+        
+        # Default to first category if no match
+        logger.warning(f"Could not match detected category '{category}' to available categories")
+        return DOCUMENT_CATEGORIES[0]
+        
+    except Exception as e:
+        logger.error(f"Error in category detection: {str(e)}")
+        return DOCUMENT_CATEGORIES[0]  # Default to first category on error
 
 def generate_content_summary(document, db, openai_api_key=None, is_async=False):
     """

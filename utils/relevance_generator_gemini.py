@@ -126,7 +126,7 @@ def generate_team_relevance(team, document_info):
         
         Respond with a JSON object in this format:
         {
-            "relevance_reason": "your explanation here"
+            "relevance_reason": "Your specific explanation with exact metrics and specific tools"
         }
         """
         

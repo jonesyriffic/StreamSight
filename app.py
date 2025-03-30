@@ -432,6 +432,7 @@ def upload_page():
     
     # Get document categories for the dropdown
     categories = [
+        'auto',  # Auto-detect option (listed first)
         'Industry Insights',
         'Technology News',
         'Product Management',
@@ -535,6 +536,10 @@ def upload_document():
                 _process_uploaded_document(document, current_user.id, earned_badges)
                 successful_uploads += 1
                 flash(message, 'success')
+                
+                # Add additional message if auto-category was used
+                if category == 'auto':
+                    flash(f"Category auto-detection used: '{document.category}'", 'info')
             else:
                 failed_uploads += 1
                 flash(message, 'danger')
@@ -566,6 +571,10 @@ def upload_document():
                 _process_uploaded_document(document, current_user.id, earned_badges)
                 successful_uploads += 1
                 flash(message, 'success')
+                
+                # Add additional message if auto-category was used
+                if category == 'auto':
+                    flash(f"Category auto-detection used: '{document.category}'", 'info')
             else:
                 failed_uploads += 1
                 flash(message, 'danger')
@@ -623,6 +632,10 @@ def upload_document():
                         # Process document (generate relevance, summary, track badges)
                         _process_uploaded_document(document, current_user.id, earned_badges)
                         successful_uploads += 1
+                        
+                        # Add additional message if auto-category was used
+                        if category == 'auto':
+                            flash(f"Category auto-detection used: '{document.category}'", 'info')
                     else:
                         failed_uploads += 1
                         flash(message, 'warning')
