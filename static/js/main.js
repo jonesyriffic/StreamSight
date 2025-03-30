@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Add direct onclick handler to ensure navigation works and show loading indicator
                     button.onclick = function(e) {
                         e.preventDefault();
+                        console.log('Homepage search button clicked - adding robot animation');
                         
                         // Set the search input value to the example text
                         const mainSearchInput = document.getElementById('mainSearchInput');
@@ -349,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.classList.add('active', 'disabled', 'example-active');
                         // Replace with animated robot icon
                         this.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
+                        console.log('Applied robot icon animation to button:', this.innerHTML);
                         
                         // Force a reflow to apply new styles immediately
                         void this.offsetWidth;
