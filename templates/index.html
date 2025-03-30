@@ -52,7 +52,7 @@
                                     <span class="material-symbols-outlined">search</span> Search
                                 </span>
                                 <span class="search-button-loading d-none" id="mainSearchSpinnerInline">
-                                    <i class="fas fa-circle-notch fa-spin me-2"></i> Searching...
+                                    <span class="material-symbols-outlined rotating me-1">progress_activity</span> Searching...
                                 </span>
                             </button>
                         </div>
@@ -80,17 +80,17 @@
                         </a>
                     </div>
                     
-                    <!-- Enhanced AI Search Loading Indicator -->
+                    <!-- Material Design v3 Search Loading Indicator -->
                     <div id="aiSearchOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" 
-                         style="background-color: rgba(0,0,0,0.7); z-index: 9999;">
+                         style="z-index: 9999;">
                         <div class="d-flex justify-content-center align-items-center h-100">
                             <div class="card p-4 shadow-lg" style="max-width: 500px;">
                                 <div class="text-center mb-3">
-                                    <div class="sparkle-emoji">
-                                        <span class="star1">✨</span>
-                                        <span class="star2">✨</span>
-                                        <span class="star3">✨</span>
-                                        <span class="star-center">✨</span>
+                                    <!-- Material Design Progress Circular -->
+                                    <div class="md-progress-circular">
+                                        <svg viewBox="0 0 48 48">
+                                            <circle class="progress-circular-determinate" cx="24" cy="24" r="20"></circle>
+                                        </svg>
                                     </div>
                                 </div>
                                 <h4 class="text-center">AI Search in Progress</h4>
@@ -98,7 +98,7 @@
                                     Searching for <strong id="searchQueryDisplay"></strong> across all documents...
                                 </p>
                                 <p class="text-center text-muted small mt-2">
-                                    <i class="fas fa-info-circle me-1"></i>
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">info</span>
                                     This search may take up to 90 seconds to complete
                                 </p>
                             </div>

@@ -289,26 +289,64 @@
     100% { transform: rotate(360deg); }
 }
 
-/* Original Search overlay enhancement */
-#aiSearchOverlay .card {
-    background-color: rgba(var(--bs-dark-rgb), 0.95);
-    border: 1px solid var(--bs-info);
+/* Material Design v3 Search overlay */
+#aiSearchOverlay {
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.7);
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-@keyframes pulse {
+#aiSearchOverlay .card {
+    background-color: rgba(33, 33, 33, 0.98);
+    border: none;
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.md-progress-circular {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 20px;
+}
+
+.md-progress-circular svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.md-progress-circular circle {
+    fill: transparent;
+    stroke: var(--bs-info);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transform-origin: center;
+}
+
+.md-progress-circular .progress-circular-determinate {
+    stroke-dasharray: 151.327;
+    stroke-dashoffset: 113.495;
+    transform: rotate(-90deg);
+    animation: progress-circular-dash 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-circular-dash {
     0% {
-        box-shadow: 0 0 0 0 rgba(var(--bs-info-rgb), 0.7);
+        stroke-dashoffset: 151.327;
+        transform: rotate(0deg);
     }
-    70% {
-        box-shadow: 0 0 0 10px rgba(var(--bs-info-rgb), 0);
+    50% {
+        stroke-dashoffset: 37.832;
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(var(--bs-info-rgb), 0);
+        stroke-dashoffset: 151.327;
+        transform: rotate(360deg);
     }
-}
-
-#aiSearchOverlay .card {
-    animation: pulse 2s infinite;
 }
 
 /* Improve card shadow */
@@ -393,6 +431,17 @@
 .card.bg-dark.border-info:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Rotating Material Design Icon Animation */
+.material-symbols-outlined.rotating {
+    animation: spin-animation 1.5s infinite linear;
+    display: inline-block;
+}
+
+@keyframes spin-animation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Animation for fallback search input */
@@ -851,4 +900,48 @@ body.modal-open {
 @keyframes loader-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Material Design v3 Search Styling */
+.modern-search-container {
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modern-search-container:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.modern-search-container .input-group {
+    border-radius: 28px;
+    overflow: hidden;
+}
+
+.modern-search-container .input-group-text {
+    background-color: transparent;
+    border: none;
+    color: var(--bs-info);
+    padding-left: 18px;
+}
+
+.search-input {
+    border-radius: 0;
+    border: none;
+    background-color: transparent;
+    color: var(--bs-light);
+    padding-left: 0;
+    font-size: 1.05rem;
+}
+
+.modern-search-container .btn {
+    border-radius: 0 28px 28px 0;
+    padding-right: 20px;
+    padding-left: 20px;
+    border: none;
 }
