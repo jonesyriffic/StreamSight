@@ -332,35 +332,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Determine which page we're on
                     const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
                     
-                    // Create and show a more prominent AI loading indicator 
-                    // (we'll place this in the fixed container)
-                    let loadingDiv = document.createElement('div');
-                    loadingDiv.className = 'search-loading-indicator';
-                    loadingDiv.innerHTML = `
-                      <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
-                           style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
-                        <div class="card p-4 shadow-lg" style="max-width: 500px;">
-                          <div class="text-center mb-3">
-                            <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status">
-                              <span class="visually-hidden">Searching...</span>
-                            </div>
-                            <div class="mt-3 mb-2">
-                              <i class="fas fa-robot text-info fa-2x fa-bounce"></i>
-                            </div>
-                          </div>
-                          <h4 class="text-center">AI Search in Progress</h4>
-                          <p class="text-center mb-0">
-                            Searching for <strong>"${example}"</strong> across all documents... 
-                          </p>
-                          <p class="text-center text-muted small mt-2">
-                            <i class="fas fa-info-circle me-1"></i>
-                            This AI-powered search may take a few moments
-                          </p>
-                        </div>
-                      </div>
-                    `;
-                    
-                    document.body.appendChild(loadingDiv);
+                    // Use the global search overlay function if available
+                    if (window.showAISearchOverlay) {
+                        window.showAISearchOverlay(example);
+                    } else {
+                        // Fallback to manually showing spinners
+                        const mainSearchButton = document.getElementById('mainSearchButton');
+                        const mainSearchSpinner = document.getElementById('mainSearchSpinner');
+                        if (mainSearchButton) mainSearchButton.disabled = true;
+                        if (mainSearchSpinner) mainSearchSpinner.classList.remove('d-none');
+                    }
                     
                     // Change button appearance
                     button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
@@ -369,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Navigate after delay for visual feedback
                     setTimeout(() => {
                         window.location.href = this.href;
-                    }, 1200); // Longer delay to show the AI is thinking
+                    }, 800); // Delay to show the AI is thinking
                     
                     return false;
                 };
