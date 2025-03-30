@@ -80,16 +80,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Voice search removed in favor of reliable text search
 
-    // File input validation
+    // File input validation for single file input (like in reupload form)
     const fileInput = document.getElementById('file');
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             const fileError = document.getElementById('file-error');
+            const fileWarning = document.getElementById('file-warning');
             
-            // Remove any existing error message
+            // Remove any existing error or warning messages
             if (fileError) {
                 fileError.remove();
+            }
+            if (fileWarning) {
+                fileWarning.remove();
             }
             
             if (file) {
@@ -103,16 +107,321 @@ document.addEventListener('DOMContentLoaded', function() {
                     fileInput.value = '';
                 }
                 
-                // Check file size (max 16MB)
-                else if (file.size > 16 * 1024 * 1024) {
+                // Check file size (max 100MB, but warn over 16MB)
+                else if (file.size > 100 * 1024 * 1024) {
                     const errorMsg = document.createElement('div');
                     errorMsg.id = 'file-error';
                     errorMsg.classList.add('alert', 'alert-danger', 'mt-2');
-                    errorMsg.textContent = 'File size must be less than 16MB';
+                    errorMsg.textContent = 'File size must be less than 100MB';
                     fileInput.parentNode.appendChild(errorMsg);
                     fileInput.value = '';
+                } 
+                else if (file.size > 16 * 1024 * 1024) {
+                    // Just warn the user that large files will use chunked upload
+                    const warningMsg = document.createElement('div');
+                    warningMsg.id = 'file-warning';
+                    warningMsg.classList.add('alert', 'alert-warning', 'mt-2');
+                    const fileSizeMB = Math.round(file.size / (1024 * 1024) * 10) / 10;
+                    warningMsg.textContent = `Large file detected (${fileSizeMB} MB). Chunked upload will be used to handle this file reliably.`;
+                    fileInput.parentNode.appendChild(warningMsg);
                 }
             }
+        });
+    }
+    
+    // File input validation for multiple file input (upload page)
+    const filesInput = document.getElementById('files');
+    if (filesInput) {
+        filesInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            const fileError = document.getElementById('files-error');
+            const fileWarning = document.getElementById('files-warning');
+            
+            // Remove any existing error or warning messages
+            if (fileError) {
+                fileError.remove();
+            }
+            if (fileWarning) {
+                fileWarning.remove();
+            }
+            
+            if (files && files.length > 0) {
+                let totalSize = 0;
+                let invalidFiles = [];
+                let largeFiles = [];
+                
+                // Check each file
+                Array.from(files).forEach(file => {
+                    totalSize += file.size;
+                    
+                    // Check file type
+                    if (!file.type.match('application/pdf')) {
+                        invalidFiles.push(file.name);
+                    }
+                    
+                    // Identify large files for warning
+                    if (file.size > 16 * 1024 * 1024 && file.size <= 100 * 1024 * 1024) {
+                        largeFiles.push({
+                            name: file.name,
+                            size: Math.round(file.size / (1024 * 1024) * 10) / 10
+                        });
+                    }
+                    
+                    // Check for oversized files
+                    if (file.size > 100 * 1024 * 1024) {
+                        invalidFiles.push(`${file.name} (exceeds 100MB)`);
+                    }
+                });
+                
+                // Show error for invalid files
+                if (invalidFiles.length > 0) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.id = 'files-error';
+                    errorMsg.classList.add('alert', 'alert-danger', 'mt-2');
+                    
+                    if (invalidFiles.length === 1) {
+                        errorMsg.textContent = `Invalid file: ${invalidFiles[0]}. Only PDF files under 100MB are allowed.`;
+                    } else {
+                        errorMsg.innerHTML = `Invalid files detected:<ul>` + 
+                            invalidFiles.map(f => `<li>${f}</li>`).join('') + 
+                            `</ul>Only PDF files under 100MB are allowed.`;
+                    }
+                    
+                    filesInput.parentNode.appendChild(errorMsg);
+                    
+                    // Don't clear the entire selection - let the user decide what to do
+                    // They may want to keep some of the valid files
+                }
+                
+                // Show warning for large files
+                if (largeFiles.length > 0 && invalidFiles.length === 0) {
+                    const warningMsg = document.createElement('div');
+                    warningMsg.id = 'files-warning';
+                    warningMsg.classList.add('alert', 'alert-warning', 'mt-2');
+                    
+                    if (largeFiles.length === 1) {
+                        warningMsg.innerHTML = `Large file detected: <strong>${largeFiles[0].name} (${largeFiles[0].size} MB)</strong>. ` + 
+                            `Chunked upload will be used to handle this file reliably.`;
+                    } else {
+                        warningMsg.innerHTML = `Large files detected:<ul>` + 
+                            largeFiles.map(f => `<li><strong>${f.name} (${f.size} MB)</strong></li>`).join('') + 
+                            `</ul>Chunked upload will be used to handle these files reliably.`;
+                    }
+                    
+                    filesInput.parentNode.appendChild(warningMsg);
+                    
+                    // Show the progress container (it will be populated during upload)
+                    const progressContainer = document.getElementById('upload-progress-container');
+                    if (progressContainer) {
+                        progressContainer.style.display = 'block';
+                    }
+                }
+            }
+        });
+    }
+    
+    // Chunked file upload functionality
+    const uploadForm = document.querySelector('form[action="/upload"]');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('files');
+            const files = fileInput?.files;
+            const contentType = document.querySelector('input[name="content_type"]:checked')?.value;
+            
+            // Only apply chunked upload for PDF content type
+            if (contentType === 'pdf' && files && files.length > 0) {
+                const largeFiles = Array.from(files).filter(file => file.size > 16 * 1024 * 1024);
+                
+                // If there are large files (>16MB), use chunked upload
+                if (largeFiles.length > 0) {
+                    e.preventDefault(); // Stop normal form submission
+                    
+                    // Create progress container if it doesn't exist
+                    let progressContainer = document.getElementById('upload-progress-container');
+                    if (!progressContainer) {
+                        progressContainer = document.createElement('div');
+                        progressContainer.id = 'upload-progress-container';
+                        progressContainer.classList.add('mt-4');
+                        uploadForm.appendChild(progressContainer);
+                    } else {
+                        progressContainer.innerHTML = ''; // Clear existing progress elements
+                    }
+                    
+                    // Track uploads
+                    let completedUploads = 0;
+                    let failedUploads = 0;
+                    let totalUploads = largeFiles.length;
+                    
+                    // Disable submit button during upload
+                    const submitBtn = uploadForm.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+                    
+                    // Add status message
+                    const statusMsg = document.createElement('div');
+                    statusMsg.classList.add('alert', 'alert-info');
+                    statusMsg.innerHTML = '<strong>Processing large files using chunked upload</strong><p>Please wait while your files are being uploaded...</p>';
+                    progressContainer.appendChild(statusMsg);
+                    
+                    // Process each large file
+                    largeFiles.forEach(file => {
+                        // Create a progress element for this file
+                        const progressElement = document.createElement('div');
+                        progressElement.classList.add('progress', 'mb-3');
+                        progressElement.style.height = '25px';
+                        
+                        const progressBar = document.createElement('div');
+                        progressBar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated');
+                        progressBar.style.width = '0%';
+                        progressBar.setAttribute('aria-valuenow', '0');
+                        progressBar.setAttribute('aria-valuemin', '0');
+                        progressBar.setAttribute('aria-valuemax', '100');
+                        progressBar.textContent = `${file.name} (0%)`;
+                        
+                        progressElement.appendChild(progressBar);
+                        progressContainer.appendChild(progressElement);
+                        
+                        // Upload the file using chunked upload
+                        uploadLargeFileInChunks(file, progressBar, statusMsg)
+                            .then(response => {
+                                completedUploads++;
+                                checkAllUploadsComplete();
+                            })
+                            .catch(error => {
+                                failedUploads++;
+                                progressBar.classList.remove('progress-bar-animated');
+                                progressBar.classList.add('bg-danger');
+                                progressBar.textContent = `${file.name} - Failed: ${error}`;
+                                checkAllUploadsComplete();
+                            });
+                    });
+                    
+                    // Function to check if all uploads are complete
+                    function checkAllUploadsComplete() {
+                        if (completedUploads + failedUploads === totalUploads) {
+                            // Re-enable submit button
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Upload Document';
+                            
+                            // Show completion message
+                            statusMsg.classList.remove('alert-info');
+                            if (failedUploads === 0) {
+                                statusMsg.classList.add('alert-success');
+                                statusMsg.innerHTML = '<strong>Upload Complete!</strong><p>All files were successfully processed.</p>';
+                                
+                                // Redirect to library
+                                window.location.href = '/library';
+                            } else {
+                                statusMsg.classList.add('alert-warning');
+                                statusMsg.innerHTML = `<strong>Upload Partially Complete</strong><p>${completedUploads} of ${totalUploads} files were uploaded successfully. ${failedUploads} files failed.</p>`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * Upload a large file in chunks to avoid server timeout issues
+     * @param {File} file - The file to upload
+     * @param {HTMLElement} progressBar - Progress bar element to update
+     * @param {HTMLElement} statusElement - Status message element to update
+     * @returns {Promise} - Promise that resolves when upload is complete
+     */
+    function uploadLargeFileInChunks(file, progressBar, statusElement) {
+        return new Promise((resolve, reject) => {
+            const chunkSize = 2 * 1024 * 1024; // 2MB chunks
+            const totalChunks = Math.ceil(file.size / chunkSize);
+            const uploadId = Date.now().toString() + '-' + Math.random().toString(36).substring(2, 15);
+            let currentChunk = 0;
+            
+            // Get form data values
+            const category = document.querySelector('select[name="category"]')?.value || 'Uncategorized';
+            
+            // Function to upload a single chunk
+            function uploadChunk() {
+                const start = currentChunk * chunkSize;
+                const end = Math.min(file.size, start + chunkSize);
+                const chunk = file.slice(start, end);
+                
+                // Create FormData object for this chunk
+                const formData = new FormData();
+                formData.append('chunk', chunk);
+                formData.append('chunk_number', currentChunk);
+                formData.append('total_chunks', totalChunks);
+                formData.append('filename', file.name);
+                formData.append('upload_id', uploadId);
+                formData.append('category', category);
+                
+                // Update status
+                statusElement.innerHTML = `<strong>Uploading file: ${file.name}</strong><p>Uploading chunk ${currentChunk + 1} of ${totalChunks}</p>`;
+                
+                // Send chunk to server
+                fetch('/chunked_upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || `Server error: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update progress bar
+                    const percentComplete = ((currentChunk + 1) / totalChunks) * 100;
+                    progressBar.style.width = `${percentComplete}%`;
+                    progressBar.setAttribute('aria-valuenow', percentComplete);
+                    progressBar.textContent = `${file.name} (${Math.round(percentComplete)}%)`;
+                    
+                    // Check if we're done or should proceed with next chunk
+                    if (currentChunk < totalChunks - 1) {
+                        // Process next chunk
+                        currentChunk++;
+                        uploadChunk();
+                    } else {
+                        // All chunks uploaded
+                        progressBar.classList.remove('progress-bar-animated');
+                        progressBar.classList.add('bg-success');
+                        progressBar.textContent = `${file.name} - Upload Complete!`;
+                        
+                        // If the server returned a document ID, we can add a link to view it
+                        if (data.document_id) {
+                            const viewLink = document.createElement('a');
+                            viewLink.href = `/document/${data.document_id}`;
+                            viewLink.classList.add('btn', 'btn-sm', 'btn-success', 'ms-2');
+                            viewLink.textContent = 'View Document';
+                            progressBar.parentNode.appendChild(viewLink);
+                        }
+                        
+                        // Check if badges were earned
+                        if (data.badges_earned && data.badges_earned.length > 0) {
+                            const badgesList = document.createElement('div');
+                            badgesList.classList.add('alert', 'alert-success', 'mt-2');
+                            badgesList.innerHTML = '<strong>Badges Earned:</strong><ul>';
+                            
+                            data.badges_earned.forEach(badge => {
+                                badgesList.innerHTML += `<li>${badge.name} badge (${badge.level})</li>`;
+                            });
+                            
+                            badgesList.innerHTML += '</ul>';
+                            progressBar.parentNode.appendChild(badgesList);
+                        }
+                        
+                        resolve(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading chunk:', error);
+                    reject(error.message || 'Upload failed');
+                });
+            }
+            
+            // Start uploading the first chunk
+            uploadChunk();
         });
     }
     

@@ -66,6 +66,11 @@
                             <label for="files" class="form-label">Select PDF Documents</label>
                             <input type="file" class="form-control" id="files" name="files" multiple accept=".pdf" required>
                             <div class="form-text">You can select multiple PDF files. Maximum file size: 100MB per file.</div>
+                            <div class="text-muted small mt-1">Large files (>16MB) will be uploaded using a reliable chunked upload method.</div>
+                        </div>
+                        
+                        <!-- Progress display for chunked uploads -->
+                        <div id="upload-progress-container" class="mt-3" style="display: none;">
                         </div>
                         
                         <div class="d-grid gap-2">
@@ -311,6 +316,22 @@ document.addEventListener('DOMContentLoaded', function() {
             form.addEventListener('submit', function(event) {
                 // Validate form first - only show processing if validation passes
                 if (form.checkValidity()) {
+                    // PDF form with large files is handled by the chunked upload JS in main.js
+                    if (formId === 'pdf-form') {
+                        const fileInput = document.getElementById('files');
+                        if (fileInput && fileInput.files) {
+                            const largeFiles = Array.from(fileInput.files).filter(file => file.size > 16 * 1024 * 1024);
+                            
+                            // Let main.js chunked upload handler take care of this case
+                            if (largeFiles.length > 0) {
+                                // Don't show the standard processing indicator or simulate steps
+                                // as this will be handled by the chunked upload progress UI
+                                return true;
+                            }
+                        }
+                    }
+                    
+                    // Standard case (small files or non-PDF uploads)
                     // Hide the submit button
                     submitButton.classList.add('d-none');
                     

@@ -530,6 +530,127 @@ def library():
                           type_filter=type_filter,
                           sort_by=sort_by)
 
+@app.route('/chunked_upload', methods=['POST'])
+@login_required
+@approved_required
+def chunked_upload():
+    """Handle chunked file uploads for large PDF files"""
+    # Check if user has upload permission
+    if not current_user.can_upload and not current_user.is_admin:
+        return jsonify({
+            'status': 'error',
+            'message': 'You do not have permission to upload documents'
+        }), 403
+    
+    # Get chunk metadata
+    chunk_number = int(request.form.get('chunk_number', 0))
+    total_chunks = int(request.form.get('total_chunks', 0))
+    filename = request.form.get('filename', '')
+    upload_id = request.form.get('upload_id', '')
+    
+    if not upload_id or not filename:
+        return jsonify({
+            'status': 'error',
+            'message': 'Missing required metadata'
+        }), 400
+    
+    # Validate file type
+    if not filename.lower().endswith('.pdf'):
+        return jsonify({
+            'status': 'error',
+            'message': 'Only PDF files are allowed'
+        }), 400
+        
+    # Create a temporary directory for chunks if it doesn't exist
+    temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'temp')
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+        
+    # Create upload-specific directory
+    upload_dir = os.path.join(temp_dir, upload_id)
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+    
+    # Get the chunk data
+    if 'chunk' not in request.files:
+        return jsonify({
+            'status': 'error',
+            'message': 'No chunk file provided'
+        }), 400
+        
+    chunk = request.files['chunk']
+    
+    # Save the chunk
+    chunk_path = os.path.join(upload_dir, f'chunk_{chunk_number}')
+    chunk.save(chunk_path)
+    
+    # If this is the last chunk, combine all chunks and process the file
+    if chunk_number == total_chunks - 1:
+        try:
+            # Combine chunks into a single file
+            final_filename = f"{uuid.uuid4()}_{secure_filename(filename)}"
+            final_path = os.path.join(app.config['UPLOAD_FOLDER'], final_filename)
+            
+            with open(final_path, 'wb') as outfile:
+                for i in range(total_chunks):
+                    chunk_path = os.path.join(upload_dir, f'chunk_{i}')
+                    with open(chunk_path, 'rb') as infile:
+                        outfile.write(infile.read())
+            
+            # Clean up chunk files
+            import shutil
+            shutil.rmtree(upload_dir)
+            
+            # Process the file using the content processor
+            from utils.content_processor import process_pdf_upload
+            
+            category = request.form.get('category', 'Uncategorized')
+            
+            with open(final_path, 'rb') as file:
+                document, message, status_code = process_pdf_upload(
+                    uploaded_file=file,
+                    filename=secure_filename(filename),
+                    category=category,
+                    user_id=current_user.id,
+                    db=db,
+                    Document=Document
+                )
+                
+            if document and status_code == 200:
+                # Process document (generate relevance, summary, track badges)
+                earned_badges = set()
+                _process_uploaded_document(document, current_user.id, earned_badges)
+                
+                # Create response with badge information
+                badges_earned = [{"name": name, "level": level} for name, level in earned_badges]
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': 'File uploaded and processed successfully',
+                    'document_id': document.id,
+                    'badges_earned': badges_earned,
+                    'redirect_url': url_for('view_document', doc_id=document.id)
+                }), 200
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': message
+                }), status_code
+                
+        except Exception as e:
+            logger.error(f"Error processing chunked upload: {str(e)}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error processing file: {str(e)}'
+            }), 500
+    
+    # For intermediate chunks, confirm receipt
+    return jsonify({
+        'status': 'success',
+        'message': f'Chunk {chunk_number + 1}/{total_chunks} received',
+        'chunk_number': chunk_number
+    }), 200
+
 @app.route('/upload', methods=['POST'])
 @login_required
 @approved_required
@@ -971,6 +1092,170 @@ def reupload_document(doc_id):
     form = ReuploadDocumentForm()
     
     return render_template('reupload_document.html', document=document, form=form)
+
+@app.route('/chunked_reupload/<int:doc_id>', methods=['POST'])
+@login_required
+@admin_required
+def chunked_reupload(doc_id):
+    """Handle chunked file uploads for reuploading large PDF files"""
+    # Get the document
+    document = Document.query.get_or_404(doc_id)
+    
+    # Get chunk metadata
+    chunk_number = int(request.form.get('chunk_number', 0))
+    total_chunks = int(request.form.get('total_chunks', 0))
+    filename = request.form.get('filename', '')
+    upload_id = request.form.get('upload_id', '')
+    
+    if not upload_id or not filename:
+        return jsonify({
+            'status': 'error',
+            'message': 'Missing required metadata'
+        }), 400
+    
+    # Validate file type
+    if not filename.lower().endswith('.pdf'):
+        return jsonify({
+            'status': 'error',
+            'message': 'Only PDF files are allowed'
+        }), 400
+        
+    # Create a temporary directory for chunks if it doesn't exist
+    temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'temp')
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+        
+    # Create upload-specific directory
+    upload_dir = os.path.join(temp_dir, upload_id)
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+    
+    # Get the chunk data
+    if 'chunk' not in request.files:
+        return jsonify({
+            'status': 'error',
+            'message': 'No chunk file provided'
+        }), 400
+        
+    chunk = request.files['chunk']
+    
+    # Save the chunk
+    chunk_path = os.path.join(upload_dir, f'chunk_{chunk_number}')
+    chunk.save(chunk_path)
+    
+    # If this is the last chunk, combine all chunks and process the file
+    if chunk_number == total_chunks - 1:
+        try:
+            # Get form parameters
+            keep_original_name = request.form.get('keep_original_name') == 'true'
+            reprocess_text = request.form.get('reprocess_text') == 'true'
+            regenerate_insights = request.form.get('regenerate_insights') == 'true'
+            friendly_name = request.form.get('friendly_name', '')
+            
+            # Combine chunks into a single file
+            if keep_original_name:
+                # Use the original filename from the document record
+                original_filename = document.filename
+                if '/' in original_filename or '\\' in original_filename:
+                    original_filename = os.path.basename(original_filename)
+            else:
+                # Use the new uploaded filename
+                original_filename = secure_filename(filename)
+                
+            # Generate a unique filename with UUID
+            final_filename = f"{uuid.uuid4()}_{original_filename}"
+            final_path = os.path.join(app.config['UPLOAD_FOLDER'], final_filename)
+            relative_filepath = os.path.join('./uploads', final_filename)  # Store relative path
+            
+            with open(final_path, 'wb') as outfile:
+                for i in range(total_chunks):
+                    chunk_path = os.path.join(upload_dir, f'chunk_{i}')
+                    with open(chunk_path, 'rb') as infile:
+                        outfile.write(infile.read())
+            
+            # Clean up chunk files
+            import shutil
+            shutil.rmtree(upload_dir)
+            
+            # Verify the file was saved correctly
+            if os.path.exists(final_path):
+                actual_size = os.path.getsize(final_path)
+                logger.info(f"File saved successfully. Size on disk: {actual_size} bytes")
+                
+                # Extract text from the PDF if requested
+                if reprocess_text:
+                    try:
+                        logger.info(f"Extracting text from new PDF...")
+                        document.text = extract_text_from_pdf(final_path)
+                        logger.info(f"Text extraction complete. Extracted {len(document.text)} characters")
+                    except Exception as e:
+                        logger.error(f"Error extracting text: {str(e)}")
+                        return jsonify({
+                            'status': 'warning',
+                            'message': f'File was uploaded but text extraction failed: {str(e)}'
+                        }), 200
+                
+                # Regenerate AI insights if requested
+                if regenerate_insights:
+                    try:
+                        logger.info(f"Regenerating document insights...")
+                        if document.text:
+                            # Generate summary and key points
+                            summary_results = generate_document_summary(document.text)
+                            if summary_results:
+                                document.summary = summary_results.get('summary', '')
+                                document.key_points = summary_results.get('key_points', '')
+                                document.summary_generated_at = datetime.utcnow()
+                                
+                            # Generate relevance reasons
+                            relevance_reasons = generate_relevance_reasons(
+                                document.text, 
+                                document.category,
+                                document.friendly_name or document.filename
+                            )
+                            if relevance_reasons:
+                                document.relevance_reasons = relevance_reasons
+                    except Exception as e:
+                        logger.error(f"Error regenerating insights: {str(e)}")
+                        return jsonify({
+                            'status': 'warning',
+                            'message': f'File was uploaded but AI insights regeneration failed: {str(e)}'
+                        }), 200
+                
+                # Update document record
+                document.filepath = relative_filepath
+                document.file_available = True
+                
+                # Update friendly name if provided
+                if friendly_name:
+                    document.friendly_name = friendly_name
+                
+                db.session.commit()
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': 'File uploaded and processed successfully',
+                    'document_id': document.id
+                }), 200
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Failed to save file'
+                }), 500
+                
+        except Exception as e:
+            logger.error(f"Error processing chunked upload: {str(e)}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Error processing file: {str(e)}'
+            }), 500
+    
+    # For intermediate chunks, confirm receipt
+    return jsonify({
+        'status': 'success',
+        'message': f'Chunk {chunk_number + 1}/{total_chunks} received',
+        'chunk_number': chunk_number
+    }), 200
 
 @app.route('/document/<doc_id>/reupload', methods=['POST'])
 @login_required

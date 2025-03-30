@@ -51,6 +51,10 @@
                 </button>
                 <span class="ms-3 file-name" id="file-name">No file chosen</span>
                 <p class="text-muted small mt-1">Maximum file size: 100MB</p>
+                <p class="text-muted small">Large files (>16MB) will use chunked upload for reliable processing.</p>
+                
+                <!-- Progress display for chunked uploads -->
+                <div id="upload-progress-container" class="mt-3" style="display: none;"></div>
                 
                 {% if form.file.errors %}
                     {% for error in form.file.errors %}
@@ -119,8 +123,186 @@
 <script>
     // Update file name display when file is selected
     document.getElementById('file').addEventListener('change', function() {
-        const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+        const file = this.files[0];
+        const fileName = file ? file.name : 'No file chosen';
         document.getElementById('file-name').textContent = fileName;
+        
+        // Check if it's a large file
+        if (file && file.size > 16 * 1024 * 1024) {
+            // Display a warning for large files
+            const warningId = 'large-file-warning';
+            let warning = document.getElementById(warningId);
+            if (!warning) {
+                warning = document.createElement('div');
+                warning.id = warningId;
+                warning.classList.add('alert', 'alert-warning', 'mt-2');
+                const fileSizeMB = Math.round(file.size / (1024 * 1024) * 10) / 10;
+                warning.innerHTML = `<strong>Large file detected (${fileSizeMB} MB)</strong><p>Chunked upload will be used for reliable processing.</p>`;
+                this.parentNode.appendChild(warning);
+                
+                // Show the progress container
+                const progressContainer = document.getElementById('upload-progress-container');
+                if (progressContainer) {
+                    progressContainer.style.display = 'block';
+                }
+            }
+        } else {
+            // Remove any existing warnings
+            const warning = document.getElementById('large-file-warning');
+            if (warning) {
+                warning.remove();
+            }
+            
+            // Hide the progress container
+            const progressContainer = document.getElementById('upload-progress-container');
+            if (progressContainer) {
+                progressContainer.style.display = 'none';
+            }
+        }
     });
+    
+    // Add chunked upload functionality
+    const form = document.querySelector('form[action*="reupload_document_post"]');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            const fileInput = document.getElementById('file');
+            const file = fileInput?.files?.[0];
+            
+            // Only use chunked upload for large PDF files
+            if (file && file.size > 16 * 1024 * 1024 && file.type === 'application/pdf') {
+                event.preventDefault(); // Stop normal form submission
+                
+                // Get form data values
+                const docId = {{ document.id }};
+                const keepOriginalName = document.getElementById('keep_original_name').checked;
+                const reprocessText = document.getElementById('reprocess_text').checked;
+                const regenerateInsights = document.getElementById('regenerate_insights').checked;
+                const friendlyName = document.getElementById('friendly_name').value;
+                
+                // Set up progress display
+                const progressContainer = document.getElementById('upload-progress-container');
+                progressContainer.innerHTML = '';
+                progressContainer.style.display = 'block';
+                
+                // Create status message
+                const statusMsg = document.createElement('div');
+                statusMsg.classList.add('alert', 'alert-info', 'mb-3');
+                statusMsg.innerHTML = '<strong>Processing large file using chunked upload</strong><p>Please wait while your file is being uploaded...</p>';
+                progressContainer.appendChild(statusMsg);
+                
+                // Create progress bar
+                const progressElement = document.createElement('div');
+                progressElement.classList.add('progress', 'mb-3');
+                progressElement.style.height = '25px';
+                
+                const progressBar = document.createElement('div');
+                progressBar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated');
+                progressBar.style.width = '0%';
+                progressBar.setAttribute('aria-valuenow', '0');
+                progressBar.setAttribute('aria-valuemin', '0');
+                progressBar.setAttribute('aria-valuemax', '100');
+                progressBar.textContent = `${file.name} (0%)`;
+                
+                progressElement.appendChild(progressBar);
+                progressContainer.appendChild(progressElement);
+                
+                // Disable submit button during upload
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+                
+                // Chunk configuration
+                const chunkSize = 2 * 1024 * 1024; // 2MB chunks
+                const totalChunks = Math.ceil(file.size / chunkSize);
+                const uploadId = Date.now().toString() + '-' + Math.random().toString(36).substring(2, 15);
+                let currentChunk = 0;
+                
+                // Function to upload a single chunk
+                function uploadChunk() {
+                    const start = currentChunk * chunkSize;
+                    const end = Math.min(file.size, start + chunkSize);
+                    const chunk = file.slice(start, end);
+                    
+                    // Create FormData object for this chunk
+                    const formData = new FormData();
+                    formData.append('chunk', chunk);
+                    formData.append('chunk_number', currentChunk);
+                    formData.append('total_chunks', totalChunks);
+                    formData.append('filename', file.name);
+                    formData.append('upload_id', uploadId);
+                    formData.append('keep_original_name', keepOriginalName);
+                    formData.append('reprocess_text', reprocessText);
+                    formData.append('regenerate_insights', regenerateInsights);
+                    if (friendlyName) {
+                        formData.append('friendly_name', friendlyName);
+                    }
+                    
+                    // Update status
+                    statusMsg.innerHTML = `<strong>Uploading file: ${file.name}</strong><p>Uploading chunk ${currentChunk + 1} of ${totalChunks}</p>`;
+                    
+                    // Send chunk to server
+                    fetch(`/chunked_reupload/${docId}`, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.message || `Server error: ${response.status}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update progress bar
+                        const percentComplete = ((currentChunk + 1) / totalChunks) * 100;
+                        progressBar.style.width = `${percentComplete}%`;
+                        progressBar.setAttribute('aria-valuenow', percentComplete);
+                        progressBar.textContent = `${file.name} (${Math.round(percentComplete)}%)`;
+                        
+                        // Check if we're done or should proceed with next chunk
+                        if (currentChunk < totalChunks - 1) {
+                            // Process next chunk
+                            currentChunk++;
+                            uploadChunk();
+                        } else {
+                            // All chunks uploaded
+                            progressBar.classList.remove('progress-bar-animated');
+                            progressBar.classList.add('bg-success');
+                            progressBar.textContent = `${file.name} - Upload Complete!`;
+                            
+                            // Show success message
+                            statusMsg.classList.remove('alert-info');
+                            statusMsg.classList.add('alert-success');
+                            statusMsg.innerHTML = '<strong>Upload Complete!</strong><p>File was successfully processed.</p>';
+                            
+                            // Wait a moment then redirect to the document view
+                            setTimeout(() => {
+                                window.location.href = `/document/${docId}`;
+                            }, 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error uploading chunk:', error);
+                        progressBar.classList.remove('progress-bar-animated');
+                        progressBar.classList.add('bg-danger');
+                        progressBar.textContent = `${file.name} - Failed: ${error}`;
+                        
+                        // Show error message
+                        statusMsg.classList.remove('alert-info');
+                        statusMsg.classList.add('alert-danger');
+                        statusMsg.innerHTML = `<strong>Upload Failed</strong><p>${error}</p>`;
+                        
+                        // Re-enable submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt me-1"></i> Reupload Document';
+                    });
+                }
+                
+                // Start uploading the first chunk
+                uploadChunk();
+            }
+        });
+    }
 </script>
 {% endblock %}
