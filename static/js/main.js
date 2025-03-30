@@ -292,25 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Also add example searches to search results page
     const searchResultsExamplesContainer = document.getElementById('searchResultsExamples');
     if (searchResultsExamplesContainer) {
-        // Use the same array of short example searches from above
-        const shortExamples = [
-            "CRM trends",
-            "Chatbot ROI",
-            "Customer feedback analysis",
-            "Service automation",
-            "Agent productivity",
-            "Digital engagement metrics",
-            "Self-service portals",
-            "Voice recognition",
-            "AI customer insights",
-            "Omnichannel support",
-            "Call center metrics",
-            "Customer retention strategies",
-            "Service technology ROI",
-            "Support ticket analysis"
-        ];
-        
-        // Shuffle and select 3
+        // Function to shuffle an array
         const shuffleArray = (array) => {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -319,26 +301,75 @@ document.addEventListener('DOMContentLoaded', function() {
             return array;
         };
         
-        const selectedExamples = shuffleArray([...shortExamples]).slice(0, 3);
-        
-        // Add to example searches container
-        searchResultsExamplesContainer.innerHTML = '';
-        
-        selectedExamples.forEach(example => {
-            const button = document.createElement('a');
-            button.href = `search?query=${encodeURIComponent(example)}`;
-            button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2', 'no-md-convert');
-            button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
+        // Function to update search examples in the UI
+        function updateSearchExamples(examplesList) {
+            if (!searchResultsExamplesContainer) return;
             
-            // Add direct onclick handler to ensure navigation works
-            button.onclick = function(e) {
-                e.preventDefault();
-                window.location.href = this.href;
-                return false;
-            };
+            // Clear the container
+            searchResultsExamplesContainer.innerHTML = '';
             
-            searchResultsExamplesContainer.appendChild(button);
-        });
+            // Select 3 random examples
+            const selectedExamples = shuffleArray([...examplesList]).slice(0, 3);
+            
+            // Add new examples
+            selectedExamples.forEach(example => {
+                const button = document.createElement('a');
+                button.href = `search?query=${encodeURIComponent(example)}`;
+                button.classList.add('btn', 'btn-sm', 'btn-outline-info', 'rounded-pill', 'me-2', 'mb-2', 'no-md-convert');
+                button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
+                
+                // Add direct onclick handler to ensure navigation works
+                button.onclick = function(e) {
+                    // Show loading indicator
+                    e.preventDefault();
+                    button.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> ${example}`;
+                    button.classList.add('disabled');
+                    
+                    // Navigate after small delay for visual feedback
+                    setTimeout(() => {
+                        window.location.href = this.href;
+                    }, 300);
+                    return false;
+                };
+                
+                searchResultsExamplesContainer.appendChild(button);
+            });
+        }
+        
+        // Initial placeholder examples
+        let initialExamples = ["Loading topics...", "Please wait..."];
+        updateSearchExamples(initialExamples);
+        
+        // Try to fetch real document topics from our API
+        fetch('/api/document-topics')
+            .then(response => response.json())
+            .then(topics => {
+                if (topics && topics.length > 0) {
+                    // Use the fetched topics
+                    updateSearchExamples(topics);
+                }
+            })
+            .catch(error => {
+                console.warn('Error fetching document topics:', error);
+                // Fallback to static examples
+                const fallbackExamples = [
+                    "CRM trends",
+                    "Chatbot ROI",
+                    "Customer feedback analysis",
+                    "Service automation",
+                    "Agent productivity",
+                    "Digital engagement metrics",
+                    "Self-service portals",
+                    "Voice recognition",
+                    "AI customer insights",
+                    "Omnichannel support",
+                    "Call center metrics",
+                    "Customer retention strategies",
+                    "Service technology ROI",
+                    "Support ticket analysis"
+                ];
+                updateSearchExamples(fallbackExamples);
+            });
     }
 });
 

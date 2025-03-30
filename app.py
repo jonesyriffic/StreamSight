@@ -1213,6 +1213,75 @@ def get_document(doc_id):
 def get_categories():
     categories = db.session.query(Document.category).distinct().all()
     return jsonify([category[0] for category in categories])
+    
+@app.route('/api/document-topics')
+@login_required
+def get_document_topics():
+    """
+    Extract popular topics from documents in the library
+    Returns a list of topic strings for use in search suggestions
+    """
+    # Get all documents with text content
+    documents = Document.query.filter(Document.text_content != None, Document.text_content != '').all()
+    
+    # Extract topics from document titles and summaries
+    topics = []
+    
+    # From document titles (friendly names)
+    for doc in documents:
+        # Add friendly name words as topics (if they're not common words)
+        if doc.friendly_name:
+            # Extract meaningful words from friendly name
+            name_words = re.findall(r'\b[A-Za-z][A-Za-z0-9]{2,}\b', doc.friendly_name)
+            # Filter out common words
+            common_words = ['the', 'and', 'for', 'with', 'this', 'that', 'from', 'about']
+            filtered_words = [word for word in name_words if word.lower() not in common_words]
+            topics.extend(filtered_words)
+            
+            # Also add the complete friendly name if it's not too long
+            if len(doc.friendly_name.split()) <= 5:
+                topics.append(doc.friendly_name)
+    
+    # From document categories
+    categories = db.session.query(Document.category).distinct().all()
+    for category in categories:
+        if category[0]:
+            topics.append(category[0])
+    
+    # From document summaries - extract key phrases
+    for doc in documents:
+        if doc.summary:
+            # Extract potential topic phrases (2-3 word combinations)
+            phrases = re.findall(r'\b[A-Z][a-z]+ [A-Za-z]+(?: [A-Za-z]+)?\b', doc.summary)
+            topics.extend(phrases[:3])  # Limit to first 3 phrases per document
+            
+            # Also look for terms with specific prefixes
+            prefixed_terms = re.findall(r'\b(?:AI|ML|CX|UX|AR|VR|CRM)[A-Za-z]*\b', doc.summary)
+            topics.extend(prefixed_terms)
+    
+    # Count frequency and get the most common topics
+    from collections import Counter
+    topic_counter = Counter(topics)
+    
+    # Get top 30 topics
+    popular_topics = [topic for topic, count in topic_counter.most_common(30)]
+    
+    # Add specific product manager-focused terms if not already present
+    pm_terms = [
+        "Customer feedback", "Product roadmap", "User stories", "Feature prioritization",
+        "Market research", "Competitive analysis", "User experience", "Product metrics",
+        "Sprint planning", "Release management", "Customer service", "Digital engagement"
+    ]
+    
+    for term in pm_terms:
+        if term not in popular_topics:
+            popular_topics.append(term)
+    
+    # Shuffle the topics for variety
+    import random
+    random.shuffle(popular_topics)
+    
+    return jsonify(popular_topics)
 
 @app.route('/api/generate-summary/<doc_id>', methods=['POST'])
 @login_required
