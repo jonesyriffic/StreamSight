@@ -18,29 +18,31 @@
 <div class="card bg-dark mb-4 search-container">
     <div class="card-body">
         <form action="{{ url_for('search') }}" method="get" id="searchResultsForm">
-            <div class="input-group">
-                <span class="input-group-text" style="color: var(--color-service);">
-                    <span class="material-symbols-outlined">lightbulb</span>
-                </span>
-                <input type="text" name="query" class="form-control search-input" 
-                       value="{{ query }}" placeholder="Ask a question about our documents..."
-                       id="searchResultsInput">
-                <select name="category" class="form-select" style="max-width: 200px;">
-                    <option value="all" {% if selected_category == 'all' %}selected{% endif %}>All Categories</option>
-                    {% for category in categories %}
-                        <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
-                            {{ category }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <button class="btn btn-primary" type="submit" id="searchResultsButton">
-                    <span class="search-button-normal">
-                        <i class="fas fa-search me-2"></i> Search
+            <div class="modern-search-container">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <span class="material-symbols-outlined">lightbulb</span>
                     </span>
-                    <span class="search-button-loading d-none" id="searchResultsSpinnerInline">
-                        <i class="fas fa-circle-notch fa-spin me-2"></i> Searching...
-                    </span>
-                </button>
+                    <input type="text" name="query" class="form-control search-input" 
+                           value="{{ query }}" placeholder="What are best practices for digital product testing and validation?"
+                           id="searchResultsInput">
+                    <select name="category" class="form-select" style="max-width: 200px; border: none; background-color: transparent; color: var(--bs-light);">
+                        <option value="all" {% if selected_category == 'all' %}selected{% endif %}>All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
+                                {{ category }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-primary" type="submit" id="searchResultsButton">
+                        <span class="search-button-normal">
+                            <span class="material-symbols-outlined">search</span> Search
+                        </span>
+                        <span class="search-button-loading d-none" id="searchResultsSpinnerInline">
+                            <i class="fas fa-circle-notch fa-spin me-2"></i> Searching...
+                        </span>
+                    </button>
+                </div>
             </div>
             
             <div class="text-muted small mt-2 mb-3">
