@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Document Library - StreamSight{% endblock %}
+{% block title %}Library - StreamSight{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="display-5">Document Library</h1>
+    <h1 class="display-5">Library</h1>
     <div>
         {% if current_user.is_authenticated and current_user.can_upload %}
         <a href="{{ url_for('upload_page') }}" class="btn btn-success me-2">
@@ -54,7 +54,7 @@
     <div class="card-body">
         <form method="get" action="{{ url_for('library') }}">
             <div class="row align-items-end">
-                <div class="col-md-5 mb-3 mb-md-0">
+                <div class="col-md-3 mb-3 mb-md-0">
                     <label for="category-filter" class="form-label">Category</label>
                     <select id="category-filter" name="category" class="form-select">
                         <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All Categories</option>
@@ -65,7 +65,16 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-5 mb-3 mb-md-0">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label for="type-filter" class="form-label">Type</label>
+                    <select id="type-filter" name="type" class="form-select">
+                        <option value="all" {% if type_filter == 'all' %}selected{% endif %}>All Types</option>
+                        <option value="pdf" {% if type_filter == 'pdf' %}selected{% endif %}>PDF</option>
+                        <option value="weblink" {% if type_filter == 'weblink' %}selected{% endif %}>Web Link</option>
+                        <option value="youtube" {% if type_filter == 'youtube' %}selected{% endif %}>YouTube Video</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
                     <label for="sort-by" class="form-label">Sort By</label>
                     <select id="sort-by" name="sort" class="form-select">
                         <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
@@ -89,7 +98,7 @@
     <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="h4 mb-0">
-                <i class="fas fa-book text-primary me-2"></i> Document Library
+                <i class="fas fa-book text-primary me-2"></i> Library Contents
             </h2>
             <span class="badge bg-info">{{ documents|length }} document{% if documents|length != 1 %}s{% endif %} found</span>
         </div>
@@ -100,9 +109,10 @@
                 <thead>
                     <tr>
                         <th>Document Name</th>
+                        <th>Type</th>
                         <th>Category</th>
                         <th>Uploaded</th>
-                        <th style="width: 180px;">Actions</th>
+                        <th style="width: 200px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -115,6 +125,18 @@
                         </td>
                         <td>
                             <span class="badge 
+                                {% if doc.content_type == 'pdf' %}bg-danger
+                                {% elif doc.content_type == 'weblink' %}bg-success
+                                {% elif doc.content_type == 'youtube' %}bg-primary
+                                {% else %}bg-secondary{% endif %}">
+                                {% if doc.content_type == 'pdf' %}PDF
+                                {% elif doc.content_type == 'weblink' %}Web Link
+                                {% elif doc.content_type == 'youtube' %}YouTube Video
+                                {% else %}{{ doc.content_type }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
                                 {% if doc.category == 'Industry Insights' %}bg-info
                                 {% elif doc.category == 'Technology News' %}bg-success
                                 {% elif doc.category == 'Product Management' %}bg-primary
@@ -122,7 +144,7 @@
                                 {% else %}bg-secondary{% endif %}">
                                 {{ doc.category }}
                             </span>
-                            {% if not doc.file_available %}
+                            {% if not doc.file_available and doc.content_type == 'pdf' %}
                             <span class="badge bg-danger ms-1" title="PDF file missing">
                                 <i class="fas fa-exclamation-circle"></i>
                             </span>

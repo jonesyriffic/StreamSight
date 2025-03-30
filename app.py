@@ -450,6 +450,7 @@ def upload_page():
 def library():
     # Get filter parameters
     category_filter = request.args.get('category', 'all')
+    type_filter = request.args.get('type', 'all')
     sort_by = request.args.get('sort', 'date_desc')
     
     # Query base
@@ -458,6 +459,10 @@ def library():
     # Apply category filter if not 'all'
     if category_filter != 'all':
         query = query.filter_by(category=category_filter)
+    
+    # Apply content type filter if not 'all'
+    if type_filter != 'all':
+        query = query.filter_by(content_type=type_filter)
     
     # Apply sorting
     if sort_by == 'date_desc':
@@ -480,6 +485,7 @@ def library():
                           documents=[doc.to_dict() for doc in documents],
                           categories=categories,
                           category_filter=category_filter,
+                          type_filter=type_filter,
                           sort_by=sort_by)
 
 @app.route('/upload', methods=['POST'])
