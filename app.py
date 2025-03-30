@@ -245,6 +245,19 @@ class ReuploadDocumentForm(FlaskForm):
     friendly_name = StringField('Document Name', validators=[Optional(), Length(max=255)], 
                                description='Optionally provide a readable name for this document')
 
+class EditDocumentForm(FlaskForm):
+    """Form for editing document metadata"""
+    friendly_name = StringField('Document Name', validators=[
+        DataRequired(message='Document name is required'), 
+        Length(max=255, message='Document name cannot exceed 255 characters')
+    ])
+    category = SelectField('Category', validators=[DataRequired()], choices=[
+        ('Industry Insights', 'Industry Insights'),
+        ('Technology News', 'Technology News'),
+        ('Product Management', 'Product Management'),
+        ('Customer Service', 'Customer Service')
+    ])
+
 @app.route('/')
 @login_required
 def index():
@@ -1125,6 +1138,37 @@ def serve_upload(filename):
         logger.error(f"Error serving file {filename}: {str(e)}")
         return "File not found", 404
         
+@app.route('/document/<doc_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_document(doc_id):
+    """Admin page to edit document metadata"""
+    # Get the document
+    document = Document.query.get_or_404(doc_id)
+    
+    # Create form
+    form = EditDocumentForm(obj=document)
+    
+    # Handle form submission
+    if form.validate_on_submit():
+        # Update document with form data
+        old_name = document.friendly_name or document.filename
+        document.friendly_name = form.friendly_name.data
+        document.category = form.category.data
+        
+        # Save changes
+        db.session.commit()
+        
+        # Log and notify of update
+        logger.info(f"Updated document {doc_id} metadata: '{old_name}' -> '{document.friendly_name}'")
+        flash(f"Document '{document.friendly_name}' updated successfully", 'success')
+        
+        # Redirect to document view
+        return redirect(url_for('view_document', doc_id=doc_id))
+    
+    # Display the edit form
+    return render_template('edit_document.html', document=document, form=form)
+
 @app.route('/document/<doc_id>/pdf')
 @login_required
 def serve_document_pdf(doc_id):
