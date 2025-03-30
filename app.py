@@ -1063,8 +1063,8 @@ def view_document(doc_id):
                 for badge in new_badges.get('new_badges'):
                     flash(f"Congratulations! You've earned the {badge['name']} badge!", 'success')
         
-        # If file is not available, show a message to the user
-        if not document.file_available:
+        # If file is not available and it's a PDF type, show a message to the user
+        if not document.file_available and document.content_type == 'pdf':
             flash('The PDF file for this document is not available. Document metadata and text content are still accessible.', 'warning')
         
         return render_template('document_viewer.html', document=document.to_dict())

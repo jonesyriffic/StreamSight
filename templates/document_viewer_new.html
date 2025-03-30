@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ document.friendly_name if document.friendly_name else document.filename }} - Document Viewer{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('library') }}">Document Library</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ document.friendly_name if document.friendly_name else document.filename }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- 1. DOCUMENT VIEWER - AT THE TOP -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
+                    <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %} Insights
+                    </button>
+                </div>
+                <div id="pdf-container" class="card-body p-0" {% if document.content_type == 'weblink' %}style="height: 300px;"{% endif %}>
+                    {% if document.content_type == 'weblink' %}
+                    <div class="text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-globe fa-5x text-info"></i>
+                        </div>
+                        <h4 class="text-info">Web Content</h4>
+                        <p class="text-muted col-md-8 mx-auto">This document is a web page. The content and insights have been generated from the website.</p>
+                        <a href="{{ document.source_url }}" target="_blank" class="btn btn-info mt-2">
+                            <i class="fas fa-external-link-alt me-2"></i> Visit Website
+                        </a>
+                        <p class="small text-muted mt-3">Web Content ID: {{ document.id }}</p>
+                    </div>
+                    {% elif document.content_type == 'youtube' %}
+                    <div class="w-100 m-0 p-0">
+                        {% if document.youtube_video_id %}
+                        <div class="ratio ratio-16x9 m-0">
+                            <iframe src="https://www.youtube.com/embed/{{ document.youtube_video_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="bg-dark text-white w-100 py-2 px-3 d-flex justify-content-between align-items-center">
+                            <span class="small">Video ID: {{ document.id }}</span>
+                            <a href="{{ document.source_url }}" target="_blank" class="btn btn-sm btn-outline-light">
+                                <i class="fab fa-youtube me-1"></i> Watch on YouTube
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fab fa-youtube fa-5x text-danger"></i>
+                            </div>
+                            <h4 class="text-danger">YouTube Video</h4>
+                            <p class="text-muted col-md-8 mx-auto">This document is a YouTube video. The transcript and insights have been generated from the video content.</p>
+                            <a href="{{ document.source_url }}" target="_blank" class="btn btn-danger mt-3">
+                                <i class="fab fa-youtube me-2"></i> Watch on YouTube
+                            </a>
+                            <p class="small text-muted mt-2">Video ID: {{ document.id }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% elif document.file_available %}
+                    <iframe id="pdf-viewer" src="" width="100%" height="100%" frameborder="0"></iframe>
+                    {% else %}
+                    <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center" style="height: 100%;">
+                        <div class="mb-4">
+                            <i class="fas fa-file-pdf fa-5x text-danger"></i>
+                        </div>
+                        <h4 class="text-danger">PDF File Not Available</h4>
+                        <p class="text-muted col-md-8">Sorry, the PDF file for this document cannot be found in the system. The document metadata and text content are still available.</p>
+                        <p class="small text-muted">File ID: {{ document.id }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center gap-2">
+                    <div>
+                        <button id="like-button" class="btn btn-sm btn-outline-danger" data-doc-id="{{ document.id }}" title="Like this document">
+                            <i id="like-icon" class="fas fa-thumbs-up me-1"></i> <span id="like-count">0</span>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if document.content_type == 'weblink' %}
+                        <a href="{{ document.source_url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-external-link-alt me-1"></i> Visit Website
+                        </a>
+                        {% elif document.content_type == 'youtube' %}
+                        <!-- Watch on YouTube button removed here to avoid duplication -->
+                        {% elif document.file_available %}
+                        <a id="pdf-view-link" href="/document/{{ document.id }}/pdf" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
+                        </a>
+                        <a id="pdf-download-link" href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-download me-1"></i> Download
+                        </a>
+                        {% else %}
+                        <span class="text-muted me-2">
+                            <i class="fas fa-exclamation-circle me-1"></i> PDF file not available
+                        </span>
+                        {% if current_user.is_admin or current_user.can_upload %}
+                        <a href="{{ url_for('reupload_document', doc_id=document.id) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-cloud-upload-alt me-1"></i> Reupload PDF
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. KEY POINTS SECTION - AT THE BOTTOM -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Key Points</h5>
+                </div>
+                <div class="card-body">
+                    <div id="key-points-text">
+                        {% if document.key_points %}
+                            {% if "<div class=\"document-insights\">" in document.key_points %}
+                                {# Extract only the list part, not the heading #}
+                                {% set content = document.key_points|string %}
+                                {% if "<ul class='key-points-list" in content %}
+                                    {{ content|safe }}
+                                {% else %}
+                                    <ul class="key-points-list">
+                                        {% for point in document.key_points.split('\n') if point.strip() %}
+                                            <li>{{ point }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            {% elif "<div class=\"key-points-section\">" in document.key_points %}
+                                {# Extract only the list part, not the heading #}
+                                {% set content = document.key_points|string %}
+                                {% if "<ul class='key-points-list" in content %}
+                                    {{ content|safe }}
+                                {% else %}
+                                    <ul class="key-points-list">
+                                        {% for point in document.key_points.split('\n') if point.strip() %}
+                                            <li>{{ point }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <ul class="key-points-list">
+                                    {% for point in document.key_points.split('\n') if point.strip() %}
+                                        <li>{{ point }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SUMMARY SECTION - AT THE BOTTOM ONLY -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div id="summary-loading" class="d-none text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Generating AI insights...</p>
+                    </div>
+                    
+                    <div id="summary-content" class="insights-section {% if not document.summary %}d-none{% endif %}">
+                        <div id="summary-text">
+                            {% if document.summary %}
+                                <p class="document-insights-paragraph">{{ document.summary }}</p>
+                            {% else %}
+                                <p class="text-muted">No summary available yet. Click the Generate button to create one.</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if document.summary_generated_at %}
+                        <div class="summary-meta">
+                            <i class="fas fa-clock me-1"></i> Generated: {{ document.summary_generated_at }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="summary-error" class="d-none alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="error-message">An error occurred while generating insights.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team specialization reminder for users who haven't set it -->
+            {% if current_user.is_authenticated and not current_user.team_specialization %}
+            <div class="card mb-4 border-info bg-info bg-opacity-10">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-lightbulb fa-2x text-info"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 text-info">Personalize your document experience</h5>
+                            <p class="mb-2">
+                                Set your team specialization in your profile to see why this document is relevant to your specific role.
+                            </p>
+                            <a href="{{ url_for('profile') }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-user-edit me-1"></i> Update Your Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Document Info</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Category:</strong>
+                        <span class="badge 
+                            {% if document.category == 'Industry Insights' %}bg-info
+                            {% elif document.category == 'Technology News' %}bg-success
+                            {% elif document.category == 'Product Management' %}bg-primary
+                            {% elif document.category == 'Customer Service' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                            {{ document.category }}
+                        </span>
+                    </p>
+                    <p><strong>Uploaded:</strong> <br>{{ document.relative_time if document.relative_time else document.uploaded_at }}</p>
+                    <p><strong>Document Name:</strong> <br>{{ document.friendly_name if document.friendly_name else document.filename }}</p>
+                    <p><strong>Original Filename:</strong> <br>{{ document.filename }}</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Document Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p><strong>Document Type:</strong> 
+                            {% if document.content_type == 'weblink' %}
+                                Web Link
+                            {% elif document.content_type == 'youtube' %}
+                                YouTube Video
+                            {% else %}
+                                PDF
+                            {% endif %}
+                        </p>
+                        {% if document.content_type == 'weblink' %}
+                            <p><strong>Source URL:</strong> <a href="{{ document.source_url }}" target="_blank" class="text-info">{{ document.source_url }}</a></p>
+                        {% elif document.content_type == 'youtube' %}
+                            <p><strong>Video URL:</strong> <a href="{{ document.source_url }}" target="_blank" class="text-danger">{{ document.source_url }}</a></p>
+                        {% else %}
+                            <p><strong>Size:</strong> {{ (document.filepath|length / 1024)|round(1) }} KB</p>
+                        {% endif %}
+                    </div>
+                    {% if document.content_type == 'pdf' %}
+                    <p class="text-muted small">For searching within the document, please open it in a new tab and use your browser's search functionality (Ctrl+F or Cmd+F).</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('library') }}" class="btn btn-secondary w-100 mb-2">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Library
+                    </a>
+                    
+                    {% if document.content_type == 'weblink' %}
+                    <a href="{{ document.source_url }}" target="_blank" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-external-link-alt me-2"></i> Visit Website
+                    </a>
+                    {% elif document.content_type == 'youtube' %}
+                    <a href="{{ document.source_url }}" target="_blank" class="btn btn-danger w-100 mb-2">
+                        <i class="fab fa-youtube me-2"></i> Watch on YouTube
+                    </a>
+                    {% elif document.file_available %}
+                    <a href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-download me-2"></i> Download PDF
+                    </a>
+                    {% else %}
+                    <!-- Show reupload button for missing files (admin only) -->
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('reupload_document', doc_id=document.id) }}" class="btn btn-warning w-100 mb-2">
+                        <i class="fas fa-cloud-upload-alt me-2"></i> Reupload Missing PDF
+                    </a>
+                    {% endif %}
+                    <span class="d-block text-center text-danger small mb-2">
+                        <i class="fas fa-exclamation-circle me-1"></i> Original PDF file is missing
+                    </span>
+                    {% endif %}
+                    
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('delete_document', doc_id=document.id) }}" 
+                       class="btn btn-outline-danger w-100 mb-2"
+                       onclick="return confirm('Are you sure you want to delete this document? This action cannot be undone.')">
+                        <i class="fas fa-trash-alt me-2"></i> Delete Document
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if document.content_type != 'weblink' and document.content_type != 'youtube' %}
+<script src="{{ url_for('static', filename='js/pdfjs-init.js') }}"></script>
+{% endif %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get file ID from the document for direct access
+        const documentId = "{{ document.id }}";
+        
+        // For PDF documents, initialize the viewer
+        {% if document.content_type != 'weblink' and document.content_type != 'youtube' and document.file_available %}
+        // We'll update our approach to get the file directly from the database by ID
+        // This handles the filename extraction properly and avoids filepath issues
+        const pdfUrl = "/document/{{ document.id }}/pdf";
+        
+        // Initialize PDF viewer only if it's a PDF file and it's available
+        initPdfViewer(pdfUrl);
+        {% endif %}
+        
+        // Generate/Regenerate Summary functionality
+        document.getElementById('generate-summary-btn').addEventListener('click', function() {
+            // Show loading state
+            document.getElementById('summary-loading').classList.remove('d-none');
+            document.getElementById('summary-content').classList.add('d-none');
+            document.getElementById('summary-error').classList.add('d-none');
+            
+            // Send AJAX request to generate summary
+            fetch('/api/generate-summary/{{ document.id }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading state
+                document.getElementById('summary-loading').classList.add('d-none');
+                
+                if (data.success) {
+                    // Update UI with new content
+                    document.getElementById('summary-text').innerHTML = data.summary;
+                    document.getElementById('key-points-text').innerHTML = data.key_points;
+                    
+                    // Update timestamp if provided
+                    if (data.generated_at) {
+                        const timestampElement = document.querySelector('#summary-content .summary-meta');
+                        if (timestampElement) {
+                            timestampElement.innerHTML = `<i class="fas fa-clock me-1"></i> Generated: ${data.generated_at}`;
+                        } else {
+                            const newTimestamp = document.createElement('div');
+                            newTimestamp.className = 'summary-meta';
+                            newTimestamp.innerHTML = `<i class="fas fa-clock me-1"></i> Generated: ${data.generated_at}`;
+                            document.getElementById('summary-content').appendChild(newTimestamp);
+                        }
+                    }
+                    
+                    // Show content
+                    document.getElementById('summary-content').classList.remove('d-none');
+                    
+                    // Update button text to "Regenerate Insights"
+                    this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Regenerate Insights';
+                } else {
+                    // Show user-friendly error message (hide technical details)
+                    document.getElementById('error-message').textContent = data.error || 'An error occurred while generating insights.';
+                    
+                    // If there's a technical error, log it to console for debugging
+                    if (data.technical_error) {
+                        console.error('Technical error:', data.technical_error);
+                    }
+                    
+                    // Show the error alert
+                    document.getElementById('summary-error').classList.remove('d-none');
+                    
+                    // Ensure the generate button is still clickable for retry
+                    this.disabled = false;
+                }
+            })
+            .catch(error => {
+                // Hide loading, show error
+                document.getElementById('summary-loading').classList.add('d-none');
+                
+                // Show user-friendly message but log technical details
+                document.getElementById('error-message').textContent = 'Network or server error occurred. Please try again later.';
+                document.getElementById('summary-error').classList.remove('d-none');
+                
+                // Log technical details to console
+                console.error('Network/fetch error:', error);
+                
+                // Enable retry
+                this.disabled = false;
+            });
+        });
+        
+        // Document Like Functionality
+        const likeButton = document.getElementById('like-button');
+        const likeIcon = document.getElementById('like-icon');
+        const likeCount = document.getElementById('like-count');
+        const docId = likeButton.getAttribute('data-doc-id');
+        
+        // Initial load - get current like status
+        fetch(`/api/document/${docId}/like-status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update like count
+                    likeCount.textContent = data.count;
+                    
+                    // Update button style based on like status
+                    if (data.liked) {
+                        likeButton.classList.remove('btn-outline-danger');
+                        likeButton.classList.add('btn-danger');
+                        likeButton.title = 'Unlike this document';
+                    } else {
+                        likeButton.classList.remove('btn-danger');
+                        likeButton.classList.add('btn-outline-danger');
+                        likeButton.title = 'Like this document';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error getting like status:', error);
+            });
+            
+        // Like button click handler
+        likeButton.addEventListener('click', function() {
+            // Show loading state
+            likeButton.disabled = true;
+            
+            // Toggle like status
+            fetch(`/api/document/${docId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Re-enable button
+                likeButton.disabled = false;
+                
+                if (data.status === 'success') {
+                    // Update like count
+                    likeCount.textContent = data.count;
+                    
+                    // Update button style based on new like status
+                    if (data.liked) {
+                        likeButton.classList.remove('btn-outline-danger');
+                        likeButton.classList.add('btn-danger');
+                        likeButton.title = 'Unlike this document';
+                    } else {
+                        likeButton.classList.remove('btn-danger');
+                        likeButton.classList.add('btn-outline-danger');
+                        likeButton.title = 'Like this document';
+                    }
+                } else {
+                    // Show error
+                    console.error('Error updating like status:', data.message);
+                }
+            })
+            .catch(error => {
+                // Re-enable button
+                likeButton.disabled = false;
+                console.error('Error updating like status:', error);
+            });
+        });
+    });
+</script>
+{% endblock %}
