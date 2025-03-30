@@ -347,8 +347,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Immediately change this button's appearance with animation
                         this.classList.add('active', 'disabled', 'example-active');
-                        // Replace icon with animated robot icon
-                        this.innerHTML = this.innerHTML.replace(/fa-\w+/, 'fa-robot fa-bounce');
+                        // Replace with animated robot icon
+                        this.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
                         
                         // Force a reflow to apply new styles immediately
                         void this.offsetWidth;
