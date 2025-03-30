@@ -138,37 +138,67 @@
 
 <div class="row">
     <div class="col-md-8">
+        <!-- Key Points Section Above Document Viewer -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Key Points</h5>
+                <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %} Insights
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="key-points-text">
+                    {% if document.key_points %}
+                        {% if "<div class=\"key-points-section\">" in document.key_points %}
+                            {{ document.key_points|safe }}
+                        {% else %}
+                            <div class='key-points-section'>
+                                <ul class="key-points-list">
+                                    {% for point in document.key_points.split('\n') if point.strip() %}
+                                        <li>{{ point }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Document Viewer -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
             </div>
-            <div id="pdf-container" class="card-body p-0">
+            <div id="pdf-container" class="card-body p-0" {% if document.content_type == 'weblink' %}style="height: 300px;"{% endif %}>
                 {% if document.content_type == 'weblink' %}
-                <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center" style="height: 100%;">
-                    <div class="mb-4">
-                        <i class="fas fa-link fa-5x text-info"></i>
+                <div class="d-flex flex-column align-items-center justify-content-center py-4 text-center" style="height: 100%;">
+                    <div class="mb-3">
+                        <i class="fas fa-link fa-4x text-info"></i>
                     </div>
                     <h4 class="text-info">Web Link</h4>
-                    <p class="text-muted col-md-8">This document is a web link. You can visit the original website by clicking the button below.</p>
-                    <a href="{{ document.source_url }}" target="_blank" class="btn btn-info mt-3">
+                    <p class="text-muted col-md-10">This document is a web link. You can visit the original website by clicking the button below.</p>
+                    <a href="{{ document.source_url }}" target="_blank" class="btn btn-info mt-2">
                         <i class="fas fa-external-link-alt me-2"></i> Visit Website
                     </a>
                     <p class="small text-muted mt-3">Web Content ID: {{ document.id }}</p>
                 </div>
                 {% elif document.content_type == 'youtube' %}
-                <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center" style="height: 100%;">
-                    <div class="mb-4">
-                        <i class="fab fa-youtube fa-5x text-danger"></i>
-                    </div>
-                    <h4 class="text-danger">YouTube Video</h4>
-                    <p class="text-muted col-md-8">This document is a YouTube video. The transcript and insights have been generated from the video content.</p>
+                <div class="d-flex flex-column align-items-center justify-content-center py-3 text-center">
                     {% if document.youtube_video_id %}
-                    <div class="mt-3 mb-3" style="width: 80%; max-width: 560px;">
+                    <div class="w-100 px-3">
                         <div class="ratio ratio-16x9">
                             <iframe src="https://www.youtube.com/embed/{{ document.youtube_video_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                         </div>
                     </div>
                     {% else %}
+                    <div class="mb-3">
+                        <i class="fab fa-youtube fa-5x text-danger"></i>
+                    </div>
+                    <h4 class="text-danger">YouTube Video</h4>
+                    <p class="text-muted col-md-8">This document is a YouTube video. The transcript and insights have been generated from the video content.</p>
                     <a href="{{ document.source_url }}" target="_blank" class="btn btn-danger mt-3">
                         <i class="fab fa-youtube me-2"></i> Watch on YouTube
                     </a>
@@ -224,6 +254,42 @@
             </div>
         </div>
 
+        <!-- Summary Section Below Document Viewer -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Summary</h5>
+            </div>
+            <div class="card-body">
+                <div id="summary-loading" class="d-none text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating AI insights...</p>
+                </div>
+                
+                <div id="summary-content" class="insights-section {% if not document.summary %}d-none{% endif %}">
+                    <div id="summary-text">
+                        {% if document.summary %}
+                            <p class="document-insights-paragraph">{{ document.summary }}</p>
+                        {% else %}
+                            <p class="text-muted">No summary available yet. Click the Generate button to create one.</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if document.summary_generated_at %}
+                    <div class="summary-meta">
+                        <i class="fas fa-clock me-1"></i> Generated: {{ document.summary_generated_at }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div id="summary-error" class="d-none alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="error-message">An error occurred while generating insights.</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Team specialization reminder for users who haven't set it -->
         {% if current_user.is_authenticated and not current_user.team_specialization %}
         <div class="card mb-4 border-info bg-info bg-opacity-10">
@@ -245,68 +311,6 @@
             </div>
         </div>
         {% endif %}
-        
-        <!-- AI Insights Section -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Document Insights</h5>
-                <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %} Insights
-                </button>
-            </div>
-            <div class="card-body">
-                <div id="summary-loading" class="d-none text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Generating AI insights...</p>
-                </div>
-                
-                <div id="summary-content" class="insights-section {% if not document.summary %}d-none{% endif %}">
-                    <div id="key-points-text">
-                        {% if document.key_points %}
-                            {{ document.key_points|safe }}
-                        {% else %}
-                            <div class='key-points-section'>
-                                <h3>Key Points</h3>
-                                <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div id="summary-text" class="mb-4">
-                        {% if document.key_points %}
-                            {% if "<div class=\"document-insights\">" in document.key_points %}
-                                {{ document.key_points|safe }}
-                            {% else %}
-                                <div class='summary-section'>
-                                    <h3>Summary</h3>
-                                    <p class="document-insights-paragraph">{{ document.summary }}</p>
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            <div class='summary-section'>
-                                <h3>Summary</h3>
-                                <p class="text-muted">No summary available yet. Click the Generate button to create one.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Team relevance section removed - now only shown on the dashboard -->
-                    
-                    {% if document.summary_generated_at %}
-                    <div class="summary-meta">
-                        <i class="fas fa-clock me-1"></i> Generated: {{ document.summary_generated_at }}
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div id="summary-error" class="d-none alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span id="error-message">An error occurred while generating insights.</span>
-                </div>
-            </div>
-        </div>
     </div>
     
     <div class="col-md-4">
