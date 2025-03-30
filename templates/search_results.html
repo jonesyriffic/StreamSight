@@ -19,8 +19,11 @@
     <div class="card-body">
         <form action="{{ url_for('search') }}" method="get" id="searchResultsForm">
             <div class="input-group">
+                <span class="input-group-text text-primary">
+                    <i class="fas fa-lightbulb"></i>
+                </span>
                 <input type="text" name="query" class="form-control search-input" 
-                       value="{{ query }}" placeholder="Ask a question or search for keywords..."
+                       value="{{ query }}" placeholder="Ask a question about our documents..."
                        id="searchResultsInput">
                 <select name="category" class="form-select" style="max-width: 200px;">
                     <option value="all" {% if selected_category == 'all' %}selected{% endif %}>All Categories</option>
@@ -30,27 +33,18 @@
                         </option>
                     {% endfor %}
                 </select>
-                <button type="button" class="btn btn-info" id="voiceSearchResultsButton" title="Search by voice">
-                    <i class="fas fa-microphone"></i>
-                </button>
                 <button class="btn btn-primary" type="submit" id="searchResultsButton">
                     <span class="search-button-normal">
                         <i class="fas fa-search me-2"></i> Search
                     </span>
                     <span class="search-button-loading d-none" id="searchResultsSpinnerInline">
-                        <i class="fas fa-robot fa-bounce me-2"></i> Searching...
+                        <i class="fas fa-circle-notch fa-spin me-2"></i> Searching...
                     </span>
                 </button>
             </div>
             
-            <!-- Voice recognition feedback -->
-            <div id="voiceSearchResultsFeedback" class="d-none">
-                <div class="d-flex align-items-center justify-content-center my-2">
-                    <div class="spinner-grow text-info me-2" role="status" style="width: 1rem; height: 1rem;">
-                        <span class="visually-hidden">Listening...</span>
-                    </div>
-                    <span class="text-info">Listening... <span id="voiceSearchResultsText"></span></span>
-                </div>
+            <div class="text-muted small mt-2 mb-3">
+                <i class="fas fa-info-circle me-1"></i> Searches may take up to 90 seconds to process
             </div>
             
             <!-- Example search suggestions -->
