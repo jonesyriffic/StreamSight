@@ -26,7 +26,12 @@
                         <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %} Insights
                     </button>
                 </div>
-                <div id="pdf-container" class="card-body p-0" {% if document.content_type == 'weblink' %}style="height: 300px;"{% endif %}>
+                <div id="pdf-container" class="card-body p-0" 
+                    {% if document.content_type == 'weblink' %}
+                        style="height: 300px;"
+                    {% elif document.content_type == 'pdf' %}
+                        style="height: 600px;"
+                    {% endif %}>
                     {% if document.content_type == 'weblink' %}
                     <div class="text-center p-4">
                         <div class="mb-3">
@@ -112,13 +117,15 @@
                 </div>
             </div>
             
-            <!-- 2. KEY POINTS SECTION - AT THE BOTTOM -->
+            <!-- KEY POINTS AND SUMMARY SECTION - COMBINED AT THE BOTTOM -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Key Points</h5>
+                    <h5 class="card-title mb-0">Key Points & Summary</h5>
                 </div>
                 <div class="card-body">
-                    <div id="key-points-text">
+                    <!-- Key Points -->
+                    <h6 class="fw-bold mb-3">Key Points</h6>
+                    <div id="key-points-text" class="mb-4">
                         {% if document.key_points %}
                             {% if "<div class=\"document-insights\">" in document.key_points %}
                                 {# Extract only the list part, not the heading #}
@@ -155,15 +162,9 @@
                             <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-
-            <!-- 3. SUMMARY SECTION - AT THE BOTTOM ONLY -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Summary</h5>
-                </div>
-                <div class="card-body">
+                    
+                    <!-- Summary -->
+                    <h6 class="fw-bold mb-3">Summary</h6>
                     <div id="summary-loading" class="d-none text-center py-4">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
