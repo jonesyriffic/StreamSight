@@ -323,60 +323,53 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show AI-specific loading indicator
                     e.preventDefault();
                     
-                    // First, activate built-in spinner (same as from submit handler)
-                    const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
-                    // Identify appropriate spinner and search button based on page
-                    const searchButton = isHomepage ? 
-                        document.getElementById('mainSearchButton') : 
-                        document.getElementById('searchButton');
-                    const searchSpinner = isHomepage ? 
-                        document.getElementById('mainSearchSpinner') : 
-                        document.getElementById('searchSpinner');
-                        
-                    // Disable search button
-                    if (searchButton) searchButton.disabled = true;
-                    
-                    // Show spinner
-                    if (searchSpinner) searchSpinner.classList.remove('d-none');
-                    
-                    // Get search container and add an AI searching message
-                    const searchContainer = document.querySelector('.search-container') || document.body;
-                    const aiSearchingMsg = document.createElement('div');
-                    aiSearchingMsg.classList.add('alert', 'alert-info', 'text-center', 'mt-2', 'ai-search-progress');
-                    aiSearchingMsg.innerHTML = `
-                        <div class="d-flex align-items-center justify-content-center">
-                            <div class="me-3">
-                                <i class="fas fa-robot fa-bounce me-2"></i>
-                                <i class="fas fa-spinner fa-spin me-2"></i>
-                            </div>
-                            <div>
-                                <strong>AI Search in progress:</strong> 
-                                <span class="fw-normal">Searching for "${example}" across all documents...</span>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Remove any existing messages
-                    const existingMsgs = document.querySelectorAll('.ai-search-progress');
-                    existingMsgs.forEach(msg => msg.remove());
-                    
-                    // Add the message
-                    searchContainer.appendChild(aiSearchingMsg);
-                    
-                    // Change button appearance
-                    button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
-                    button.classList.add('disabled');
-                    
                     // Set input field value to match example search
                     const mainSearchInput = document.getElementById('mainSearchInput');
                     const searchResultsInput = document.getElementById('searchResultsInput');
                     if (mainSearchInput) mainSearchInput.value = example;
                     if (searchResultsInput) searchResultsInput.value = example;
                     
+                    // Determine which page we're on
+                    const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
+                    
+                    // Create and show a more prominent AI loading indicator 
+                    // (we'll place this in the fixed container)
+                    let loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'search-loading-indicator';
+                    loadingDiv.innerHTML = `
+                      <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
+                           style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
+                        <div class="card p-4 shadow-lg" style="max-width: 500px;">
+                          <div class="text-center mb-3">
+                            <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status">
+                              <span class="visually-hidden">Searching...</span>
+                            </div>
+                            <div class="mt-3 mb-2">
+                              <i class="fas fa-robot text-info fa-2x fa-bounce"></i>
+                            </div>
+                          </div>
+                          <h4 class="text-center">AI Search in Progress</h4>
+                          <p class="text-center mb-0">
+                            Searching for <strong>"${example}"</strong> across all documents... 
+                          </p>
+                          <p class="text-center text-muted small mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            This AI-powered search may take a few moments
+                          </p>
+                        </div>
+                      </div>
+                    `;
+                    
+                    document.body.appendChild(loadingDiv);
+                    
+                    // Change button appearance
+                    button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
+                    button.classList.add('disabled');
+                    
                     // Navigate after delay for visual feedback
                     setTimeout(() => {
                         window.location.href = this.href;
-                    }, 1000); // Longer delay to show the AI is thinking
+                    }, 1200); // Longer delay to show the AI is thinking
                     
                     return false;
                 };
