@@ -170,22 +170,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]
             },
             
-            // Short searchable terms
+            // Short searchable terms in question format
             shortTerms: [
-                "CRM trends",
-                "Chatbot ROI",
-                "Customer feedback analysis",
-                "Service automation",
-                "Agent productivity",
-                "Digital engagement metrics",
-                "Self-service portals",
-                "Voice recognition",
-                "AI customer insights",
-                "Omnichannel support",
-                "Call center metrics",
-                "Customer retention strategies",
-                "Service technology ROI",
-                "Support ticket analysis"
+                "What are the latest CRM trends?",
+                "How can I measure chatbot ROI?",
+                "How to analyze customer feedback effectively?",
+                "What are best practices for service automation?",
+                "How to improve agent productivity?",
+                "Which digital engagement metrics matter most?",
+                "How can self-service portals reduce support costs?",
+                "How is voice recognition changing customer service?",
+                "What insights can AI provide about customers?",
+                "How to implement effective omnichannel support?",
+                "Which call center metrics should I track?",
+                "What are effective customer retention strategies?",
+                "How to calculate service technology ROI?",
+                "How can support ticket analysis improve service?"
             ]
         };
         
@@ -283,34 +283,59 @@ document.addEventListener('DOMContentLoaded', function() {
                             mainSearchInput.value = example;
                         }
                         
-                        // Show loading indicator
-                        const mainSearchSpinner = document.getElementById('mainSearchSpinner');
-                        const mainSearchButton = document.getElementById('mainSearchButton');
-                        const searchContainer = document.getElementById('searchContainer');
-                        
-                        // Show spinner if it exists
-                        if (mainSearchSpinner) {
-                            mainSearchSpinner.classList.remove('d-none');
-                        }
-                        
-                        // Disable search button
-                        if (mainSearchButton) {
-                            mainSearchButton.disabled = true;
-                        }
-                        
-                        // Add visual indicator to search container
-                        if (searchContainer) {
-                            searchContainer.classList.add('searching');
-                        }
-                        
-                        // Change button appearance
+                        // Change this button's appearance with animation
                         this.classList.add('active', 'disabled');
-                        this.innerHTML = this.innerHTML.replace('fa-search', 'fa-robot fa-bounce');
+                        // Replace icon with animated robot
+                        this.innerHTML = this.innerHTML.replace(/fa-\w+/, 'fa-robot fa-bounce');
+                        this.style.boxShadow = '0 0 10px rgba(var(--bs-warning-rgb), 0.7)';
+                        
+                        // Make other example buttons appear disabled
+                        const exampleButtons = this.parentElement.querySelectorAll('a.btn');
+                        exampleButtons.forEach(btn => {
+                            if (btn !== this) {
+                                btn.classList.add('disabled');
+                                btn.style.opacity = '0.5';
+                            }
+                        });
+                        
+                        // Use the global search overlay function if available
+                        if (window.showAISearchOverlay) {
+                            window.showAISearchOverlay(example);
+                        } else {
+                            // Show loading indicator
+                            const mainSearchSpinner = document.getElementById('mainSearchSpinner');
+                            const mainSearchButton = document.getElementById('mainSearchButton');
+                            const mainSearchSpinnerInline = document.getElementById('mainSearchSpinnerInline');
+                            const searchContainer = document.getElementById('searchContainer');
+                            
+                            // Show spinner if it exists
+                            if (mainSearchSpinner) {
+                                mainSearchSpinner.classList.remove('d-none');
+                            }
+                            
+                            // Update search button with inline spinner
+                            if (mainSearchButton) {
+                                // Disable button and add classes
+                                mainSearchButton.disabled = true;
+                                mainSearchButton.classList.add('btn-warning');
+                                mainSearchButton.classList.remove('btn-primary');
+                                
+                                // Show spinner in button
+                                const searchButtonNormal = mainSearchButton.querySelector('.search-button-normal');
+                                if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
+                                if (mainSearchSpinnerInline) mainSearchSpinnerInline.classList.remove('d-none');
+                            }
+                            
+                            // Add visual indicator to search container
+                            if (searchContainer) {
+                                searchContainer.classList.add('searching');
+                            }
+                        }
                         
                         // Navigate after a short delay to ensure loading indicator is visible
                         setTimeout(() => {
                             window.location.href = this.href;
-                        }, 100);
+                        }, 300);
                         return false;
                     };
                     
