@@ -463,9 +463,17 @@
                                         <i class="fas fa-eye me-1"></i> View
                                     </a>
                                     
-                                    {% if doc.filepath %}
+                                    {% if doc.content_type == 'pdf' and doc.filepath %}
                                     <a href="{{ url_for('serve_upload', filename=doc.filepath) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
                                         <i class="fas fa-file-pdf me-1"></i> PDF
+                                    </a>
+                                    {% elif doc.content_type == 'weblink' and doc.source_url %}
+                                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-globe me-1"></i> Web
+                                    </a>
+                                    {% elif doc.content_type == 'youtube' and doc.source_url %}
+                                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-youtube me-1"></i> Video
                                     </a>
                                     {% endif %}
                                 </div>
