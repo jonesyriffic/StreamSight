@@ -1218,7 +1218,7 @@ def get_categories():
 @login_required
 def get_document_topics():
     """
-    Extract popular topics from documents in the library
+    Extract popular topics from documents in the library and recent searches
     Returns a list of topic strings for use in search suggestions
     """
     # Get all documents with text content
@@ -1259,18 +1259,37 @@ def get_document_topics():
             prefixed_terms = re.findall(r'\b(?:AI|ML|CX|UX|AR|VR|CRM)[A-Za-z]*\b', doc.summary)
             topics.extend(prefixed_terms)
     
+    # Get recent search queries that returned results (max 50)
+    successful_searches = []
+    try:
+        # Get searches that found at least one document
+        search_logs = SearchLog.query.filter(SearchLog.results_count > 0).order_by(
+            SearchLog.timestamp.desc()).limit(50).all()
+        
+        # Add search queries to our topics list
+        for log in search_logs:
+            if log.query and len(log.query.split()) <= 4:  # Only use shorter queries (up to 4 words)
+                successful_searches.append(log.query)
+    except Exception as e:
+        # Just continue if there's an issue with search logs
+        app.logger.warning(f"Error fetching search logs for topic extraction: {e}")
+    
+    # Add successful searches to the topics
+    topics.extend(successful_searches)
+    
     # Count frequency and get the most common topics
     from collections import Counter
     topic_counter = Counter(topics)
     
-    # Get top 30 topics
-    popular_topics = [topic for topic, count in topic_counter.most_common(30)]
+    # Get top 20 topics (reduced from 30 to focus on more relevant ones)
+    popular_topics = [topic for topic, count in topic_counter.most_common(20)]
     
-    # Add specific product manager-focused terms if not already present
+    # Add specific product manager-focused terms found in documents
     pm_terms = [
-        "Customer feedback", "Product roadmap", "User stories", "Feature prioritization",
-        "Market research", "Competitive analysis", "User experience", "Product metrics",
-        "Sprint planning", "Release management", "Customer service", "Digital engagement"
+        "Notebook February", "AI agents", "Augmented reality", "Digital transformation", 
+        "Customer service", "Generative AI", "Sprint planning", "Customer experience",
+        "Product roadmap", "Future of customer management", "Cloud services",
+        "Digital engagement", "Virtual agents"
     ]
     
     for term in pm_terms:
@@ -1281,7 +1300,8 @@ def get_document_topics():
     import random
     random.shuffle(popular_topics)
     
-    return jsonify(popular_topics)
+    # Return no more than 15 topics total to keep the UI clean
+    return jsonify(popular_topics[:15])
 
 @app.route('/api/generate-summary/<doc_id>', methods=['POST'])
 @login_required

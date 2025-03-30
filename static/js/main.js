@@ -374,22 +374,22 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.warn('Error fetching document topics:', error);
-                // Fallback to static examples
+                // Fallback to examples based on actual document content
                 const fallbackExamples = [
-                    "CRM trends",
-                    "Chatbot ROI",
-                    "Customer feedback analysis",
-                    "Service automation",
-                    "Agent productivity",
-                    "Digital engagement metrics",
-                    "Self-service portals",
-                    "Voice recognition",
-                    "AI customer insights",
-                    "Omnichannel support",
-                    "Call center metrics",
-                    "Customer retention strategies",
-                    "Service technology ROI",
-                    "Support ticket analysis"
+                    "AI agents",
+                    "Notebook February",
+                    "Augmented reality",
+                    "Generative AI",
+                    "Customer service trends",
+                    "Digital transformation",
+                    "Sprint planning",
+                    "Product roadmap",
+                    "Future of customer management",
+                    "Elasticon",
+                    "Middleware AI",
+                    "Service technology",
+                    "AR VR applications",
+                    "Customer experience"
                 ];
                 updateSearchExamples(fallbackExamples);
             });
