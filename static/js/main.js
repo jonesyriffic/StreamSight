@@ -273,10 +273,44 @@ document.addEventListener('DOMContentLoaded', function() {
                         button.innerHTML = `<i class="fas fa-search me-1"></i> ${example}`;
                     }
                     
-                    // Add direct onclick handler to ensure navigation works
+                    // Add direct onclick handler to ensure navigation works and show loading indicator
                     button.onclick = function(e) {
                         e.preventDefault();
-                        window.location.href = this.href;
+                        
+                        // Set the search input value to the example text
+                        const mainSearchInput = document.getElementById('mainSearchInput');
+                        if (mainSearchInput) {
+                            mainSearchInput.value = example;
+                        }
+                        
+                        // Show loading indicator
+                        const mainSearchSpinner = document.getElementById('mainSearchSpinner');
+                        const mainSearchButton = document.getElementById('mainSearchButton');
+                        const searchContainer = document.getElementById('searchContainer');
+                        
+                        // Show spinner if it exists
+                        if (mainSearchSpinner) {
+                            mainSearchSpinner.classList.remove('d-none');
+                        }
+                        
+                        // Disable search button
+                        if (mainSearchButton) {
+                            mainSearchButton.disabled = true;
+                        }
+                        
+                        // Add visual indicator to search container
+                        if (searchContainer) {
+                            searchContainer.classList.add('searching');
+                        }
+                        
+                        // Change button appearance
+                        this.classList.add('active', 'disabled');
+                        this.innerHTML = this.innerHTML.replace('fa-search', 'fa-robot fa-bounce');
+                        
+                        // Navigate after a short delay to ensure loading indicator is visible
+                        setTimeout(() => {
+                            window.location.href = this.href;
+                        }, 100);
                         return false;
                     };
                     
@@ -331,26 +365,78 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Determine which page we're on
                     const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
+                    const isSearchPage = window.location.pathname === '/search';
                     
                     // Use the global search overlay function if available
                     if (window.showAISearchOverlay) {
                         window.showAISearchOverlay(example);
                     } else {
-                        // Fallback to manually showing spinners
+                        // Enhanced loading indicators for search buttons
                         const mainSearchButton = document.getElementById('mainSearchButton');
                         const mainSearchSpinner = document.getElementById('mainSearchSpinner');
-                        if (mainSearchButton) mainSearchButton.disabled = true;
-                        if (mainSearchSpinner) mainSearchSpinner.classList.remove('d-none');
+                        const mainSearchSpinnerInline = document.getElementById('mainSearchSpinnerInline');
+                        const searchResultsButton = document.getElementById('searchResultsButton');
+                        const searchResultsSpinner = document.getElementById('searchSpinner');
+                        const searchResultsSpinnerInline = document.getElementById('searchResultsSpinnerInline');
+                        
+                        // Apply loading states based on which page we're on
+                        if (isHomepage || !isSearchPage) {
+                            // On homepage or non-search pages
+                            if (mainSearchButton) {
+                                // Update button state with inline spinner
+                                mainSearchButton.disabled = true;
+                                mainSearchButton.classList.add('btn-warning');
+                                mainSearchButton.classList.remove('btn-primary');
+                                
+                                // Show spinner in button
+                                const searchButtonNormal = mainSearchButton.querySelector('.search-button-normal');
+                                if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
+                                if (mainSearchSpinnerInline) mainSearchSpinnerInline.classList.remove('d-none');
+                                
+                                // Add searching class to container
+                                const searchContainer = document.getElementById('searchContainer');
+                                if (searchContainer) searchContainer.classList.add('searching');
+                            }
+                            if (mainSearchSpinner) mainSearchSpinner.classList.remove('d-none');
+                        } else {
+                            // On search results page
+                            if (searchResultsButton) {
+                                // Update button state with inline spinner
+                                searchResultsButton.disabled = true;
+                                searchResultsButton.classList.add('btn-warning');
+                                searchResultsButton.classList.remove('btn-primary');
+                                
+                                // Show spinner in button
+                                const searchButtonNormal = searchResultsButton.querySelector('.search-button-normal');
+                                if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
+                                if (searchResultsSpinnerInline) searchResultsSpinnerInline.classList.remove('d-none');
+                                
+                                // Add searching class to container
+                                const searchContainer = document.querySelector('.search-container');
+                                if (searchContainer) searchContainer.classList.add('searching');
+                            }
+                            if (searchResultsSpinner) searchResultsSpinner.classList.remove('d-none');
+                        }
                     }
                     
-                    // Change button appearance
+                    // Change button appearance with animation
+                    button.classList.add('active', 'disabled');
                     button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
-                    button.classList.add('disabled');
+                    button.style.boxShadow = '0 0 10px rgba(var(--bs-warning-rgb), 0.7)';
+                    
+                    // Mark other example buttons as inactive
+                    const exampleButtons = button.parentElement.querySelectorAll('a.btn');
+                    exampleButtons.forEach(btn => {
+                        if (btn !== button) {
+                            btn.classList.add('disabled');
+                            btn.style.opacity = '0.5';
+                        }
+                    });
                     
                     // Navigate after delay for visual feedback
                     setTimeout(() => {
                         window.location.href = this.href;
-                    }, 800); // Delay to show the AI is thinking
+                    }, 300); // Shorter delay for better responsiveness
                     
                     return false;
                 };
@@ -374,22 +460,19 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.warn('Error fetching document topics:', error);
-                // Fallback to examples based on actual document content
+                // Fallback to question-based examples based on actual document content
                 const fallbackExamples = [
-                    "AI agents",
-                    "Notebook February",
-                    "Augmented reality",
-                    "Generative AI",
-                    "Customer service trends",
-                    "Digital transformation",
-                    "Sprint planning",
-                    "Product roadmap",
-                    "Future of customer management",
-                    "Elasticon",
-                    "Middleware AI",
-                    "Service technology",
-                    "AR VR applications",
-                    "Customer experience"
+                    "What are AI agents?",
+                    "How does augmented reality improve productivity?",
+                    "What are the latest customer service trends?",
+                    "How can digital transformation help my business?",
+                    "What is the future of customer management?",
+                    "How are companies using generative AI?",
+                    "What is sprint planning methodology?",
+                    "How to create an effective product roadmap?",
+                    "How does AI provide customer insights?",
+                    "What's in the latest Notebook February issue?",
+                    "When will AR/VR technology become mainstream?"
                 ];
                 updateSearchExamples(fallbackExamples);
             });

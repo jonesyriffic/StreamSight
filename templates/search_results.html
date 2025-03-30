@@ -33,8 +33,13 @@
                 <button type="button" class="btn btn-info" id="voiceSearchResultsButton" title="Search by voice">
                     <i class="fas fa-microphone"></i>
                 </button>
-                <button class="btn btn-primary" type="submit" id="searchButton">
-                    <i class="fas fa-search me-2"></i> Search
+                <button class="btn btn-primary" type="submit" id="searchResultsButton">
+                    <span class="search-button-normal">
+                        <i class="fas fa-search me-2"></i> Search
+                    </span>
+                    <span class="search-button-loading d-none" id="searchResultsSpinnerInline">
+                        <i class="fas fa-robot fa-bounce me-2"></i> Searching...
+                    </span>
                 </button>
             </div>
             
@@ -63,11 +68,38 @@
             
             <script>
                 // Show loading spinner when search form is submitted
-                document.querySelector('form').addEventListener('submit', function() {
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    const query = document.querySelector('input[name="query"]').value.trim();
+                    
                     // Only show spinner if there's a search query
-                    if (document.querySelector('input[name="query"]').value.trim()) {
-                        document.getElementById('searchButton').disabled = true;
+                    if (query) {
+                        e.preventDefault(); // Prevent immediate form submission
+                        
+                        // Update button state with inline spinner
+                        const searchResultsButton = document.getElementById('searchResultsButton');
+                        const searchSpinnerInline = document.getElementById('searchResultsSpinnerInline');
+                        const searchButtonNormal = searchResultsButton.querySelector('.search-button-normal');
+                        
+                        // Disable button and change style
+                        searchResultsButton.disabled = true;
+                        searchResultsButton.classList.add('btn-warning');
+                        searchResultsButton.classList.remove('btn-primary');
+                        
+                        // Show spinner in button
+                        if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
+                        if (searchSpinnerInline) searchSpinnerInline.classList.remove('d-none');
+                        
+                        // Add searching class to container
+                        const searchContainer = document.querySelector('.search-container');
+                        if (searchContainer) searchContainer.classList.add('searching');
+                        
+                        // Show the legacy spinner
                         document.getElementById('searchSpinner').classList.remove('d-none');
+                        
+                        // Submit the form after a short delay
+                        setTimeout(() => {
+                            this.submit();
+                        }, 300);
                     }
                 });
             </script>

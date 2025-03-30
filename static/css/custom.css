@@ -53,12 +53,63 @@
     box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
 }
 
-/* Loading animation */
+/* Loading animations */
 .loading-spinner {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 2rem;
+}
+
+/* Enhanced Search Loading States */
+.search-container {
+    transition: all 0.3s ease;
+}
+
+.search-container.searching {
+    box-shadow: 0 0 15px rgba(var(--bs-info-rgb), 0.5);
+    border: 1px solid var(--bs-info);
+}
+
+#searchContainer.searching input {
+    border-color: var(--bs-warning);
+    box-shadow: 0 0 5px rgba(var(--bs-warning-rgb), 0.5);
+    background-color: rgba(var(--bs-warning-rgb), 0.05);
+}
+
+.search-button-normal, .search-button-loading {
+    transition: all 0.3s ease;
+}
+
+/* Fancy animation for example searches */
+.btn-outline-info.active {
+    background-color: var(--bs-warning) !important;
+    color: var(--bs-dark) !important;
+    border-color: var(--bs-warning) !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(var(--bs-warning-rgb), 0.7);
+}
+
+/* Search overlay enhancement */
+#aiSearchOverlay .card {
+    background-color: rgba(var(--bs-dark-rgb), 0.95);
+    border: 1px solid var(--bs-info);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--bs-info-rgb), 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(var(--bs-info-rgb), 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--bs-info-rgb), 0);
+    }
+}
+
+#aiSearchOverlay .card {
+    animation: pulse 2s infinite;
 }
 
 /* Improve card shadow */

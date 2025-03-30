@@ -1300,8 +1300,38 @@ def get_document_topics():
     import random
     random.shuffle(popular_topics)
     
+    # Convert keywords to questions when appropriate
+    question_topics = []
+    for topic in popular_topics[:15]:
+        # Skip topics that are already questions
+        if topic.endswith('?'):
+            question_topics.append(topic)
+            continue
+            
+        # Skip very short topics (1-2 words) as they don't make good questions
+        word_count = len(topic.split())
+        if word_count <= 2:
+            # Convert short topics to simple questions
+            if topic.lower().startswith(('ai', 'ml', 'ar', 'vr', 'ux', 'cx')):
+                # For acronyms/initialisms
+                question_topics.append(f"What is {topic}?")
+            else:
+                question_topics.append(f"Tell me about {topic}")
+        else:
+            # For longer topics, create more specific questions
+            if "trends" in topic.lower():
+                question_topics.append(f"What are the latest {topic}?")
+            elif any(term in topic.lower() for term in ["future", "roadmap", "strategy", "plan"]):
+                question_topics.append(f"What is the {topic}?")
+            elif any(term in topic.lower() for term in ["improve", "enhance", "benefit"]):
+                question_topics.append(f"How does {topic}?")
+            elif "vs" in topic.lower() or "versus" in topic.lower():
+                question_topics.append(f"Compare {topic}")
+            else:
+                question_topics.append(f"How can {topic} help my business?")
+    
     # Return no more than 15 topics total to keep the UI clean
-    return jsonify(popular_topics[:15])
+    return jsonify(question_topics)
 
 @app.route('/api/generate-summary/<doc_id>', methods=['POST'])
 @login_required
