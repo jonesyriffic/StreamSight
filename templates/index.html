@@ -64,6 +64,25 @@
                         <!-- Example search buttons will be populated by JavaScript -->
                     </div>
                     
+                    <!-- Direct example search buttons (not using JavaScript) -->
+                    <div class="d-flex flex-wrap mt-2 mb-3">
+                        <a href="/search?query=How%20can%20AI%20improve%20customer%20service%3F" 
+                           class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
+                           onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> How can AI improve customer service?'; setTimeout(() => window.location.href=this.href, 1000);">
+                           <i class="fas fa-search me-1"></i> How can AI improve customer service?
+                        </a>
+                        <a href="/search?query=What%20are%20the%20latest%20industry%20trends%3F" 
+                           class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
+                           onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> What are the latest industry trends?'; setTimeout(() => window.location.href=this.href, 1000);">
+                           <i class="fas fa-search me-1"></i> What are the latest industry trends?
+                        </a>
+                        <a href="/search?query=How%20does%20AR%20improve%20productivity%3F" 
+                           class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
+                           onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> How does AR improve productivity?'; setTimeout(() => window.location.href=this.href, 1000);">
+                           <i class="fas fa-search me-1"></i> How does AR improve productivity?
+                        </a>
+                    </div>
+                    
                     <!-- Enhanced AI Search Loading Indicator -->
                     <div id="aiSearchOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" 
                          style="background-color: rgba(0,0,0,0.7); z-index: 9999;">
