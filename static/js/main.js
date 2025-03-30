@@ -15,6 +15,19 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Popover(popoverTriggerEl);
     });
     
+    // Initialize search overlay
+    const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+    if (searchInProgressOverlay) {
+        console.log('Search overlay initialized');
+        // Make sure overlay is hidden initially
+        searchInProgressOverlay.classList.remove('visible');
+        searchInProgressOverlay.style.display = 'flex';
+        searchInProgressOverlay.style.opacity = '0';
+        searchInProgressOverlay.style.visibility = 'hidden';
+    } else {
+        console.error('Search overlay element not found in DOM!');
+    }
+    
     // Handle main search form submission to show the overlay
     const mainSearchForm = document.getElementById('searchForm');
     const searchResultsForm = document.getElementById('searchResultsForm');
@@ -352,15 +365,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Show the full-screen search overlay with animation
                         const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+                        console.log('Search overlay element:', searchInProgressOverlay);
+                        
                         if (searchInProgressOverlay) {
                             // Update the query text
                             const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
                             if (searchQueryElement) {
                                 searchQueryElement.textContent = `"${example}"`;
+                                console.log('Set search query text:', example);
                             }
                             
                             // Show the overlay
                             searchInProgressOverlay.classList.add('visible');
+                            console.log('Added visible class to overlay');
+                            
+                            // Force display style
+                            searchInProgressOverlay.style.display = 'flex';
+                            searchInProgressOverlay.style.opacity = '1';
+                            searchInProgressOverlay.style.visibility = 'visible';
+                            console.log('Forced styles on overlay');
+                        } else {
+                            console.error('Search overlay element not found!');
                         }
                         
                         // Check if we're on the homepage
@@ -481,15 +506,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Show the full-screen search overlay with animation
                     const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+                    console.log('Search results page - overlay element:', searchInProgressOverlay);
+                    
                     if (searchInProgressOverlay) {
                         // Update the query text
                         const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
                         if (searchQueryElement) {
                             searchQueryElement.textContent = `"${example}"`;
+                            console.log('Search results page - set query text:', example);
                         }
                         
                         // Show the overlay
                         searchInProgressOverlay.classList.add('visible');
+                        console.log('Search results page - added visible class');
+                        
+                        // Force display style
+                        searchInProgressOverlay.style.display = 'flex';
+                        searchInProgressOverlay.style.opacity = '1';
+                        searchInProgressOverlay.style.visibility = 'visible';
+                        console.log('Search results page - forced styles');
+                    } else {
+                        console.error('Search results page - overlay element not found!');
                     }
                     
                     // Determine which page we're on
