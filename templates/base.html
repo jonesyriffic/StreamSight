@@ -661,80 +661,33 @@
     
     <!-- Material Design v3 Initialization -->
     <script>
-        // Helper function to convert Bootstrap elements to Material Design v3
+        // Keep the script minimal to avoid interference with core functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Bootstrap dropdowns
-            // Fix for dropdown menus not working with Material Design
-            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-            dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl);
-            });
+            // Initialize bootstrap components
+            // This ensures dropdowns work properly
+            if (typeof bootstrap !== 'undefined') {
+                // Initialize dropdowns
+                var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+                dropdownElementList.forEach(function (dropdownToggleEl) {
+                    new bootstrap.Dropdown(dropdownToggleEl);
+                });
+                
+                // Initialize toasts
+                var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                toastElList.forEach(function(toastEl) {
+                    new bootstrap.Toast(toastEl, {
+                        autohide: true,
+                        delay: 5000
+                    });
+                });
+            }
             
-            // Convert Bootstrap buttons to Material buttons where classes are applied
-            document.querySelectorAll('.btn-primary').forEach(button => {
-                if (!button.classList.contains('no-md-convert')) {
-                    button.classList.add('md-btn', 'md-btn-filled');
-                }
-            });
-            
-            document.querySelectorAll('.btn-outline-primary, .btn-outline-info').forEach(button => {
-                if (!button.classList.contains('no-md-convert')) {
-                    button.classList.add('md-btn', 'md-btn-outlined');
-                }
-            });
-            
-            document.querySelectorAll('.btn-secondary, .btn-info').forEach(button => {
-                if (!button.classList.contains('no-md-convert')) {
-                    button.classList.add('md-btn', 'md-btn-text');
-                }
-            });
-            
-            // Convert Bootstrap cards to Material cards
-            document.querySelectorAll('.card').forEach(card => {
-                if (!card.classList.contains('no-md-convert')) {
-                    card.classList.add('md-card');
-                    
-                    // Add category styling if needed
-                    if (card.classList.contains('card-insights')) card.classList.add('card-insights');
-                    if (card.classList.contains('card-tech')) card.classList.add('card-tech');
-                    if (card.classList.contains('card-product')) card.classList.add('card-product');
-                    if (card.classList.contains('card-service')) card.classList.add('card-service');
-                    
-                    // Convert inner elements
-                    const header = card.querySelector('.card-header');
-                    if (header) header.classList.add('md-card-header');
-                    
-                    const body = card.querySelector('.card-body');
-                    if (body) body.classList.add('md-card-content');
-                    
-                    const footer = card.querySelector('.card-footer');
-                    if (footer) footer.classList.add('md-card-footer');
-                }
-            });
-            
-            // Convert Bootstrap forms to Material forms
-            document.querySelectorAll('.form-control').forEach(input => {
-                if (!input.classList.contains('no-md-convert')) {
-                    input.classList.add('md-input');
-                }
-            });
-            
-            // Convert Bootstrap tables to Material tables
-            document.querySelectorAll('.table').forEach(table => {
-                if (!table.classList.contains('no-md-convert')) {
-                    table.classList.add('md-table');
-                }
-            });
-            
-            // Convert Bootstrap badges to Material badges
+            // Add simple classes only - material design visual touches
             document.querySelectorAll('.badge').forEach(badge => {
                 if (!badge.classList.contains('no-md-convert')) {
                     badge.classList.add('md-badge');
                 }
             });
-            
-            // We're disabling the ripple effect for now as it interferes with dropdown functionality
-            // Instead, we'll use pseudo-element hover effects via CSS for feedback
         });
     </script>
 </body>
