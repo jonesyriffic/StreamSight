@@ -284,10 +284,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         // Immediately change this button's appearance with animation
-                        this.classList.add('active', 'disabled');
+                        this.classList.add('active', 'disabled', 'example-active');
                         // Replace icon with animated robot
                         this.innerHTML = this.innerHTML.replace(/fa-\w+/, 'fa-robot fa-bounce');
-                        this.style.boxShadow = '0 0 10px rgba(var(--bs-warning-rgb), 0.7)';
+                        
+                        // Force a reflow to apply new styles immediately
+                        void this.offsetWidth;
                         
                         // Make other example buttons appear disabled
                         const exampleButtons = this.parentElement.querySelectorAll('a.btn');
@@ -471,9 +473,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Change button appearance with animation
-                    button.classList.add('active', 'disabled');
+                    button.classList.add('active', 'disabled', 'example-active');
                     button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
-                    button.style.boxShadow = '0 0 10px rgba(var(--bs-warning-rgb), 0.7)';
+                    
+                    // Force a reflow to apply new styles immediately
+                    void button.offsetWidth;
                     
                     // Mark other example buttons as inactive
                     const exampleButtons = button.parentElement.querySelectorAll('a.btn');
