@@ -404,21 +404,21 @@
                                 <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">admin_panel_settings</span>
                                 Admin
                             </a>
-                            <ul class="dropdown-menu border-0 md-shadow-1" style="background-color: var(--md-sys-color-surface-variant);" aria-labelledby="adminDropdown">
+                            <ul class="dropdown-menu border-0 md-shadow-1" style="background-color: var(--md-sys-color-surface-variant); border-radius: 8px;" aria-labelledby="adminDropdown">
                                 <li>
-                                    <a class="dropdown-item {{ 'active' if request.path == url_for('admin_dashboard') }}" href="{{ url_for('admin_dashboard') }}" style="color: var(--md-sys-color-on-surface-variant);">
+                                    <a class="dropdown-item {{ 'active' if request.path == url_for('admin_dashboard') }}" href="{{ url_for('admin_dashboard') }}" style="color: var(--md-sys-color-on-surface-variant); padding: 8px 16px;">
                                         <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">dashboard</span> 
                                         Dashboard
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {{ 'active' if request.path == url_for('admin_users') }}" href="{{ url_for('admin_users') }}" style="color: var(--md-sys-color-on-surface-variant);">
+                                    <a class="dropdown-item {{ 'active' if request.path == url_for('admin_users') }}" href="{{ url_for('admin_users') }}" style="color: var(--md-sys-color-on-surface-variant); padding: 8px 16px;">
                                         <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">group</span> 
                                         User Management
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {{ 'active' if request.path == url_for('admin_search_analytics') }}" href="{{ url_for('admin_search_analytics') }}" style="color: var(--md-sys-color-on-surface-variant);">
+                                    <a class="dropdown-item {{ 'active' if request.path == url_for('admin_search_analytics') }}" href="{{ url_for('admin_search_analytics') }}" style="color: var(--md-sys-color-on-surface-variant); padding: 8px 16px;">
                                         <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">analytics</span> 
                                         Search Analytics
                                     </a>
@@ -445,22 +445,22 @@
                                 <span class="md-badge ms-1" style="background-color: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container);">Admin</span>
                                 {% endif %}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end border-0 md-shadow-1" style="background-color: var(--md-sys-color-surface-variant);" aria-labelledby="userDropdown">
+                            <ul class="dropdown-menu dropdown-menu-end border-0 md-shadow-1" style="background-color: var(--md-sys-color-surface-variant); border-radius: 8px;" aria-labelledby="userDropdown">
                                 <li>
-                                    <a class="dropdown-item {{ 'active' if request.path == url_for('profile') }}" href="{{ url_for('profile') }}" style="color: var(--md-sys-color-on-surface-variant);">
+                                    <a class="dropdown-item {{ 'active' if request.path == url_for('profile') }}" href="{{ url_for('profile') }}" style="color: var(--md-sys-color-on-surface-variant); padding: 8px 16px;">
                                         <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">person</span>
                                         Profile
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {{ 'active' if request.path == url_for('user_badges') }}" href="{{ url_for('user_badges') }}" style="color: var(--md-sys-color-on-surface-variant);">
+                                    <a class="dropdown-item {{ 'active' if request.path == url_for('user_badges') }}" href="{{ url_for('user_badges') }}" style="color: var(--md-sys-color-on-surface-variant); padding: 8px 16px;">
                                         <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">military_tech</span>
                                         My Badges
                                     </a>
                                 </li>
-                                <li><md-divider></md-divider></li>
+                                <li><hr class="dropdown-divider" style="opacity: 0.25;"></li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ url_for('logout') }}" style="color: var(--md-sys-color-on-surface-variant);">
+                                    <a class="dropdown-item" href="{{ url_for('logout') }}" style="color: var(--md-sys-color-on-surface-variant); padding: 8px 16px;">
                                         <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">logout</span>
                                         Logout
                                     </a>
@@ -663,6 +663,13 @@
     <script>
         // Helper function to convert Bootstrap elements to Material Design v3
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap dropdowns
+            // Fix for dropdown menus not working with Material Design
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+            
             // Convert Bootstrap buttons to Material buttons where classes are applied
             document.querySelectorAll('.btn-primary').forEach(button => {
                 if (!button.classList.contains('no-md-convert')) {
@@ -726,28 +733,8 @@
                 }
             });
             
-            // Add Material ripple effect to clickable elements
-            document.querySelectorAll('.btn, .nav-link, .dropdown-item, a.list-group-item').forEach(element => {
-                if (!element.hasAttribute('md-ripple') && !element.classList.contains('no-md-ripple')) {
-                    // Create ripple wrapper
-                    const rippleWrapper = document.createElement('div');
-                    rippleWrapper.classList.add('position-relative');
-                    rippleWrapper.style.overflow = 'hidden';
-                    rippleWrapper.style.isolation = 'isolate';
-                    
-                    // Clone attributes and content
-                    const newElement = element.cloneNode(true);
-                    
-                    // Create ripple element
-                    const ripple = document.createElement('md-ripple');
-                    ripple.setAttribute('for', '');
-                    
-                    // Append to document
-                    rippleWrapper.appendChild(newElement);
-                    rippleWrapper.appendChild(ripple);
-                    element.parentNode.replaceChild(rippleWrapper, element);
-                }
-            });
+            // We're disabling the ripple effect for now as it interferes with dropdown functionality
+            // Instead, we'll use pseudo-element hover effects via CSS for feedback
         });
     </script>
 </body>
