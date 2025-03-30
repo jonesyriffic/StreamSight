@@ -16,4 +16,9 @@ dependencies = [
     "flask-wtf>=1.2.2",
     "humanize>=4.12.2",
     "sqlalchemy>=2.0.40",
+    "trafilatura>=2.0.0",
+    "wtforms>=3.2.1",
+    "beautifulsoup4>=4.13.3",
+    "requests>=2.32.3",
+    "youtube-transcript-api>=1.0.3",
 ]

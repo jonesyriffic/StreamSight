@@ -422,7 +422,20 @@ def upload_page():
         flash('You do not have permission to upload documents. Please contact an administrator.', 'danger')
         return redirect(url_for('index'))
     
-    return render_template('upload.html')
+    # Get document categories for the dropdown
+    categories = [
+        'Industry Insights',
+        'Technology News',
+        'Product Management',
+        'Customer Service'
+    ]
+    
+    # Get available content types from Document model
+    content_types = Document.CONTENT_TYPES
+    
+    return render_template('upload.html', 
+                          categories=categories,
+                          content_types=content_types)
 
 @app.route('/library')
 @login_required
@@ -465,198 +478,160 @@ def library():
 @login_required
 @approved_required
 def upload_document():
+    """Handle document upload for different content types (PDF, web links, YouTube videos)"""
     # Check if user has upload permission
     if not current_user.can_upload and not current_user.is_admin:
         flash('You do not have permission to upload documents. Please contact an administrator.', 'danger')
         return redirect(url_for('index'))
-        
-    if 'files' not in request.files:
-        flash('No file part', 'danger')
-        return redirect(url_for('upload_page'))
     
-    # Increase request timeout for large files
-    try:
-        # Get file list with extended timeout handling
-        files = request.files.getlist('files')
-    except Exception as e:
-        logger.error(f"Error accessing uploaded files: {str(e)}")
-        flash('Error processing upload request. The server might have timed out due to large file size.', 'danger')
-        return redirect(url_for('upload_page'))
+    # Import content processor functions
+    from utils.content_processor import (
+        process_pdf_upload, 
+        process_weblink, 
+        process_youtube_video
+    )
     
-    if len(files) == 0 or all(file.filename == '' for file in files):
-        flash('No selected file(s)', 'danger')
-        return redirect(url_for('upload_page'))
-    
+    # Get the content type from the form
+    content_type = request.form.get('content_type', Document.TYPE_PDF)
+    category = request.form.get('category', 'Uncategorized')
     successful_uploads = 0
     failed_uploads = 0
     earned_badges = set()
-    large_file_warning_shown = False
     
-    for file in files:
-        if file and file.filename != '' and allowed_file(file.filename):
-            try:
-                # Log file information
-                logger.info(f"Processing file: {file.filename}, Content type: {file.content_type}")
-                
-                # Generate a unique filename
-                original_filename = secure_filename(file.filename)
-                filename = f"{uuid.uuid4()}_{original_filename}"
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                
-                try:
-                    # Save the file with chunked writing for large files
-                    logger.info(f"Saving file {original_filename} to {filepath}")
-                    
-                    # Get file size before saving for pre-validation
-                    file.seek(0, os.SEEK_END)
-                    file_size_pre = file.tell()
-                    file.seek(0)  # Reset to beginning of file
-                    
-                    # Log pre-save file size
-                    size_mb_pre = file_size_pre / (1024 * 1024)
-                    logger.info(f"Pre-save file size: {file_size_pre} bytes ({size_mb_pre:.2f} MB)")
-                    
-                    # Warn about very large files (over 50MB)
-                    is_large_file = size_mb_pre > 50
-                    if is_large_file:
-                        logger.info(f"Large file detected: {original_filename} ({size_mb_pre:.2f} MB)")
-                        if not large_file_warning_shown:
-                            large_file_warning_shown = True
-                            # Show a warning message for large files
-                            flash(f"Processing large file ({size_mb_pre:.1f} MB). This may take several minutes. Please be patient.", "warning")
-                    
-                    # Save the file
-                    file.save(filepath)
-                    logger.info(f"File saved successfully: {filepath}")
-                    
-                    # Get file size after saving for verification
-                    file_size = os.path.getsize(filepath)
-                    size_mb = file_size / (1024 * 1024)
-                    logger.info(f"File size on disk: {file_size} bytes ({size_mb:.2f} MB)")
-                    
-                    # Verify file size matches expected
-                    if abs(file_size - file_size_pre) > 1024 * 1024:  # Allow 1MB difference
-                        logger.warning(f"File size discrepancy: pre-save {size_mb_pre:.2f}MB, post-save {size_mb:.2f}MB")
-                    
-                except Exception as save_error:
-                    logger.error(f"Error saving file {original_filename}: {str(save_error)}")
-                    # More detailed error messages for common file save issues
-                    if "disk space" in str(save_error).lower():
-                        raise Exception(f"Failed to save file: Not enough disk space")
-                    elif "permission" in str(save_error).lower():
-                        raise Exception(f"Failed to save file: Permission error")
-                    else:
-                        raise Exception(f"Failed to save file: {str(save_error)}")
-                
-                # Extract text from PDF with better handling for large files
-                try:
-                    logger.info(f"Extracting text from PDF: {filepath}")
-                    # For very large files, we have special processing in extract_text_from_pdf
-                    extracted_text = extract_text_from_pdf(filepath)
-                    text_length = len(extracted_text)
-                    logger.info(f"Text extraction successful: {text_length} characters extracted")
-                    
-                    # Log warning if extracted text is very small compared to file size
-                    if text_length < 500 and file_size > 1024 * 1024:  # Less than 500 chars from a 1MB+ file
-                        logger.warning(f"Very little text ({text_length} chars) extracted from large file ({size_mb:.2f}MB)")
-                    
-                except Exception as e:
-                    logger.error(f"Error extracting text from PDF: {str(e)}")
-                    # Use a placeholder if text extraction fails
-                    extracted_text = "Text extraction failed. This document might be scanned or have other issues."
-                    # Add specific message for different extraction errors
-                    if "memory" in str(e).lower():
-                        logger.warning(f"Memory error during text extraction - file may be too large or complex")
-                    elif "password" in str(e).lower() or "encrypted" in str(e).lower():
-                        extracted_text = "Text extraction failed. This document is password-protected or encrypted."
-                
-                # Categorize the content
-                try:
-                    logger.info("Categorizing document content")
-                    category = categorize_content(extracted_text)
-                    logger.info(f"Document categorized as: {category}")
-                except Exception as e:
-                    logger.error(f"Error categorizing content: {str(e)}")
-                    # Use a default category if categorization fails
-                    category = "Uncategorized"
-                
-                # Generate a user-friendly name for the document
-                friendly_name = generate_friendly_name(original_filename)
-                
-                # Create new document in database with current user as uploader
-                new_document = Document(
-                    filename=original_filename,
-                    friendly_name=friendly_name,
-                    filepath=filepath,
-                    text=extracted_text,
-                    category=category,
-                    user_id=current_user.id
-                )
-                
-                # Add to database
-                db.session.add(new_document)
-                db.session.commit()
-                
-                # Generate relevance reasons for each team specialization
-                try:
-                    relevance_reasons = generate_relevance_reasons(new_document)
-                    new_document.relevance_reasons = relevance_reasons
-                    db.session.commit()
-                    logger.info(f"Generated relevance reasons for document {new_document.id}")
-                except Exception as e:
-                    logger.error(f"Error generating relevance reasons: {str(e)}")
-                    # Continue even if relevance generation fails - this isn't critical
-                
-                # Automatically generate document summary and key points
-                try:
-                    from utils.document_ai import generate_document_summary
-                    summary_result = generate_document_summary(new_document.id)
-                    if summary_result and summary_result['success']:
-                        logger.info(f"Generated summary for document {new_document.id}")
-                    else:
-                        error_msg = summary_result.get('error', 'Unknown error') if summary_result else 'Failed to generate summary'
-                        logger.error(f"Error generating summary: {error_msg}")
-                except Exception as e:
-                    logger.error(f"Error generating document summary: {str(e)}")
-                    # Continue even if summary generation fails - this isn't critical
-                
-                # Track upload activity for badges
-                try:
-                    new_badges = BadgeService.track_activity(
-                        user_id=current_user.id,
-                        activity_type='upload',
-                        document_id=new_document.id
-                    )
-                except Exception as badge_error:
-                    logger.error(f"Error tracking badge activity: {str(badge_error)}")
-                    new_badges = None
-                
-                # If new badges were earned, save them for notification at the end
-                if new_badges and new_badges.get('new_badges') and isinstance(new_badges.get('new_badges'), list):
-                    for badge in new_badges.get('new_badges'):
-                        earned_badges.add((badge['name'], badge['level']))
-                
+    # Process based on content type
+    if content_type == Document.TYPE_WEBLINK:
+        # Process web link
+        url = request.form.get('url', '')
+        if not url:
+            flash('Please enter a valid URL', 'danger')
+            return redirect(url_for('upload_page'))
+            
+        try:
+            logger.info(f"Processing web link: {url}")
+            document, message, status_code = process_weblink(
+                url=url,
+                category=category,
+                user_id=current_user.id,
+                db=db,
+                Document=Document
+            )
+            
+            if document and status_code == 200:
+                # Process document (generate relevance, summary, track badges)
+                _process_uploaded_document(document, current_user.id, earned_badges)
                 successful_uploads += 1
+                flash(message, 'success')
+            else:
+                failed_uploads += 1
+                flash(message, 'danger')
                 
-            except Exception as e:
-                # Safely determine the filename for the error message
+        except Exception as e:
+            logger.error(f"Error processing web link: {str(e)}")
+            failed_uploads += 1
+            flash(f"Error processing web link: {str(e)}", 'danger')
+            
+    elif content_type == Document.TYPE_YOUTUBE:
+        # Process YouTube video
+        url = request.form.get('url', '')
+        if not url:
+            flash('Please enter a valid YouTube URL', 'danger')
+            return redirect(url_for('upload_page'))
+            
+        try:
+            logger.info(f"Processing YouTube video: {url}")
+            document, message, status_code = process_youtube_video(
+                url=url,
+                category=category,
+                user_id=current_user.id,
+                db=db,
+                Document=Document
+            )
+            
+            if document and status_code == 200:
+                # Process document (generate relevance, summary, track badges)
+                _process_uploaded_document(document, current_user.id, earned_badges)
+                successful_uploads += 1
+                flash(message, 'success')
+            else:
+                failed_uploads += 1
+                flash(message, 'danger')
+                
+        except Exception as e:
+            logger.error(f"Error processing YouTube video: {str(e)}")
+            failed_uploads += 1
+            flash(f"Error processing YouTube video: {str(e)}", 'danger')
+            
+    elif content_type == Document.TYPE_PDF:
+        # Process PDF uploads
+        if 'files' not in request.files:
+            flash('No files selected', 'danger')
+            return redirect(url_for('upload_page'))
+            
+        try:
+            files = request.files.getlist('files')
+        except Exception as e:
+            logger.error(f"Error accessing uploaded files: {str(e)}")
+            flash('Error processing upload request. The server might have timed out due to large file size.', 'danger')
+            return redirect(url_for('upload_page'))
+            
+        if len(files) == 0 or all(file.filename == '' for file in files):
+            flash('No selected file(s)', 'danger')
+            return redirect(url_for('upload_page'))
+            
+        # Process each PDF file
+        large_file_warning_shown = False
+        
+        for file in files:
+            if file and file.filename != '' and allowed_file(file.filename):
+                # Check file size and show warning if needed
+                file.seek(0, os.SEEK_END)
+                file_size = file.tell()
+                file.seek(0)  # Reset file position
+                
+                size_mb = file_size / (1024 * 1024)
+                if size_mb > 50 and not large_file_warning_shown:
+                    flash(f"Processing large file ({size_mb:.1f} MB). This may take several minutes. Please be patient.", "warning")
+                    large_file_warning_shown = True
+                
+                # Process the PDF file
                 try:
-                    error_filename = original_filename if 'original_filename' in locals() else file.filename
-                except:
-                    # Absolute fallback if both approaches fail
-                    error_filename = "unknown file"
-                
-                logger.error(f"Error during file upload '{error_filename}': {str(e)}")
-                
-                # Check if it's an OpenAI API error
-                if "OpenAI API" in str(e):
-                    logger.error(f"OpenAI API error detected during upload: {str(e)}")
-                    flash("There was an issue with the AI service. Document was uploaded but without AI processing.", "warning")
-                
-                failed_uploads += 1
-        else:
-            if file.filename != '':  # Only count non-empty files as failures
-                failed_uploads += 1
+                    logger.info(f"Processing PDF file: {file.filename}")
+                    document, message, status_code = process_pdf_upload(
+                        uploaded_file=file,
+                        filename=secure_filename(file.filename),
+                        category=category,
+                        user_id=current_user.id,
+                        db=db,
+                        Document=Document
+                    )
+                    
+                    if document and status_code == 200:
+                        # Process document (generate relevance, summary, track badges)
+                        _process_uploaded_document(document, current_user.id, earned_badges)
+                        successful_uploads += 1
+                    else:
+                        failed_uploads += 1
+                        flash(message, 'warning')
+                        
+                except Exception as e:
+                    logger.error(f"Error processing PDF file '{file.filename}': {str(e)}")
+                    failed_uploads += 1
+                    
+                    # Check if it's an OpenAI API error
+                    if "OpenAI API" in str(e):
+                        logger.error(f"OpenAI API error detected during upload: {str(e)}")
+                        flash("There was an issue with the AI service. Document was uploaded but without AI processing.", "warning")
+                    else:
+                        flash(f"Error processing file '{file.filename}': {str(e)}", 'danger')
+            else:
+                # Skip invalid files
+                if file and file.filename != '':
+                    failed_uploads += 1
+                    flash(f"Invalid file type: {file.filename}. Only PDF files are allowed.", 'warning')
+    else:
+        # Invalid content type
+        flash('Invalid content type', 'danger')
+        return redirect(url_for('upload_page'))
     
     # Show badge notifications
     for badge_name, badge_level in earned_badges:
@@ -680,6 +655,62 @@ def upload_document():
         return redirect(url_for('upload_page'))
     
     return redirect(url_for('library'))
+
+
+def _process_uploaded_document(document, user_id, earned_badges):
+    """
+    Helper function to process an uploaded document:
+    - Generate relevance reasons
+    - Generate summary and key points
+    - Track badge activity
+    
+    Args:
+        document: Document object
+        user_id: ID of the current user
+        earned_badges: Set to add earned badges to
+    """
+    # Generate relevance reasons
+    try:
+        from utils.relevance_generator import generate_relevance_reasons
+        relevance_reasons = generate_relevance_reasons(document)
+        document.relevance_reasons = relevance_reasons
+        db.session.commit()
+        logger.info(f"Generated relevance reasons for document {document.id}")
+    except Exception as e:
+        logger.error(f"Error generating relevance reasons: {str(e)}")
+    
+    # Generate summary
+    try:
+        if document.content_type == Document.TYPE_PDF:
+            # Use document_ai for PDFs
+            from utils.document_ai import generate_document_summary
+            summary_result = generate_document_summary(document.id)
+            if summary_result and summary_result.get('success'):
+                logger.info(f"Generated summary for document {document.id}")
+        else:
+            # Use content_processor for web links and YouTube videos
+            from utils.content_processor import generate_content_summary
+            summary_result = generate_content_summary(document, db)
+            if summary_result:
+                logger.info(f"Generated summary for document {document.id}")
+    except Exception as e:
+        logger.error(f"Error generating document summary: {str(e)}")
+    
+    # Track badge activity
+    try:
+        from utils.badge_service import BadgeService
+        new_badges = BadgeService.track_activity(
+            user_id=user_id,
+            activity_type='upload',
+            document_id=document.id
+        )
+        
+        # Add earned badges to the set
+        if new_badges and new_badges.get('new_badges'):
+            for badge in new_badges.get('new_badges'):
+                earned_badges.add((badge['name'], badge['level']))
+    except Exception as e:
+        logger.error(f"Error tracking badge activity: {str(e)}")
 
 @app.route('/search', methods=['GET'])
 @login_required

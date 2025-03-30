@@ -1,190 +1,149 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Upload Document - StreamSight{% endblock %}
+{% block title %}Upload Documents - StreamSight{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Upload New Document</h1>
-    <div>
-        <a href="{{ url_for('library') }}" class="btn btn-outline-info me-2">
-            <i class="fas fa-book me-2"></i> Document Library
-        </a>
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-home me-2"></i> Dashboard
-        </a>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="card bg-dark">
-            <div class="card-body">
-                <h2 class="card-title mb-3">Add to Your Knowledge Base</h2>
-                <p class="card-text mb-4">
-                    Upload PDF documents related to product management, customer service, 
-                    or industry insights. Our AI will automatically categorize your documents,
-                    making them searchable with natural language queries.
-                </p>
-                <form id="uploadForm" action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data">
-                    <div class="mb-4">
-                        <label for="files" class="form-label fw-bold">
-                            Select PDF document(s) to upload
-                        </label>
-                        <input class="form-control form-control-lg" type="file" id="files" name="files" accept=".pdf" multiple required>
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i> Only PDF files are supported (max 100MB each)
-                        </div>
-                    </div>
-                    <button type="submit" id="uploadButton" class="btn btn-primary btn-lg">
-                        <i class="fas fa-upload me-2"></i> Upload Documents
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Upload Content</h2>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="uploadTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pdf-tab" data-bs-toggle="tab" data-bs-target="#pdf-content" type="button" role="tab" aria-controls="pdf-content" aria-selected="true">
+                        <i class="bi bi-file-earmark-pdf"></i> PDF Files
                     </button>
-                </form>
-                
-                <!-- Upload progress indicator (hidden by default) -->
-                <div id="uploadProgress" class="mt-4 text-center d-none">
-                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <h4 class="text-primary">Uploading documents...</h4>
-                    <p class="text-light">This may take a moment as we process each file. Please don't refresh the page.</p>
-                    <div class="progress mt-3">
-                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
-                    </div>
-                    <p id="progressStatus" class="mt-2">Preparing files...</p>
-                </div>
-                
-                <script>
-                    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-                        // Get the number of files being uploaded
-                        const fileInput = document.getElementById('files');
-                        const numFiles = fileInput.files.length;
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="weblink-tab" data-bs-toggle="tab" data-bs-target="#weblink-content" type="button" role="tab" aria-controls="weblink-content" aria-selected="false">
+                        <i class="bi bi-globe"></i> Web Links
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="youtube-tab" data-bs-toggle="tab" data-bs-target="#youtube-content" type="button" role="tab" aria-controls="youtube-content" aria-selected="false">
+                        <i class="bi bi-youtube"></i> YouTube Videos
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-4" id="uploadTabsContent">
+                <!-- PDF Files Upload Tab -->
+                <div class="tab-pane fade show active" id="pdf-content" role="tabpanel" aria-labelledby="pdf-tab">
+                    <form action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="content_type" value="pdf">
                         
-                        if (numFiles > 0) {
-                            // Calculate total size of all files
-                            let totalSize = 0;
-                            let largeFileDetected = false;
-                            let largeFileName = '';
-                            
-                            for (let i = 0; i < fileInput.files.length; i++) {
-                                const file = fileInput.files[i];
-                                totalSize += file.size;
-                                
-                                // Check for individual large files (> 50MB)
-                                if (file.size > 50 * 1024 * 1024) {
-                                    largeFileDetected = true;
-                                    largeFileName = file.name;
-                                }
-                            }
-                            
-                            // Show progress indicator
-                            document.getElementById('uploadButton').disabled = true;
-                            document.getElementById('uploadProgress').classList.remove('d-none');
-                            
-                            // Set up simulated progress
-                            let progress = 0;
-                            const progressBar = document.getElementById('progressBar');
-                            const progressStatus = document.getElementById('progressStatus');
-                            
-                            // For large files, show a different message and slow down the progress simulation
-                            if (largeFileDetected) {
-                                progressStatus.textContent = `Processing large file(s). This may take several minutes...`;
-                                
-                                // Add additional message for large files
-                                const largeSizeWarning = document.createElement('p');
-                                largeSizeWarning.className = 'text-warning mt-3';
-                                largeSizeWarning.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Large file detected. The server is processing your upload. Please be patient and <strong>do not refresh</strong> the page.';
-                                document.getElementById('uploadProgress').appendChild(largeSizeWarning);
-                            } else {
-                                progressStatus.textContent = `Processing ${numFiles} file${numFiles > 1 ? 's' : ''}...`;
-                            }
-                            
-                            // Calculate interval based on file size - slower for larger files
-                            const baseInterval = 500;
-                            const sizeAdjustedInterval = largeFileDetected ? 2000 : baseInterval;
-                            
-                            const interval = setInterval(function() {
-                                // Increment more slowly for large files
-                                let increment = 0;
-                                
-                                if (largeFileDetected) {
-                                    // Very slow progress for large files
-                                    if (progress < 30) {
-                                        increment = 0.5;
-                                    } else if (progress < 60) {
-                                        increment = 0.3;
-                                    } else if (progress < 85) {
-                                        increment = 0.1;
-                                    } else {
-                                        increment = 0.05;
-                                    }
-                                } else {
-                                    // Normal progress for regular files
-                                    if (progress < 50) {
-                                        increment = 5;
-                                    } else if (progress < 75) {
-                                        increment = 2;
-                                    } else if (progress < 90) {
-                                        increment = 0.5;
-                                    } else {
-                                        increment = 0.1;
-                                    }
-                                }
-                                
-                                progress += increment;
-                                
-                                if (progress >= 90) {
-                                    clearInterval(interval);
-                                    progressStatus.textContent = 'Almost done... Finalizing uploads';
-                                }
-                                
-                                if (largeFileDetected && progress >= 25 && progress < 26) {
-                                    progressStatus.textContent = 'Extracting content from large document...';
-                                } else if (largeFileDetected && progress >= 60 && progress < 61) {
-                                    progressStatus.textContent = 'Processing document content with AI...';
-                                }
-                                
-                                progressBar.style.width = progress + '%';
-                            }, sizeAdjustedInterval);
-                        }
-                    });
-                </script>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-5">
-    <div class="col-md-12">
-        <div class="card bg-dark border-info">
-            <div class="card-header bg-info-subtle text-info-emphasis">
-                <h3 class="mb-0"><i class="fas fa-info-circle me-2"></i> How It Works</h3>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 text-center mb-3 mb-md-0">
-                        <div class="h1 text-info mb-2">
-                            <i class="fas fa-file-upload"></i>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <h4>1. Upload</h4>
-                        <p>Upload single or multiple PDF documents from your knowledge base</p>
-                    </div>
-                    <div class="col-md-4 text-center mb-3 mb-md-0">
-                        <div class="h1 text-info mb-2">
-                            <i class="fas fa-robot"></i>
+                        
+                        <div class="mb-3">
+                            <label for="files" class="form-label">Select PDF Documents</label>
+                            <input type="file" class="form-control" id="files" name="files" multiple accept=".pdf" required>
+                            <div class="form-text">You can select multiple PDF files. Maximum file size: 100MB per file.</div>
                         </div>
-                        <h4>2. AI Processing</h4>
-                        <p>Our AI reads and categorizes the document content</p>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="h1 text-info mb-2">
-                            <i class="fas fa-search"></i>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-cloud-upload"></i> Upload PDF Documents
+                            </button>
                         </div>
-                        <h4>3. Search</h4>
-                        <p>Search with natural language to find what you need</p>
-                    </div>
+                    </form>
+                </div>
+                
+                <!-- Web Link Tab -->
+                <div class="tab-pane fade" id="weblink-content" role="tabpanel" aria-labelledby="weblink-tab">
+                    <form action="{{ url_for('upload_document') }}" method="post">
+                        <input type="hidden" name="content_type" value="weblink">
+                        
+                        <div class="mb-3">
+                            <label for="weblink-category" class="form-label">Category</label>
+                            <select class="form-select" id="weblink-category" name="category" required>
+                                {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="url" class="form-label">Web Page URL</label>
+                            <input type="url" class="form-control" id="url" name="url" required
+                                   placeholder="https://example.com/article">
+                            <div class="form-text">Enter the URL of a web page to extract its content.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-globe"></i> Add Web Page
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- YouTube Tab -->
+                <div class="tab-pane fade" id="youtube-content" role="tabpanel" aria-labelledby="youtube-tab">
+                    <form action="{{ url_for('upload_document') }}" method="post">
+                        <input type="hidden" name="content_type" value="youtube">
+                        
+                        <div class="mb-3">
+                            <label for="youtube-category" class="form-label">Category</label>
+                            <select class="form-select" id="youtube-category" name="category" required>
+                                {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="youtube-url" class="form-label">YouTube Video URL</label>
+                            <input type="url" class="form-control" id="youtube-url" name="url" required
+                                   placeholder="https://www.youtube.com/watch?v=XXXX">
+                            <div class="form-text">Enter a YouTube video URL to extract its transcript.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-youtube"></i> Add YouTube Video
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+        <div class="card-footer">
+            <p class="mb-0"><i class="bi bi-info-circle"></i> Note: All content will be processed by AI to generate summaries and insights.</p>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Automatically activate tab based on URL hash, if present
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#')) {
+        const tabId = hash.substring(1) + '-tab';
+        const tab = document.getElementById(tabId);
+        if (tab) {
+            const bsTab = new bootstrap.Tab(tab);
+            bsTab.show();
+        }
+    }
+    
+    // Update URL hash when tabs are clicked
+    const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            const id = event.target.id.replace('-tab', '');
+            history.replaceState(null, null, '#' + id);
+        });
+    });
+});
+</script>
 {% endblock %}
