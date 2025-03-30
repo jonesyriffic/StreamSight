@@ -448,8 +448,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             // FINALLY navigate after all animations have had time to display
                             setTimeout(() => {
+                                console.log('NAVIGATION HAPPENING NOW');
                                 window.location.href = this.href;
-                            }, 1200); // Significantly longer delay to ensure visual feedback is seen
+                            }, 3000); // Much longer delay to ensure visibility of overlay (3 seconds)
                         }, 100);
                         
                         return false;
@@ -617,8 +618,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // FINALLY navigate after all animations have had time to display
                         setTimeout(() => {
+                            console.log('SEARCH RESULTS PAGE - NAVIGATION HAPPENING NOW');
                             window.location.href = this.href;
-                        }, 1200); // Significantly longer delay to ensure visual feedback is seen
+                        }, 3000); // Much longer delay for overlay visibility (3 seconds)
                     }, 100);
                     
                     return false;
