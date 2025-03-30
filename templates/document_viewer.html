@@ -158,7 +158,7 @@
                 </div>
             </div>
 
-            <!-- 3. SUMMARY SECTION - AT THE BOTTOM -->
+            <!-- 3. SUMMARY SECTION - AT THE BOTTOM ONLY -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Summary</h5>
@@ -335,10 +335,6 @@
         initPdfViewer(pdfUrl);
         {% endif %}
         
-        // The download button is now handled in the initPdfViewer function
-        
-        // We're no longer using the search form as we've replaced it with instructions in the UI
-        
         // Generate/Regenerate Summary functionality
         document.getElementById('generate-summary-btn').addEventListener('click', function() {
             // Show loading state
@@ -364,9 +360,6 @@
                     // Update UI with new content
                     document.getElementById('summary-text').innerHTML = data.summary;
                     document.getElementById('key-points-text').innerHTML = data.key_points;
-                    
-                    // Removed team relevance section - now only shown on the dashboard
-                    // Don't refresh the page; the updated content is already shown
                     
                     // Update timestamp if provided
                     if (data.generated_at) {
