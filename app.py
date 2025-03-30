@@ -1222,7 +1222,7 @@ def get_document_topics():
     Returns a list of topic strings for use in search suggestions
     """
     # Get all documents with text content
-    documents = Document.query.filter(Document.text_content != None, Document.text_content != '').all()
+    documents = Document.query.filter(Document.text != None, Document.text != '').all()
     
     # Extract topics from document titles and summaries
     topics = []

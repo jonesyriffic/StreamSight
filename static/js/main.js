@@ -320,15 +320,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add direct onclick handler to ensure navigation works
                 button.onclick = function(e) {
-                    // Show loading indicator
+                    // Show AI-specific loading indicator
                     e.preventDefault();
-                    button.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> ${example}`;
+                    
+                    // Get search container and add an AI searching message
+                    const searchContainer = document.querySelector('.search-container') || document.body;
+                    const aiSearchingMsg = document.createElement('div');
+                    aiSearchingMsg.classList.add('alert', 'alert-info', 'text-center', 'mt-2', 'ai-search-progress');
+                    aiSearchingMsg.innerHTML = `
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="me-3">
+                                <i class="fas fa-robot fa-bounce me-2"></i>
+                                <i class="fas fa-spinner fa-spin me-2"></i>
+                            </div>
+                            <div>
+                                <strong>AI Search in progress:</strong> 
+                                <span class="fw-normal">Searching for "${example}" across all documents...</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Remove any existing messages
+                    const existingMsgs = document.querySelectorAll('.ai-search-progress');
+                    existingMsgs.forEach(msg => msg.remove());
+                    
+                    // Add the message
+                    searchContainer.appendChild(aiSearchingMsg);
+                    
+                    // Change button appearance
+                    button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
                     button.classList.add('disabled');
                     
-                    // Navigate after small delay for visual feedback
+                    // Navigate after delay for visual feedback
                     setTimeout(() => {
                         window.location.href = this.href;
-                    }, 300);
+                    }, 800); // Longer delay to show the AI is thinking
+                    
                     return false;
                 };
                 
