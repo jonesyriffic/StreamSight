@@ -6,6 +6,30 @@
     outline-offset: 2px;
 }
 
+/* Material Design v3 Button Styling */
+.btn {
+    border-radius: 1.5rem !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.025rem !important;
+    transition: all 0.3s ease !important;
+    text-transform: none !important;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.875rem !important;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
 /* Category badge styling */
 .badge {
     font-size: 0.85rem;

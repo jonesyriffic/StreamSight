@@ -19,8 +19,8 @@
     <div class="card-body">
         <form action="{{ url_for('search') }}" method="get" id="searchResultsForm">
             <div class="input-group">
-                <span class="input-group-text text-primary">
-                    <i class="fas fa-lightbulb"></i>
+                <span class="input-group-text" style="color: var(--color-service);">
+                    <span class="material-symbols-outlined">lightbulb</span>
                 </span>
                 <input type="text" name="query" class="form-control search-input" 
                        value="{{ query }}" placeholder="Ask a question about our documents..."
@@ -287,7 +287,7 @@ First result structure:
         <div>
             <span class="badge bg-secondary">Relevance: {{ result.relevance_score }}/10</span>
             <a href="{{ url_for('view_document', doc_id=result.document.id) }}" class="btn btn-sm btn-primary ms-2">
-                <i class="fas fa-eye me-1"></i> View Document
+                <span class="material-symbols-outlined me-1" style="font-size: 0.9rem; vertical-align: middle;">visibility</span> View Document
             </a>
         </div>
     </div>
