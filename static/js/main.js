@@ -15,6 +15,56 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Popover(popoverTriggerEl);
     });
     
+    // Handle main search form submission to show the overlay
+    const mainSearchForm = document.getElementById('searchForm');
+    const searchResultsForm = document.getElementById('searchResultsForm');
+    
+    // Setup search form submission handler for homepage
+    if (mainSearchForm) {
+        mainSearchForm.addEventListener('submit', function(e) {
+            const searchInput = document.getElementById('mainSearchInput');
+            const query = searchInput?.value?.trim();
+            
+            if (query) {
+                // Show the full-screen search overlay with animation
+                const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+                if (searchInProgressOverlay) {
+                    // Update the query text
+                    const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
+                    if (searchQueryElement) {
+                        searchQueryElement.textContent = `"${query}"`;
+                    }
+                    
+                    // Show the overlay
+                    searchInProgressOverlay.classList.add('visible');
+                }
+            }
+        });
+    }
+    
+    // Setup search form submission handler for search results page
+    if (searchResultsForm) {
+        searchResultsForm.addEventListener('submit', function(e) {
+            const searchInput = document.getElementById('searchResultsInput');
+            const query = searchInput?.value?.trim();
+            
+            if (query) {
+                // Show the full-screen search overlay with animation
+                const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+                if (searchInProgressOverlay) {
+                    // Update the query text
+                    const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
+                    if (searchQueryElement) {
+                        searchQueryElement.textContent = `"${query}"`;
+                    }
+                    
+                    // Show the overlay
+                    searchInProgressOverlay.classList.add('visible');
+                }
+            }
+        });
+    }
+    
     // Initialize voice search functionality
     initializeVoiceSearch();
 
@@ -300,6 +350,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         });
                         
+                        // Show the full-screen search overlay with animation
+                        const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+                        if (searchInProgressOverlay) {
+                            // Update the query text
+                            const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
+                            if (searchQueryElement) {
+                                searchQueryElement.textContent = `"${example}"`;
+                            }
+                            
+                            // Show the overlay
+                            searchInProgressOverlay.classList.add('visible');
+                        }
+                        
                         // Check if we're on the homepage
                         const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
                         
@@ -415,6 +478,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     const searchResultsInput = document.getElementById('searchResultsInput');
                     if (mainSearchInput) mainSearchInput.value = example;
                     if (searchResultsInput) searchResultsInput.value = example;
+                    
+                    // Show the full-screen search overlay with animation
+                    const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
+                    if (searchInProgressOverlay) {
+                        // Update the query text
+                        const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
+                        if (searchQueryElement) {
+                            searchQueryElement.textContent = `"${example}"`;
+                        }
+                        
+                        // Show the overlay
+                        searchInProgressOverlay.classList.add('visible');
+                    }
                     
                     // Determine which page we're on
                     const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
