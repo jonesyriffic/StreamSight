@@ -50,9 +50,26 @@
                     Choose File
                 </button>
                 <span class="ms-3 file-name" id="file-name">No file chosen</span>
+                <p class="text-muted small mt-1">Maximum file size: 100MB</p>
                 
                 {% if form.file.errors %}
                     {% for error in form.file.errors %}
+                        <div class="text-danger mt-1">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="friendly_name" class="form-label">Document Name</label>
+                {{ form.friendly_name(id="friendly_name", class="form-control", 
+                   placeholder="Enter a readable document name (optional)", 
+                   value=document.friendly_name if document.friendly_name else "") }}
+                <div class="form-text">
+                    Change the document's display name. Leave blank to keep the current name: 
+                    <strong>{{ document.friendly_name if document.friendly_name else document.filename }}</strong>
+                </div>
+                {% if form.friendly_name.errors %}
+                    {% for error in form.friendly_name.errors %}
                         <div class="text-danger mt-1">{{ error }}</div>
                     {% endfor %}
                 {% endif %}

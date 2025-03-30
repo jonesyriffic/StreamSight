@@ -216,14 +216,34 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
            
+class MaxFileSize:
+    """
+    Custom validator for limiting maximum file size for uploads
+    """
+    def __init__(self, max_size=16*1024*1024):
+        self.max_size = max_size
+        
+    def __call__(self, form, field):
+        if field.data:
+            field.data.seek(0, os.SEEK_END)
+            file_size = field.data.tell()
+            field.data.seek(0)
+            
+            if file_size > self.max_size:
+                size_in_mb = self.max_size / (1024*1024)
+                raise ValidationError(f'File size exceeds the maximum limit of {size_in_mb} MB.')
+
 class ReuploadDocumentForm(FlaskForm):
     file = FileField('PDF File', validators=[
         FileRequired(),
-        FileAllowed(['pdf'], 'PDF files only!')
+        FileAllowed(['pdf'], 'PDF files only!'),
+        MaxFileSize(max_size=100*1024*1024)  # 100MB maximum file size
     ])
     keep_original_name = BooleanField('Keep original filename', default=True)
     reprocess_text = BooleanField('Extract text from new PDF', default=True)
     regenerate_insights = BooleanField('Regenerate AI insights', default=False)
+    friendly_name = StringField('Document Name', validators=[Optional(), Length(max=255)], 
+                               description='Optionally provide a readable name for this document')
 
 @app.route('/')
 @login_required
@@ -1032,6 +1052,14 @@ def reupload_document_post(doc_id):
             # Update document record
             document.filepath = relative_filepath
             document.file_available = True
+            
+            # Update friendly name if provided
+            if form.friendly_name.data:
+                old_name = document.friendly_name or document.filename
+                document.friendly_name = form.friendly_name.data
+                logger.info(f"Updated document name from '{old_name}' to '{form.friendly_name.data}'")
+                flash(f"Document name updated to '{form.friendly_name.data}'", 'info')
+                
             db.session.commit()
             
             # Log success message
