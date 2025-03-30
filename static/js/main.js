@@ -323,6 +323,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show AI-specific loading indicator
                     e.preventDefault();
                     
+                    // First, activate built-in spinner (same as from submit handler)
+                    const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
+                    // Identify appropriate spinner and search button based on page
+                    const searchButton = isHomepage ? 
+                        document.getElementById('mainSearchButton') : 
+                        document.getElementById('searchButton');
+                    const searchSpinner = isHomepage ? 
+                        document.getElementById('mainSearchSpinner') : 
+                        document.getElementById('searchSpinner');
+                        
+                    // Disable search button
+                    if (searchButton) searchButton.disabled = true;
+                    
+                    // Show spinner
+                    if (searchSpinner) searchSpinner.classList.remove('d-none');
+                    
                     // Get search container and add an AI searching message
                     const searchContainer = document.querySelector('.search-container') || document.body;
                     const aiSearchingMsg = document.createElement('div');
@@ -351,10 +367,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.innerHTML = `<i class="fas fa-robot fa-bounce me-1"></i> ${example}`;
                     button.classList.add('disabled');
                     
+                    // Set input field value to match example search
+                    const mainSearchInput = document.getElementById('mainSearchInput');
+                    const searchResultsInput = document.getElementById('searchResultsInput');
+                    if (mainSearchInput) mainSearchInput.value = example;
+                    if (searchResultsInput) searchResultsInput.value = example;
+                    
                     // Navigate after delay for visual feedback
                     setTimeout(() => {
                         window.location.href = this.href;
-                    }, 800); // Longer delay to show the AI is thinking
+                    }, 1000); // Longer delay to show the AI is thinking
                     
                     return false;
                 };
