@@ -125,9 +125,9 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">
                     <i class="fas fa-lightbulb text-warning me-2"></i> 
-                    Featured Insights
+                    Key Takeaways
                 </h3>
-                <span class="badge bg-primary">Highlights</span>
+                <span class="badge bg-primary">Quick Insights</span>
             </div>
             <div class="card-body">
                 <div id="featuredInsightsCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -140,8 +140,11 @@
                         {% for doc in featured_insights %}
                         <div class="carousel-item {% if loop.first %}active{% endif %}">
                             <div class="carousel-content p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h4 class="card-title">{{ doc.friendly_name if doc.friendly_name else doc.filename }}</h4>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="card-title small mb-0">
+                                        <small class="text-muted">From</small> 
+                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
+                                    </h5>
                                     <span class="badge 
                                         {% if doc.category == 'Industry Insights' %}bg-info
                                         {% elif doc.category == 'Technology News' %}bg-success
@@ -151,8 +154,8 @@
                                         {{ doc.category }}
                                     </span>
                                 </div>
-                                <div class="carousel-key-points">
-                                    {{ doc.key_points|safe }}
+                                <div class="carousel-key-points single-highlight">
+                                    {{ doc.key_points|truncate_html_preserve_tags(250)|get_first_bullet|safe }}
                                 </div>
                                 <div class="text-end mt-3">
                                     <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-outline-info">View Document</a>
