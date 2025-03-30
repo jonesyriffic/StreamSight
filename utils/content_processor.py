@@ -147,12 +147,18 @@ def process_youtube_video(url, category, user_id, db, Document):
         if not result['success']:
             return None, f"Could not process YouTube URL: {result.get('error', 'Unknown error')}", 400
         
-        # Check if we have a transcript
-        if not result['has_transcript']:
-            return None, "Could not retrieve transcript for this video. Please try a different video that has captions available.", 400
-        
         # Generate unique ID for the document
         doc_id = str(uuid.uuid4())
+        
+        # Check if we have a transcript
+        transcript_text = None
+        if result['has_transcript']:
+            transcript_text = result['transcript']
+        else:
+            # Create a placeholder text using video title and author
+            logger.info(f"No transcript available for video: {result['video_id']}. Using metadata as placeholder.")
+            transcript_text = f"Video Title: {result['title']}\n\nChannel: {result['author']}\n\n"
+            transcript_text += "This video does not have an available transcript. When insights are generated, they will be based on the video's title and metadata."
         
         # Create document record
         document = Document(
@@ -160,7 +166,7 @@ def process_youtube_video(url, category, user_id, db, Document):
             filename=result['title'] or "YouTube Video",  # Use video title as filename
             friendly_name=result['title'] or "YouTube Video",  # Use video title as friendly name
             filepath=url,  # Store URL in filepath for reference
-            text=result['transcript'],  # Store transcript as text
+            text=transcript_text,  # Store transcript as text
             category=category,
             user_id=user_id,
             content_type=Document.TYPE_YOUTUBE,
@@ -173,7 +179,12 @@ def process_youtube_video(url, category, user_id, db, Document):
         db.session.add(document)
         db.session.commit()
         
-        return document, "YouTube video added successfully.", 200
+        # Log if no transcript was available
+        if not result['has_transcript']:
+            logger.warning(f"Added YouTube video without transcript: {doc_id} ({result['title']})")
+            return document, "YouTube video added successfully, but no transcript was available. AI insights will be limited.", 200
+        else:
+            return document, "YouTube video added successfully.", 200
         
     except Exception as e:
         logger.error(f"Error processing YouTube video: {str(e)}")
@@ -198,33 +209,18 @@ def generate_content_summary(document, db, openai_api_key=None, is_async=False):
         if not document.text or len(document.text.strip()) < 100:
             return False
             
-        # Generate summary based on document type
-        content_prefix = ""
-        if document.content_type == document.TYPE_WEBLINK:
-            content_prefix = f"Web page: {document.source_url}\n\n"
-        elif document.content_type == document.TYPE_YOUTUBE:
-            content_prefix = f"YouTube video transcript: {document.source_url}\n\n"
-            
-        # Combine prefix with document text
-        combined_text = content_prefix + document.text
-            
-        # Generate summary
-        summary_html, key_points_html, summary_status = generate_document_summary(
-            combined_text,
-            include_key_points=True,
-            openai_api_key=openai_api_key
-        )
+        # Call document_ai's generate_document_summary function with the document ID
+        from utils.document_ai import generate_document_summary
         
-        if not summary_status:
+        # Generate summary and key points
+        result = generate_document_summary(document.id)
+        
+        if not result or not result.get('success', False):
+            logger.error(f"Failed to generate summary: {result.get('error', 'Unknown error')}")
             return False
             
-        # Update document with summary
-        document.summary = summary_html
-        document.key_points = key_points_html
-        document.summary_generated_at = datetime.utcnow()
-        
-        # Save the summary
-        db.session.commit()
+        # The document is updated directly in the generate_document_summary function
+        # No need to update it here again
         
         return True
         

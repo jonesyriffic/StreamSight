@@ -120,19 +120,44 @@ def get_video_transcript(video_id, languages=['en', 'en-US']):
                 
         # If preferred language not found, use first available
         if not transcript:
-            transcript = transcript_list.find_generated_transcript()
+            try:
+                transcript = transcript_list.find_generated_transcript()
+            except:
+                # No generated transcript found either, try getting any available transcript
+                try:
+                    available_transcripts = list(transcript_list._manually_created_transcripts.values())
+                    if available_transcripts:
+                        transcript = available_transcripts[0]
+                except:
+                    pass
+            
+        # If we still don't have a transcript, return failure
+        if not transcript:
+            message = "No transcript available for this video."
+            logger.warning(f"{message} Video ID: {video_id}")
+            return message, False
             
         # Process transcript
-        transcript_data = transcript.fetch()
-        full_text = ""
-        
-        # Combine transcript segments into full text
-        for item in transcript_data:
-            text = item.get('text', '').strip()
-            if text:
-                full_text += text + " "
-                
-        return full_text.strip(), True
+        try:
+            transcript_data = transcript.fetch()
+            full_text = ""
+            
+            # Combine transcript segments into full text
+            for item in transcript_data:
+                if isinstance(item, dict):
+                    text = item.get('text', '').strip()
+                    if text:
+                        full_text += text + " "
+                elif hasattr(item, 'text'):  # Handle different return types
+                    text = item.text.strip()
+                    if text:
+                        full_text += text + " "
+                    
+            return full_text.strip(), True
+        except Exception as e:
+            message = f"Error processing transcript data: {str(e)}"
+            logger.error(f"{message} Video ID: {video_id}")
+            return message, False
         
     except TranscriptsDisabled:
         message = "Transcripts are disabled for this video."

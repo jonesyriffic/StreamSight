@@ -92,11 +92,61 @@ def generate_document_summary(document_id):
     try:
         # Get the document from the database
         document = Document.query.get(document_id)
-        if not document or not document.text:
-            raise ValueError(f"Document with ID {document_id} not found or has no text content")
+        if not document:
+            raise ValueError(f"Document with ID {document_id} not found")
+        
+        if not document.text:
+            raise ValueError(f"Document with ID {document_id} has no text content")
         
         # Get document text - limit to first 15000 characters to stay within OpenAI context limits
         doc_text = document.text[:15000]
+        
+        # Prepare the prompt based on content type
+        system_content = "You are an expert document summarizer for a professional audience of product managers. "
+        user_content = f"Summarize this document and extract key insights:\n\n{doc_text}"
+        
+        # Adjust prompt based on content type
+        if document.content_type == 'youtube':
+            # Check if this is a YouTube video without a transcript
+            if "This video does not have an available transcript" in doc_text:
+                # Special handling for YouTube videos without transcripts
+                video_id = document.youtube_video_id
+                video_url = document.source_url
+                video_title = document.friendly_name or document.filename
+                
+                system_content = "You are an expert content analyzer for product managers. "
+                system_content += "You're analyzing a YouTube video with limited information (just title and metadata). "
+                system_content += "Format your response with two clearly separated sections in this exact order:\n\n"
+                system_content += "1. Key Points: A bulleted list of 3-4 likely key points based on the video title and context\n"
+                system_content += "2. Summary: A brief description of what the video likely contains based on its title\n\n"
+                
+                user_content = f"This is a YouTube video titled '{video_title}' (URL: {video_url}, ID: {video_id}).\n\n"
+                user_content += "No transcript is available for this video. Based on the title and information provided, "
+                user_content += "create a summary and likely key points that would be valuable for product managers. "
+                user_content += "Be clear this is based on limited information without access to the full video content."
+            else:
+                # Regular YouTube video with transcript
+                system_content += "You're analyzing a transcript from a YouTube video. "
+                user_content = f"Summarize this YouTube video transcript and extract key insights:\n\n{doc_text}"
+        elif document.content_type == 'weblink':
+            # Web link content
+            system_content += "You're analyzing content from a web page. "
+            user_content = f"Summarize this web page content and extract key insights:\n\n{doc_text}"
+        
+        # Add formatting instructions to system content
+        system_content += "Format your response with two clearly separated sections in this exact order:\n\n"
+        system_content += "1. Key Points: A bulleted list of exactly 4-5 key points from the document\n"
+        system_content += "2. Summary: A concise summary of no more than 2 short paragraphs (100-150 words total)\n\n"
+        system_content += "Use these exact section headers: 'Key Points:' and 'Summary:'\n\n"
+        system_content += "For Key Points:\n"
+        system_content += "- Start each point with a bullet point (- )\n"
+        system_content += "- Put a clear title in **bold** at the beginning of each point\n" 
+        system_content += "- Keep each point focused on a key fact or insight from the document\n"
+        system_content += "- Make points brief and direct - one sentence per point is ideal\n\n"
+        system_content += "Example format for a key point:\n"
+        system_content += "- **Market Growth:** Customer satisfaction increased 24% over the last quarter.\n\n"
+        system_content += "Focus on highlighting factual information from the document rather than making recommendations. "
+        system_content += "The summary should be objective and concise, capturing the most important information."
         
         # Generate summary using OpenAI's API
         response = openai.chat.completions.create(
@@ -104,24 +154,11 @@ def generate_document_summary(document_id):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert document summarizer for a professional audience of product managers. "
-                               "Format your response with two clearly separated sections in this exact order:\n\n"
-                               "1. Key Points: A bulleted list of exactly 4-5 key points from the document\n"
-                               "2. Summary: A concise summary of no more than 2 short paragraphs (100-150 words total)\n\n"
-                               "Use these exact section headers: 'Key Points:' and 'Summary:'\n\n"
-                               "For Key Points:\n"
-                               "- Start each point with a bullet point (- )\n"
-                               "- Put a clear title in **bold** at the beginning of each point\n" 
-                               "- Keep each point focused on a key fact or insight from the document\n"
-                               "- Make points brief and direct - one sentence per point is ideal\n\n"
-                               "Example format for a key point:\n"
-                               "- **Market Growth:** Customer satisfaction increased 24% over the last quarter.\n\n"
-                               "Focus on highlighting factual information from the document rather than making recommendations. "
-                               "The summary should be objective and concise, capturing the most important information."
+                    "content": system_content
                 },
                 {
                     "role": "user",
-                    "content": f"Summarize this document and extract key insights:\n\n{doc_text}"
+                    "content": user_content
                 }
             ],
             max_tokens=700
