@@ -17,7 +17,7 @@
 
 <div class="card bg-dark mb-4 search-container">
     <div class="card-body">
-        <form action="{{ url_for('search') }}" method="get">
+        <form action="{{ url_for('search') }}" method="get" id="searchResultsForm">
             <div class="input-group">
                 <input type="text" name="query" class="form-control search-input" 
                        value="{{ query }}" placeholder="Ask a question or search for keywords..."
@@ -68,7 +68,7 @@
             
             <script>
                 // Show loading spinner when search form is submitted
-                document.querySelector('form').addEventListener('submit', function(e) {
+                document.getElementById('searchResultsForm').addEventListener('submit', function(e) {
                     const query = document.querySelector('input[name="query"]').value.trim();
                     
                     // Only show spinner if there's a search query
