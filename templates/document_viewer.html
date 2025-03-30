@@ -18,59 +18,13 @@
     
     <div class="row">
         <div class="col-md-8">
-            <!-- 1. KEY POINTS SECTION - AT THE TOP -->
+            <!-- 1. DOCUMENT VIEWER - AT THE TOP -->
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Key Points</h5>
+                    <h5 class="card-title mb-0">{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
                     <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-sync-alt me-1"></i> {% if document.summary %}Regenerate{% else %}Generate{% endif %} Insights
                     </button>
-                </div>
-                <div class="card-body">
-                    <div id="key-points-text">
-                        {% if document.key_points %}
-                            {% if "<div class=\"document-insights\">" in document.key_points %}
-                                {# Extract only the list part, not the heading #}
-                                {% set content = document.key_points|string %}
-                                {% if "<ul class='key-points-list" in content %}
-                                    {{ content|safe }}
-                                {% else %}
-                                    <ul class="key-points-list">
-                                        {% for point in document.key_points.split('\n') if point.strip() %}
-                                            <li>{{ point }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            {% elif "<div class=\"key-points-section\">" in document.key_points %}
-                                {# Extract only the list part, not the heading #}
-                                {% set content = document.key_points|string %}
-                                {% if "<ul class='key-points-list" in content %}
-                                    {{ content|safe }}
-                                {% else %}
-                                    <ul class="key-points-list">
-                                        {% for point in document.key_points.split('\n') if point.strip() %}
-                                            <li>{{ point }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            {% else %}
-                                <ul class="key-points-list">
-                                    {% for point in document.key_points.split('\n') if point.strip() %}
-                                        <li>{{ point }}</li>
-                                    {% endfor %}
-                                </ul>
-                            {% endif %}
-                        {% else %}
-                            <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 2. DOCUMENT VIEWER - IN THE MIDDLE -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">{{ document.friendly_name if document.friendly_name else document.filename }}</h5>
                 </div>
                 <div id="pdf-container" class="card-body p-0" {% if document.content_type == 'weblink' %}style="height: 300px;"{% endif %}>
                     {% if document.content_type == 'weblink' %}
@@ -153,6 +107,52 @@
                             <i class="fas fa-cloud-upload-alt me-1"></i> Reupload PDF
                         </a>
                         {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. KEY POINTS SECTION - AT THE BOTTOM -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Key Points</h5>
+                </div>
+                <div class="card-body">
+                    <div id="key-points-text">
+                        {% if document.key_points %}
+                            {% if "<div class=\"document-insights\">" in document.key_points %}
+                                {# Extract only the list part, not the heading #}
+                                {% set content = document.key_points|string %}
+                                {% if "<ul class='key-points-list" in content %}
+                                    {{ content|safe }}
+                                {% else %}
+                                    <ul class="key-points-list">
+                                        {% for point in document.key_points.split('\n') if point.strip() %}
+                                            <li>{{ point }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            {% elif "<div class=\"key-points-section\">" in document.key_points %}
+                                {# Extract only the list part, not the heading #}
+                                {% set content = document.key_points|string %}
+                                {% if "<ul class='key-points-list" in content %}
+                                    {{ content|safe }}
+                                {% else %}
+                                    <ul class="key-points-list">
+                                        {% for point in document.key_points.split('\n') if point.strip() %}
+                                            <li>{{ point }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            {% else %}
+                                <ul class="key-points-list">
+                                    {% for point in document.key_points.split('\n') if point.strip() %}
+                                        <li>{{ point }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No key points available yet. Click the Generate button to create them.</p>
                         {% endif %}
                     </div>
                 </div>
