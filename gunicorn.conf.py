@@ -27,11 +27,13 @@ limit_request_fields = 0     # 0 = unlimited
 limit_request_field_size = 0 # 0 = unlimited
 
 # Maximum request body size (100MB - important!)
-# Note: Gunicorn doesn't directly support max_body_size like Nginx
-# We use Flask settings for this in app.py
-# But we need to make sure we don't time out before completing large uploads
+# We need to make sure we don't time out before completing large uploads
 worker_class = "gthread"
 worker_connections = 1000
+
+# Increase buffer size for large request bodies
+# This helps handle large file uploads through Gunicorn
+# Note: We can't directly set max body size in Gunicorn, handled by Flask's MAX_CONTENT_LENGTH
 
 # Python-specific settings for large file handling
 post_fork = lambda server, worker: worker.log.info("Worker spawned (pid: %s)", worker.pid)

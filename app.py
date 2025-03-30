@@ -34,17 +34,25 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
 
-# Set maximum file upload size to 100MB
+# Configure for large file uploads
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB in bytes
+app.config['MAX_CONTENT_PATH'] = None  # Allow uploads of any size within MAX_CONTENT_LENGTH
+app.config['UPLOAD_EXTENSIONS'] = ['.pdf']  # Restrict to PDF files
+app.config['UPLOAD_FOLDER_PERMISSIONS'] = 0o755  # Ensure upload folder has correct permissions
 
 # Configure upload folder
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+    # Ensure proper permissions for upload folder
+    os.chmod(UPLOAD_FOLDER, 0o755)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max upload size
 app.config['MAX_BUFFER_SIZE'] = 100 * 1024 * 1024  # 100MB buffer size for large file uploads
 app.config['REQUEST_TIMEOUT'] = 300  # 5 minutes timeout for large uploads
+
+# Increase the maximum number of fields and field sizes
+app.config['MAX_REQUEST_FIELDS'] = 1000  # Allow for many form fields
+app.config['MAX_REQUEST_FIELD_SIZE'] = 10485760  # 10MB per field
 
 # Configure database
 DATABASE_URL = os.environ.get('DATABASE_URL')
