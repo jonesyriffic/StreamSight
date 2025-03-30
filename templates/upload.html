@@ -30,7 +30,22 @@
             <div class="tab-content mt-4" id="uploadTabsContent">
                 <!-- PDF Files Upload Tab -->
                 <div class="tab-pane fade show active" id="pdf-content" role="tabpanel" aria-labelledby="pdf-tab">
-                    <form action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data">
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>How PDF uploads work:</strong> 
+                                <ul class="mb-0 ps-3 mt-1">
+                                    <li>We'll extract text from the PDF documents</li>
+                                    <li>AI generates summaries and insights from the content</li>
+                                    <li>Processing time varies based on document length (typically 30-60 seconds)</li>
+                                    <li>Image-only PDFs without text cannot be processed effectively</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('upload_document') }}" method="post" enctype="multipart/form-data" id="pdf-form">
                         <input type="hidden" name="content_type" value="pdf">
                         
                         <div class="mb-3">
@@ -49,16 +64,41 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="pdf-submit-btn">
                                 <i class="bi bi-cloud-upload"></i> Upload PDF Documents
                             </button>
+                            <div class="processing-indicator d-none" id="pdf-processing">
+                                <div class="d-flex align-items-center justify-content-center p-3">
+                                    <div class="spinner-border text-primary me-3" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <div class="fs-5">Processing PDF files... Please wait</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
                 
                 <!-- Web Link Tab -->
                 <div class="tab-pane fade" id="weblink-content" role="tabpanel" aria-labelledby="weblink-tab">
-                    <form action="{{ url_for('upload_document') }}" method="post">
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>How web links work:</strong> 
+                                <ul class="mb-0 ps-3 mt-1">
+                                    <li>We'll extract text content from the web page</li>
+                                    <li>AI generates summaries and insights from this content</li>
+                                    <li>Processing may take 30-60 seconds depending on the page size</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('upload_document') }}" method="post" id="weblink-form">
                         <input type="hidden" name="content_type" value="weblink">
                         
                         <div class="mb-3">
@@ -78,16 +118,42 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="weblink-submit-btn">
                                 <i class="bi bi-globe"></i> Add Web Page
                             </button>
+                            <div class="processing-indicator d-none" id="weblink-processing">
+                                <div class="d-flex align-items-center justify-content-center p-3">
+                                    <div class="spinner-border text-primary me-3" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <div class="fs-5">Processing web page... Please wait</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
                 
                 <!-- YouTube Tab -->
                 <div class="tab-pane fade" id="youtube-content" role="tabpanel" aria-labelledby="youtube-tab">
-                    <form action="{{ url_for('upload_document') }}" method="post">
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>How YouTube videos work:</strong> 
+                                <ul class="mb-0 ps-3 mt-1">
+                                    <li>We'll attempt to extract the video transcript when available</li>
+                                    <li>If no transcript is available, we'll still process using video metadata</li>
+                                    <li>AI generates summaries and insights from the content</li>
+                                    <li>Processing typically takes 20-40 seconds</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('upload_document') }}" method="post" id="youtube-form">
                         <input type="hidden" name="content_type" value="youtube">
                         
                         <div class="mb-3">
@@ -103,13 +169,24 @@
                             <label for="youtube-url" class="form-label">YouTube Video URL</label>
                             <input type="url" class="form-control" id="youtube-url" name="url" required
                                    placeholder="https://www.youtube.com/watch?v=XXXX">
-                            <div class="form-text">Enter a YouTube video URL to extract its transcript.</div>
+                            <div class="form-text">Enter a YouTube video URL to extract its transcript. Supported formats include regular YouTube URLs, Shorts, and youtu.be links.</div>
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="youtube-submit-btn">
                                 <i class="bi bi-youtube"></i> Add YouTube Video
                             </button>
+                            <div class="processing-indicator d-none" id="youtube-processing">
+                                <div class="d-flex align-items-center justify-content-center p-3">
+                                    <div class="spinner-border text-primary me-3" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <div class="fs-5">Processing YouTube video... Please wait</div>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -144,6 +221,33 @@ document.addEventListener('DOMContentLoaded', function() {
             history.replaceState(null, null, '#' + id);
         });
     });
+    
+    // Add form submission handlers to show loading indicators
+    setupFormSubmitHandlers('pdf-form', 'pdf-submit-btn', 'pdf-processing');
+    setupFormSubmitHandlers('weblink-form', 'weblink-submit-btn', 'weblink-processing');
+    setupFormSubmitHandlers('youtube-form', 'youtube-submit-btn', 'youtube-processing');
+    
+    function setupFormSubmitHandlers(formId, buttonId, processingId) {
+        const form = document.getElementById(formId);
+        const submitButton = document.getElementById(buttonId);
+        const processingIndicator = document.getElementById(processingId);
+        
+        if (form && submitButton && processingIndicator) {
+            form.addEventListener('submit', function(event) {
+                // Validate form first - only show processing if validation passes
+                if (form.checkValidity()) {
+                    // Hide the submit button
+                    submitButton.classList.add('d-none');
+                    
+                    // Show the processing indicator
+                    processingIndicator.classList.remove('d-none');
+                    
+                    // Submit form (no need to preventDefault as we want the form to submit)
+                    return true;
+                }
+            });
+        }
+    }
 });
 </script>
 {% endblock %}
