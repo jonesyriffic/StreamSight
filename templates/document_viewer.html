@@ -188,32 +188,39 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="card-footer d-flex justify-content-end gap-2">
-                {% if document.content_type == 'weblink' %}
-                <a href="{{ document.source_url }}" target="_blank" class="btn btn-sm btn-outline-info">
-                    <i class="fas fa-external-link-alt me-1"></i> Visit Website
-                </a>
-                {% elif document.content_type == 'youtube' %}
-                <a href="{{ document.source_url }}" target="_blank" class="btn btn-sm btn-outline-danger">
-                    <i class="fab fa-youtube me-1"></i> Watch on YouTube
-                </a>
-                {% elif document.file_available %}
-                <a id="pdf-view-link" href="/document/{{ document.id }}/pdf" target="_blank" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
-                </a>
-                <a id="pdf-download-link" href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-sm btn-outline-info">
-                    <i class="fas fa-download me-1"></i> Download
-                </a>
-                {% else %}
-                <span class="text-muted me-2">
-                    <i class="fas fa-exclamation-circle me-1"></i> PDF file not available
-                </span>
-                {% if current_user.is_admin or current_user.can_upload %}
-                <a href="{{ url_for('reupload_document', doc_id=document.id) }}" class="btn btn-sm btn-warning">
-                    <i class="fas fa-cloud-upload-alt me-1"></i> Reupload PDF
-                </a>
-                {% endif %}
-                {% endif %}
+            <div class="card-footer d-flex justify-content-between align-items-center gap-2">
+                <div>
+                    <button id="like-button" class="btn btn-sm btn-outline-danger" data-doc-id="{{ document.id }}" title="Like this document">
+                        <i id="like-icon" class="fas fa-thumbs-up me-1"></i> <span id="like-count">0</span>
+                    </button>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if document.content_type == 'weblink' %}
+                    <a href="{{ document.source_url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-external-link-alt me-1"></i> Visit Website
+                    </a>
+                    {% elif document.content_type == 'youtube' %}
+                    <a href="{{ document.source_url }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                        <i class="fab fa-youtube me-1"></i> Watch on YouTube
+                    </a>
+                    {% elif document.file_available %}
+                    <a id="pdf-view-link" href="/document/{{ document.id }}/pdf" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
+                    </a>
+                    <a id="pdf-download-link" href="/document/{{ document.id }}/pdf" download="{{ document.friendly_name if document.friendly_name else document.filename }}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-download me-1"></i> Download
+                    </a>
+                    {% else %}
+                    <span class="text-muted me-2">
+                        <i class="fas fa-exclamation-circle me-1"></i> PDF file not available
+                    </span>
+                    {% if current_user.is_admin or current_user.can_upload %}
+                    <a href="{{ url_for('reupload_document', doc_id=document.id) }}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-cloud-upload-alt me-1"></i> Reupload PDF
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
             </div>
         </div>
 
@@ -499,6 +506,81 @@
                 
                 // Enable retry
                 this.disabled = false;
+            });
+        });
+        
+        // Document Like Functionality
+        const likeButton = document.getElementById('like-button');
+        const likeIcon = document.getElementById('like-icon');
+        const likeCount = document.getElementById('like-count');
+        const docId = likeButton.getAttribute('data-doc-id');
+        
+        // Initial load - get current like status
+        fetch(`/api/document/${docId}/like-status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update like count
+                    likeCount.textContent = data.count;
+                    
+                    // Update button style based on like status
+                    if (data.liked) {
+                        likeButton.classList.remove('btn-outline-danger');
+                        likeButton.classList.add('btn-danger');
+                        likeButton.title = 'Unlike this document';
+                    } else {
+                        likeButton.classList.remove('btn-danger');
+                        likeButton.classList.add('btn-outline-danger');
+                        likeButton.title = 'Like this document';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error getting like status:', error);
+            });
+            
+        // Like button click handler
+        likeButton.addEventListener('click', function() {
+            // Show loading state
+            likeButton.disabled = true;
+            
+            // Toggle like status
+            fetch(`/api/document/${docId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Re-enable button
+                likeButton.disabled = false;
+                
+                if (data.status === 'success') {
+                    // Update like count
+                    likeCount.textContent = data.count;
+                    
+                    // Update button style based on new like status
+                    if (data.liked) {
+                        likeButton.classList.remove('btn-outline-danger');
+                        likeButton.classList.add('btn-danger');
+                        likeButton.title = 'Unlike this document';
+                    } else {
+                        likeButton.classList.remove('btn-danger');
+                        likeButton.classList.add('btn-outline-danger');
+                        likeButton.title = 'Like this document';
+                    }
+                } else {
+                    // Show error
+                    console.error('Error updating like status:', data.message);
+                }
+            })
+            .catch(error => {
+                // Re-enable button
+                likeButton.disabled = false;
+                console.error('Error updating like status:', error);
             });
         });
     });

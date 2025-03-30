@@ -69,6 +69,19 @@ class BadgeService:
             activity_type='summarize'
         ).count()
         
+        # Get like count (net likes minus unlikes)
+        like_count = UserActivity.query.filter_by(
+            user_id=user_id, 
+            activity_type='like'
+        ).count()
+        
+        unlike_count = UserActivity.query.filter_by(
+            user_id=user_id, 
+            activity_type='unlike'
+        ).count()
+        
+        net_like_count = like_count - unlike_count
+        
         # Get all badges the user doesn't already have
         user_badge_ids = [badge.id for badge in user.badges]
         available_badges = Badge.query.filter(~Badge.id.in_(user_badge_ids)).all()
@@ -86,6 +99,8 @@ class BadgeService:
             elif badge.type == Badge.TYPE_CONTRIBUTOR and upload_count >= badge.criteria_count:
                 qualifies = True
             elif badge.type == Badge.TYPE_SUMMARIZER and summarize_count >= badge.criteria_count:
+                qualifies = True
+            elif badge.type == 'liker' and net_like_count >= badge.criteria_count:
                 qualifies = True
             
             if qualifies:
@@ -151,6 +166,19 @@ class BadgeService:
             activity_type='summarize'
         ).count()
         
+        # Get like count (net likes minus unlikes)
+        like_count = UserActivity.query.filter_by(
+            user_id=user_id, 
+            activity_type='like'
+        ).count()
+        
+        unlike_count = UserActivity.query.filter_by(
+            user_id=user_id, 
+            activity_type='unlike'
+        ).count()
+        
+        net_like_count = like_count - unlike_count
+        
         # Get next level badges
         user_badges = user.badges  # user.badges is already a list, no need to call .all()
         user_badge_types = {}
@@ -198,6 +226,10 @@ class BadgeService:
             "summarizer": {
                 "current_count": summarize_count,
                 "next_badge": next_badges.get(Badge.TYPE_SUMMARIZER)
+            },
+            "liker": {
+                "current_count": net_like_count,
+                "next_badge": next_badges.get(Badge.TYPE_LIKER)
             }
         }
         

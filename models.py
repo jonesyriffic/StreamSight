@@ -87,12 +87,14 @@ class Badge(db.Model):
     TYPE_SEARCHER = 'searcher'     # For searching documents
     TYPE_CONTRIBUTOR = 'contributor'  # For uploading documents
     TYPE_SUMMARIZER = 'summarizer'  # For generating summaries
+    TYPE_LIKER = 'liker'          # For liking documents
     
     BADGE_TYPES = [
         TYPE_READER,
         TYPE_SEARCHER,
         TYPE_CONTRIBUTOR,
-        TYPE_SUMMARIZER
+        TYPE_SUMMARIZER,
+        TYPE_LIKER
     ]
     
     # Badge level constants
@@ -398,4 +400,35 @@ class UserDismissedRecommendation(db.Model):
             'not_relevant': self.not_relevant,
             'already_seen': self.already_seen,
             'not_interested': self.not_interested
+        }
+
+
+class DocumentLike(db.Model):
+    """Track user likes on documents"""
+    __tablename__ = 'document_like'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    document_id = db.Column(db.String(36), db.ForeignKey('document.id', ondelete='CASCADE'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('document_likes', lazy='dynamic'))
+    document = db.relationship('Document', backref=db.backref('likes', lazy='dynamic'))
+    
+    # Ensure users can only like a document once
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'document_id', name='unique_document_like'),
+    )
+    
+    def __repr__(self):
+        return f"<DocumentLike {self.user_id} - {self.document_id}>"
+        
+    def to_dict(self):
+        """Convert like to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'document_id': self.document_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

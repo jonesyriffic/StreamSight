@@ -23,7 +23,7 @@ from utils.relevance_generator import generate_relevance_reasons
 from utils.badge_service import BadgeService
 from utils.recommendation_service import get_user_recommendations, dismiss_recommendation, reset_dismissed_recommendations
 from utils.text_processor import clean_html, format_timestamp
-from models import db, Document, User, Badge, UserActivity, SearchLog, TeamResponsibility, UserDismissedRecommendation
+from models import db, Document, User, Badge, UserActivity, SearchLog, TeamResponsibility, UserDismissedRecommendation, DocumentLike
 from statistics import mean
 
 # Set up logging for debugging
@@ -1897,6 +1897,89 @@ def api_reset_recommendations():
     except Exception as e:
         logger.error(f"Error resetting recommendations: {str(e)}")
         return jsonify({'error': 'Failed to reset recommendations', 'message': str(e)}), 500
+
+
+@app.route('/api/document/<doc_id>/like', methods=['POST'])
+@login_required
+def like_document(doc_id):
+    """API endpoint to like a document"""
+    try:
+        # Check if document exists
+        document = Document.query.get(doc_id)
+        if not document:
+            return jsonify({'status': 'error', 'message': 'Document not found'}), 404
+            
+        # Check if user already liked this document
+        existing_like = DocumentLike.query.filter_by(
+            user_id=current_user.id, 
+            document_id=doc_id
+        ).first()
+        
+        if existing_like:
+            # User already liked this document, so unlike it
+            db.session.delete(existing_like)
+            db.session.commit()
+            
+            # Track activity for badge progress
+            BadgeService.track_activity(current_user.id, 'unlike', doc_id)
+            
+            return jsonify({
+                'status': 'success', 
+                'liked': False,
+                'message': 'Document unliked',
+                'count': document.likes.count()
+            })
+        else:
+            # User hasn't liked this document, so add a like
+            new_like = DocumentLike(user_id=current_user.id, document_id=doc_id)
+            db.session.add(new_like)
+            db.session.commit()
+            
+            # Track activity for badge progress
+            BadgeService.track_activity(current_user.id, 'like', doc_id)
+            
+            return jsonify({
+                'status': 'success', 
+                'liked': True,
+                'message': 'Document liked',
+                'count': document.likes.count()
+            })
+            
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error liking document: {str(e)}")
+        return jsonify({'status': 'error', 'message': f"Error: {str(e)}"}), 500
+
+
+@app.route('/api/document/<doc_id>/like-status', methods=['GET'])
+@login_required
+def document_like_status(doc_id):
+    """API endpoint to get like status and count for a document"""
+    try:
+        # Check if document exists
+        document = Document.query.get(doc_id)
+        if not document:
+            return jsonify({'status': 'error', 'message': 'Document not found'}), 404
+            
+        # Check if user liked this document
+        user_liked = DocumentLike.query.filter_by(
+            user_id=current_user.id, 
+            document_id=doc_id
+        ).first() is not None
+        
+        # Get total like count
+        like_count = document.likes.count()
+        
+        return jsonify({
+            'status': 'success',
+            'liked': user_liked,
+            'count': like_count
+        })
+            
+    except Exception as e:
+        logger.error(f"Error getting document like status: {str(e)}")
+        return jsonify({'status': 'error', 'message': f"Error: {str(e)}"}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

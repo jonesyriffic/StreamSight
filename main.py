@@ -13,6 +13,15 @@ def initialize_badges():
         if badge_count == 0:
             from initialize_badges import create_badges
             create_badges()
+            
+def initialize_like_badges():
+    """Initialize like badges if not already present"""
+    with app.app_context():
+        liker_badge_count = Badge.query.filter_by(type='liker').count()
+        if liker_badge_count == 0:
+            from initialize_like_badges import create_like_badges
+            create_like_badges()
+            logging.info("Initialized like badges")
 
 def process_document_friendly_names():
     """Add friendly names to documents that don't have them yet"""
@@ -266,6 +275,9 @@ def setup_document_content_types():
 def run_dev_initializations():
     # Initialize badges
     initialize_badges()
+    
+    # Initialize like badges
+    initialize_like_badges()
     
     # Process document friendly names
     process_document_friendly_names()
