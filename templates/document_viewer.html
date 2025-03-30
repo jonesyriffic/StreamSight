@@ -149,7 +149,9 @@
             <div class="card-body">
                 <div id="key-points-text">
                     {% if document.key_points %}
-                        {% if "<div class=\"key-points-section\">" in document.key_points %}
+                        {% if "<div class=\"document-insights\">" in document.key_points %}
+                            {{ document.key_points|safe }}
+                        {% elif "<div class=\"key-points-section\">" in document.key_points %}
                             {{ document.key_points|safe }}
                         {% else %}
                             <div class='key-points-section'>
@@ -186,13 +188,14 @@
                     <p class="small text-muted mt-3">Web Content ID: {{ document.id }}</p>
                 </div>
                 {% elif document.content_type == 'youtube' %}
-                <div class="d-flex flex-column align-items-center justify-content-center py-3 text-center">
+                <div class="d-flex flex-column align-items-center justify-content-center text-center">
                     {% if document.youtube_video_id %}
-                    <div class="w-100 px-3">
+                    <div class="w-100 px-0">
                         <div class="ratio ratio-16x9">
                             <iframe src="https://www.youtube.com/embed/{{ document.youtube_video_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                         </div>
                     </div>
+                    <p class="small text-muted mt-2 mb-0">Video ID: {{ document.id }}</p>
                     {% else %}
                     <div class="mb-3">
                         <i class="fab fa-youtube fa-5x text-danger"></i>
@@ -202,8 +205,8 @@
                     <a href="{{ document.source_url }}" target="_blank" class="btn btn-danger mt-3">
                         <i class="fab fa-youtube me-2"></i> Watch on YouTube
                     </a>
+                    <p class="small text-muted mt-2 mb-0">Video ID: {{ document.id }}</p>
                     {% endif %}
-                    <p class="small text-muted mt-3">Video ID: {{ document.id }}</p>
                 </div>
                 {% elif document.file_available %}
                 <iframe id="pdf-viewer" src="" width="100%" height="100%" frameborder="0"></iframe>
