@@ -117,56 +117,6 @@
 </div>
 {% endif %}
 
-<!-- Featured Insights Carousel -->
-{% if featured_insights %}
-<div class="row mb-5">
-    <div class="col-md-12">
-        <div id="featuredInsightsCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-indicators">
-                {% for doc in featured_insights %}
-                <button type="button" data-bs-target="#featuredInsightsCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
-                {% endfor %}
-            </div>
-            <div class="carousel-inner">
-                {% for doc in featured_insights %}
-                <div class="carousel-item {% if loop.first %}active{% endif %}">
-                    <div class="carousel-content p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <h6 class="card-title small mb-0">
-                                <small class="text-muted">From</small> 
-                                {{ doc.friendly_name if doc.friendly_name else doc.filename }}
-                            </h6>
-                            <span class="badge 
-                                {% if doc.category == 'Industry Insights' %}bg-info
-                                {% elif doc.category == 'Technology News' %}bg-success
-                                {% elif doc.category == 'Product Management' %}bg-primary
-                                {% elif doc.category == 'Customer Service' %}bg-warning
-                                {% else %}bg-secondary{% endif %}">
-                                {{ doc.category }}
-                            </span>
-                        </div>
-                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="insight-link">
-                            <div class="carousel-key-points single-highlight">
-                                {{ doc.key_points|truncate_html_preserve_tags(250)|get_random_bullet|safe }}
-                            </div>
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#featuredInsightsCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#featuredInsightsCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
-        </div>
-    </div>
-</div>
-{% endif %}
-
 <!-- Team Recommendations -->
 {% if current_user.is_authenticated and current_user.team_specialization and recommended_documents %}
 <div class="row mb-5">

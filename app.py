@@ -88,117 +88,6 @@ def nl2br(value):
     
     return Markup(value)
 
-@app.template_filter('truncate_html_preserve_tags')
-def truncate_html_preserve_tags(value, length=100):
-    """
-    Truncate HTML content to a specific length while preserving HTML tags
-    """
-    if not value:
-        return ""
-    from markupsafe import Markup
-    import re
-    
-    # Remove HTML tags to count text length
-    text_only = re.sub('<[^<]+?>', '', value)
-    
-    if len(text_only) <= length:
-        return Markup(value)
-    
-    # Count characters and preserve tags
-    result = ""
-    count = 0
-    in_tag = False
-    for char in value:
-        if char == '<':
-            in_tag = True
-            result += char
-        elif char == '>':
-            in_tag = False
-            result += char
-        elif not in_tag:
-            if count < length:
-                result += char
-                count += 1
-        else:
-            result += char
-    
-    return Markup(result + "...")
-
-@app.template_filter('get_first_bullet')
-def get_first_bullet(value):
-    """
-    Extract and return just the first bullet point from HTML content
-    """
-    if not value:
-        return ""
-    from markupsafe import Markup
-    import re
-    
-    # Look for bullet points in various formats (li elements, bullet symbols, etc.)
-    li_match = re.search(r'<li[^>]*>(.*?)</li>', value, re.DOTALL)
-    if li_match:
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{li_match.group(1)}</p>")
-    
-    # Look for bullet symbol like • or -
-    bullet_match = re.search(r'[•\-\*]\s+(.*?)(?:<br>|$)', value, re.DOTALL)
-    if bullet_match:
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{bullet_match.group(1)}</p>")
-    
-    # If no bullet format found, just return the first sentence or paragraph
-    first_para = re.search(r'<p[^>]*>(.*?)</p>', value, re.DOTALL)
-    if first_para:
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{first_para.group(1)}</p>")
-    
-    # Fallback: just take the first part of the text
-    text_only = re.sub('<[^<]+?>', '', value)
-    first_sentence = re.search(r'^(.*?[.!?])(?:\s|$)', text_only)
-    if first_sentence:
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{first_sentence.group(1)}</p>")
-    
-    # Last resort - just use the first 100 characters
-    return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{text_only[:100] if len(text_only) > 100 else text_only}</p>")
-
-@app.template_filter('get_random_bullet')
-def get_random_bullet(value):
-    """
-    Extract and return a random bullet point from HTML content
-    If no bullet points found, returns other content
-    """
-    if not value:
-        return ""
-    from markupsafe import Markup
-    import re
-    import random
-    
-    # Find all bullet points in li elements
-    li_matches = re.findall(r'<li[^>]*>(.*?)</li>', value, re.DOTALL)
-    if li_matches:
-        # Select a random bullet point
-        random_bullet = random.choice(li_matches)
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_bullet}</p>")
-    
-    # Find all bullet points with symbols
-    bullet_matches = re.findall(r'[•\-\*]\s+(.*?)(?:<br>|$)', value, re.DOTALL)
-    if bullet_matches:
-        random_bullet = random.choice(bullet_matches)
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_bullet}</p>")
-    
-    # If no bullet format found, look for paragraphs
-    paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', value, re.DOTALL)
-    if paragraphs:
-        random_para = random.choice(paragraphs)
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_para}</p>")
-    
-    # Fallback: split by sentences and return a random one
-    text_only = re.sub('<[^<]+?>', '', value)
-    sentences = re.findall(r'[^.!?]+[.!?]', text_only)
-    if sentences:
-        random_sentence = random.choice(sentences).strip()
-        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_sentence}</p>")
-    
-    # Last resort - just use some of the text
-    return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{text_only[:100] if len(text_only) > 100 else text_only}</p>")
-
 # Add custom Jinja filter for humanized timestamps
 @app.template_filter('humanize')
 def humanize_timestamp(dt):
@@ -352,14 +241,6 @@ def index():
     # Get only recent documents for the dashboard
     recent_documents = Document.query.order_by(Document.uploaded_at.desc()).limit(5).all()
     
-    # Get featured insights documents with key points for the carousel
-    featured_insights = Document.query.filter(
-        Document.key_points.isnot(None),
-        Document.file_available == True
-    ).order_by(
-        func.random()
-    ).limit(5).all()
-    
     # Initialize recommended documents as an empty list
     recommended_documents = []
     
@@ -379,8 +260,7 @@ def index():
                           total_categories=total_categories,
                           upload_month=upload_month,
                           recent_documents=[doc.to_dict() for doc in recent_documents],
-                          recommended_documents=[doc.to_dict() for doc in recommended_documents],
-                          featured_insights=[doc.to_dict() for doc in featured_insights])
+                          recommended_documents=[doc.to_dict() for doc in recommended_documents])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
