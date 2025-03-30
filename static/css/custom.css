@@ -945,3 +945,91 @@ body.modal-open {
     padding-left: 20px;
     border: none;
 }
+
+/* Material Design v3 Upload Processing UI */
+.md-progress-circular {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    display: inline-block;
+    animation: rotate 2s linear infinite;
+}
+
+.md-progress-circular svg {
+    width: 100%;
+    height: 100%;
+}
+
+.progress-circular-determinate {
+    fill: none;
+    stroke: var(--bs-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 126;
+    stroke-dashoffset: 0;
+    animation: dash 1.5s ease-in-out infinite;
+    transform-origin: center;
+}
+
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dashoffset: 126;
+    }
+    50% {
+        stroke-dashoffset: 30;
+    }
+    100% {
+        stroke-dashoffset: 126;
+    }
+}
+
+.upload-status-card {
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+}
+
+.upload-status-steps {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.upload-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 5px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.upload-step.active {
+    opacity: 1;
+}
+
+.upload-step .step-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--bs-secondary);
+}
+
+.upload-step.active .step-icon {
+    color: var(--bs-primary);
+}
+
+.upload-step .step-text {
+    font-size: 0.85rem;
+}
+
+.upload-step.active .step-text {
+    font-weight: 500;
+}

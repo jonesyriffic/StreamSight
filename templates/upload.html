@@ -69,13 +69,33 @@
                             </button>
                             <div class="processing-indicator d-none" id="pdf-processing">
                                 <div class="d-flex align-items-center justify-content-center p-3">
-                                    <div class="spinner-border text-primary me-3" role="status">
+                                    <div class="md-progress-circular me-3" role="status">
+                                        <svg viewBox="0 0 48 48">
+                                            <circle class="progress-circular-determinate" cx="24" cy="24" r="20"></circle>
+                                        </svg>
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
-                                    <div class="fs-5">Processing PDF files... Please wait</div>
+                                    <div class="fs-5">Processing PDF files with AI...</div>
                                 </div>
-                                <div class="progress mt-2" style="height: 6px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                <div class="upload-status-card mt-2 mb-3">
+                                    <div class="upload-status-steps">
+                                        <div class="upload-step active" id="pdf-step-upload">
+                                            <span class="material-symbols-outlined step-icon">cloud_upload</span>
+                                            <span class="step-text">Uploading Files</span>
+                                        </div>
+                                        <div class="upload-step" id="pdf-step-extract">
+                                            <span class="material-symbols-outlined step-icon">description</span>
+                                            <span class="step-text">Extracting Text</span>
+                                        </div>
+                                        <div class="upload-step" id="pdf-step-analyze">
+                                            <span class="material-symbols-outlined step-icon">psychology</span>
+                                            <span class="step-text">AI Analysis</span>
+                                        </div>
+                                        <div class="upload-step" id="pdf-step-complete">
+                                            <span class="material-symbols-outlined step-icon">task_alt</span>
+                                            <span class="step-text">Completing</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -123,13 +143,33 @@
                             </button>
                             <div class="processing-indicator d-none" id="weblink-processing">
                                 <div class="d-flex align-items-center justify-content-center p-3">
-                                    <div class="spinner-border text-primary me-3" role="status">
+                                    <div class="md-progress-circular me-3" role="status">
+                                        <svg viewBox="0 0 48 48">
+                                            <circle class="progress-circular-determinate" cx="24" cy="24" r="20"></circle>
+                                        </svg>
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
-                                    <div class="fs-5">Processing web page... Please wait</div>
+                                    <div class="fs-5">Processing web page with AI...</div>
                                 </div>
-                                <div class="progress mt-2" style="height: 6px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                <div class="upload-status-card mt-2 mb-3">
+                                    <div class="upload-status-steps">
+                                        <div class="upload-step active" id="weblink-step-fetch">
+                                            <span class="material-symbols-outlined step-icon">public</span>
+                                            <span class="step-text">Fetching Content</span>
+                                        </div>
+                                        <div class="upload-step" id="weblink-step-extract">
+                                            <span class="material-symbols-outlined step-icon">article</span>
+                                            <span class="step-text">Extracting Text</span>
+                                        </div>
+                                        <div class="upload-step" id="weblink-step-analyze">
+                                            <span class="material-symbols-outlined step-icon">psychology</span>
+                                            <span class="step-text">AI Analysis</span>
+                                        </div>
+                                        <div class="upload-step" id="weblink-step-complete">
+                                            <span class="material-symbols-outlined step-icon">task_alt</span>
+                                            <span class="step-text">Completing</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -178,13 +218,33 @@
                             </button>
                             <div class="processing-indicator d-none" id="youtube-processing">
                                 <div class="d-flex align-items-center justify-content-center p-3">
-                                    <div class="spinner-border text-primary me-3" role="status">
+                                    <div class="md-progress-circular me-3" role="status">
+                                        <svg viewBox="0 0 48 48">
+                                            <circle class="progress-circular-determinate" cx="24" cy="24" r="20"></circle>
+                                        </svg>
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
-                                    <div class="fs-5">Processing YouTube video... Please wait</div>
+                                    <div class="fs-5">Processing YouTube video with AI...</div>
                                 </div>
-                                <div class="progress mt-2" style="height: 6px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                <div class="upload-status-card mt-2 mb-3">
+                                    <div class="upload-status-steps">
+                                        <div class="upload-step active" id="youtube-step-fetch">
+                                            <span class="material-symbols-outlined step-icon">smart_display</span>
+                                            <span class="step-text">Fetching Video</span>
+                                        </div>
+                                        <div class="upload-step" id="youtube-step-extract">
+                                            <span class="material-symbols-outlined step-icon">closed_caption</span>
+                                            <span class="step-text">Extracting Transcript</span>
+                                        </div>
+                                        <div class="upload-step" id="youtube-step-analyze">
+                                            <span class="material-symbols-outlined step-icon">psychology</span>
+                                            <span class="step-text">AI Analysis</span>
+                                        </div>
+                                        <div class="upload-step" id="youtube-step-complete">
+                                            <span class="material-symbols-outlined step-icon">task_alt</span>
+                                            <span class="step-text">Completing</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -242,11 +302,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show the processing indicator
                     processingIndicator.classList.remove('d-none');
                     
+                    // Simulate step progression (since we can't track server-side progress)
+                    const contentType = formId.split('-')[0]; // pdf, weblink, youtube
+                    simulateProcessSteps(contentType);
+                    
                     // Submit form (no need to preventDefault as we want the form to submit)
                     return true;
                 }
             });
         }
+    }
+    
+    function simulateProcessSteps(contentType) {
+        // Get all steps for this content type
+        const steps = document.querySelectorAll(`[id^="${contentType}-step-"]`);
+        if (!steps.length) return;
+        
+        // First step is already active
+        let currentStepIndex = 0;
+        
+        // Schedule the step transitions with realistic timing
+        setTimeout(() => advanceToNextStep(steps, currentStepIndex + 1), 2500); // Extract step after 2.5s
+        setTimeout(() => advanceToNextStep(steps, currentStepIndex + 2), 6000); // Analysis step after 6s
+        // The final completion step is handled by page navigation after form submission
+    }
+    
+    function advanceToNextStep(steps, newIndex) {
+        if (newIndex >= steps.length) return;
+        
+        // Remove active class from all steps
+        steps.forEach(step => step.classList.remove('active'));
+        
+        // Add active class to the new step
+        steps[newIndex].classList.add('active');
     }
 });
 </script>
