@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             mainSearchInput.value = example;
                         }
                         
-                        // Change this button's appearance with animation
+                        // Immediately change this button's appearance with animation
                         this.classList.add('active', 'disabled');
                         // Replace icon with animated robot
                         this.innerHTML = this.innerHTML.replace(/fa-\w+/, 'fa-robot fa-bounce');
@@ -298,44 +298,56 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         });
                         
-                        // Use the global search overlay function if available
-                        if (window.showAISearchOverlay) {
+                        // Check if we're on the homepage
+                        const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
+                        
+                        // Update search form UI for visual feedback
+                        const searchContainer = document.getElementById('searchContainer');
+                        const searchCard = document.querySelector('.search-container');
+                        const mainSearchButton = document.getElementById('mainSearchButton');
+                        const mainSearchSpinner = document.getElementById('mainSearchSpinner');
+                        const mainSearchSpinnerInline = document.getElementById('mainSearchSpinnerInline');
+                        
+                        // Show AI search overlay if available
+                        if (typeof window.showAISearchOverlay === 'function') {
                             window.showAISearchOverlay(example);
                         } else {
-                            // Show loading indicator
-                            const mainSearchSpinner = document.getElementById('mainSearchSpinner');
-                            const mainSearchButton = document.getElementById('mainSearchButton');
-                            const mainSearchSpinnerInline = document.getElementById('mainSearchSpinnerInline');
-                            const searchContainer = document.getElementById('searchContainer');
+                            // Apply visual search indicator styles
+                            if (searchContainer) {
+                                searchContainer.classList.add('searching');
+                            }
                             
-                            // Show spinner if it exists
+                            if (searchCard) {
+                                searchCard.classList.add('searching');
+                            }
+                            
+                            // Show spinner
                             if (mainSearchSpinner) {
                                 mainSearchSpinner.classList.remove('d-none');
                             }
                             
-                            // Update search button with inline spinner
+                            // Update search button appearance
                             if (mainSearchButton) {
-                                // Disable button and add classes
                                 mainSearchButton.disabled = true;
                                 mainSearchButton.classList.add('btn-warning');
                                 mainSearchButton.classList.remove('btn-primary');
                                 
                                 // Show spinner in button
                                 const searchButtonNormal = mainSearchButton.querySelector('.search-button-normal');
-                                if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
-                                if (mainSearchSpinnerInline) mainSearchSpinnerInline.classList.remove('d-none');
-                            }
-                            
-                            // Add visual indicator to search container
-                            if (searchContainer) {
-                                searchContainer.classList.add('searching');
+                                if (searchButtonNormal) {
+                                    searchButtonNormal.classList.add('d-none');
+                                }
+                                if (mainSearchSpinnerInline) {
+                                    mainSearchSpinnerInline.classList.remove('d-none');
+                                }
                             }
                         }
                         
-                        // Navigate after a short delay to ensure loading indicator is visible
+                        // Add a small delay for the animations to be visible
                         setTimeout(() => {
                             window.location.href = this.href;
-                        }, 300);
+                        }, 400);
+                        
                         return false;
                     };
                     
