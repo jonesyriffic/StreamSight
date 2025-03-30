@@ -158,6 +158,47 @@ def get_first_bullet(value):
     # Last resort - just use the first 100 characters
     return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{text_only[:100] if len(text_only) > 100 else text_only}</p>")
 
+@app.template_filter('get_random_bullet')
+def get_random_bullet(value):
+    """
+    Extract and return a random bullet point from HTML content
+    If no bullet points found, returns other content
+    """
+    if not value:
+        return ""
+    from markupsafe import Markup
+    import re
+    import random
+    
+    # Find all bullet points in li elements
+    li_matches = re.findall(r'<li[^>]*>(.*?)</li>', value, re.DOTALL)
+    if li_matches:
+        # Select a random bullet point
+        random_bullet = random.choice(li_matches)
+        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_bullet}</p>")
+    
+    # Find all bullet points with symbols
+    bullet_matches = re.findall(r'[•\-\*]\s+(.*?)(?:<br>|$)', value, re.DOTALL)
+    if bullet_matches:
+        random_bullet = random.choice(bullet_matches)
+        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_bullet}</p>")
+    
+    # If no bullet format found, look for paragraphs
+    paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', value, re.DOTALL)
+    if paragraphs:
+        random_para = random.choice(paragraphs)
+        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_para}</p>")
+    
+    # Fallback: split by sentences and return a random one
+    text_only = re.sub('<[^<]+?>', '', value)
+    sentences = re.findall(r'[^.!?]+[.!?]', text_only)
+    if sentences:
+        random_sentence = random.choice(sentences).strip()
+        return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{random_sentence}</p>")
+    
+    # Last resort - just use some of the text
+    return Markup(f"<p class='mb-0 highlighted-point'><i class='fas fa-lightbulb text-warning me-2'></i>{text_only[:100] if len(text_only) > 100 else text_only}</p>")
+
 # Add custom Jinja filter for humanized timestamps
 @app.template_filter('humanize')
 def humanize_timestamp(dt):
