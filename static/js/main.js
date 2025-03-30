@@ -343,10 +343,24 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                         
-                        // Add a small delay for the animations to be visible
+                        // Force browser to perform layout/paint before navigating
+                        // This ensures animations are visible
                         setTimeout(() => {
-                            window.location.href = this.href;
-                        }, 400);
+                            // Create a visual flash effect on the search box to highlight it's active
+                            if (searchContainer) {
+                                searchContainer.style.transition = 'all 0.2s ease';
+                                searchContainer.style.backgroundColor = 'rgba(var(--bs-warning-rgb), 0.2)';
+                                
+                                setTimeout(() => {
+                                    searchContainer.style.backgroundColor = '';
+                                }, 200);
+                            }
+                            
+                            // FINALLY navigate after all animations have had time to display
+                            setTimeout(() => {
+                                window.location.href = this.href;
+                            }, 1200); // Significantly longer delay to ensure visual feedback is seen
+                        }, 100);
                         
                         return false;
                     };
@@ -470,10 +484,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     
-                    // Navigate after delay for visual feedback
+                    // Force browser to perform layout/paint before navigating
+                    // This ensures animations are visible
                     setTimeout(() => {
-                        window.location.href = this.href;
-                    }, 300); // Shorter delay for better responsiveness
+                        // Create a visual flash effect on the search box
+                        const searchContainer = document.querySelector('.search-container');
+                        if (searchContainer) {
+                            searchContainer.style.transition = 'all 0.2s ease';
+                            searchContainer.style.backgroundColor = 'rgba(var(--bs-warning-rgb), 0.2)';
+                            
+                            setTimeout(() => {
+                                searchContainer.style.backgroundColor = '';
+                            }, 200);
+                        }
+                        
+                        // FINALLY navigate after all animations have had time to display
+                        setTimeout(() => {
+                            window.location.href = this.href;
+                        }, 1200); // Significantly longer delay to ensure visual feedback is seen
+                    }, 100);
                     
                     return false;
                 };

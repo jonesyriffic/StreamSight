@@ -64,17 +64,44 @@
 /* Enhanced Search Loading States */
 .search-container {
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .search-container.searching {
-    box-shadow: 0 0 15px rgba(var(--bs-info-rgb), 0.5);
-    border: 1px solid var(--bs-info);
+    box-shadow: 0 0 25px rgba(var(--bs-warning-rgb), 0.7);
+    border: 2px solid var(--bs-warning);
+    transform: scale(1.02);
+}
+
+.search-container.searching::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(var(--bs-warning-rgb), 0.05);
+    border-radius: inherit;
+    z-index: -1;
+    animation: pulse-container 1.5s infinite;
+}
+
+@keyframes pulse-container {
+    0% { box-shadow: 0 0 0 0 rgba(var(--bs-warning-rgb), 0.5); }
+    70% { box-shadow: 0 0 0 15px rgba(var(--bs-warning-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--bs-warning-rgb), 0); }
+}
+
+#searchContainer.searching {
+    border-color: var(--bs-warning);
+    box-shadow: 0 0 8px rgba(var(--bs-warning-rgb), 0.6);
+    background-color: rgba(var(--bs-warning-rgb), 0.05);
 }
 
 #searchContainer.searching input {
     border-color: var(--bs-warning);
     box-shadow: 0 0 5px rgba(var(--bs-warning-rgb), 0.5);
-    background-color: rgba(var(--bs-warning-rgb), 0.05);
+    background-color: rgba(var(--bs-warning-rgb), 0.1);
 }
 
 .search-button-normal, .search-button-loading {
