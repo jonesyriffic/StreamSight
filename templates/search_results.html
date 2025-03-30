@@ -52,15 +52,81 @@
                 <!-- Example search buttons will be populated by JavaScript -->
             </div>
             
-            <!-- Loading spinner that appears when search is in progress -->
+            <!-- Enhanced AI Search Loading Indicator -->
+            <div id="searchInProgressOverlay" class="position-fixed top-0 start-0 w-100 h-100" 
+                 style="background-color: rgba(0,0,0,0.7); z-index: 9999; display: none; opacity: 0; visibility: hidden;">
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="loader-container">
+                        <div class="search-status">AI Search In Progress</div>
+                        <div class="search-query"></div>
+                        <div class="sparkle-emoji">
+                            <span class="star1">✨</span>
+                            <span class="star2">✨</span>
+                            <span class="star3">✨</span>
+                            <span class="star-center">✨</span>
+                        </div>
+                        <p class="search-info mt-3">Searching across our document library...</p>
+                        <p class="search-info text-warning">This may take up to 90 seconds to complete</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legacy Loading spinner (as fallback) -->
             <div id="searchSpinner" class="mt-3 text-center d-none">
                 <div class="spinner-border text-info" role="status">
                     <span class="visually-hidden">Searching...</span>
                 </div>
-                <p class="mt-2 text-info">Searching documents using AI... This may take a few moments.</p>
+                <p class="mt-2 text-info">Searching documents... This may take up to 90 seconds.</p>
             </div>
             
             <script>
+                // Shows the search in progress overlay
+                window.showSearchInProgressOverlay = function(query) {
+                    // Update the query text
+                    const searchQueryElement = document.querySelector('#searchInProgressOverlay .search-query');
+                    if (searchQueryElement) {
+                        searchQueryElement.textContent = `"${query}"`;
+                        console.log("Search results page - set query text:", query);
+                    }
+                    
+                    // Show the overlay
+                    const overlay = document.getElementById('searchInProgressOverlay');
+                    if (overlay) {
+                        console.log("Search results page - overlay element:", overlay);
+                        
+                        // Make overlay visible
+                        overlay.classList.add('visible');
+                        console.log("Search results page - added visible class");
+                        
+                        // Force display style to ensure it's visible
+                        overlay.style.display = 'flex';
+                        overlay.style.opacity = '1';
+                        overlay.style.visibility = 'visible';
+                        console.log("Search results page - forced styles");
+                    }
+                    
+                    // Update button state with inline spinner
+                    const searchResultsButton = document.getElementById('searchResultsButton');
+                    const searchSpinnerInline = document.getElementById('searchResultsSpinnerInline');
+                    const searchButtonNormal = searchResultsButton.querySelector('.search-button-normal');
+                    
+                    // Disable button and change style
+                    searchResultsButton.disabled = true;
+                    searchResultsButton.classList.add('btn-warning');
+                    searchResultsButton.classList.remove('btn-primary');
+                    
+                    // Show spinner in button
+                    if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
+                    if (searchSpinnerInline) searchSpinnerInline.classList.remove('d-none');
+                    
+                    // Add searching class to container
+                    const searchContainer = document.querySelector('.search-container');
+                    if (searchContainer) searchContainer.classList.add('searching');
+                    
+                    // Also show the legacy spinner as fallback
+                    document.getElementById('searchSpinner').classList.remove('d-none');
+                }
+                
                 // Show loading spinner when search form is submitted
                 document.getElementById('searchResultsForm').addEventListener('submit', function(e) {
                     const query = document.querySelector('input[name="query"]').value.trim();
@@ -68,32 +134,45 @@
                     // Only show spinner if there's a search query
                     if (query) {
                         e.preventDefault(); // Prevent immediate form submission
-                        
-                        // Update button state with inline spinner
-                        const searchResultsButton = document.getElementById('searchResultsButton');
-                        const searchSpinnerInline = document.getElementById('searchResultsSpinnerInline');
-                        const searchButtonNormal = searchResultsButton.querySelector('.search-button-normal');
-                        
-                        // Disable button and change style
-                        searchResultsButton.disabled = true;
-                        searchResultsButton.classList.add('btn-warning');
-                        searchResultsButton.classList.remove('btn-primary');
-                        
-                        // Show spinner in button
-                        if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
-                        if (searchSpinnerInline) searchSpinnerInline.classList.remove('d-none');
-                        
-                        // Add searching class to container
-                        const searchContainer = document.querySelector('.search-container');
-                        if (searchContainer) searchContainer.classList.add('searching');
-                        
-                        // Show the legacy spinner
-                        document.getElementById('searchSpinner').classList.remove('d-none');
+                        showSearchInProgressOverlay(query);
                         
                         // Submit the form after a short delay
                         setTimeout(() => {
+                            console.log("SEARCH RESULTS PAGE - NAVIGATION HAPPENING NOW");
                             this.submit();
                         }, 300);
+                    }
+                });
+                
+                // Handle search suggestion buttons
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Add event listeners to example search buttons when they're created
+                    const searchResultsExamples = document.getElementById('searchResultsExamples');
+                    if (searchResultsExamples) {
+                        searchResultsExamples.addEventListener('click', function(e) {
+                            // Check if clicked element is a search example button
+                            if (e.target.closest('.btn')) {
+                                const btn = e.target.closest('.btn');
+                                const query = btn.textContent.trim();
+                                
+                                // Set the search input value
+                                const searchInput = document.getElementById('searchResultsInput');
+                                if (searchInput) {
+                                    searchInput.value = query;
+                                }
+                                
+                                // Show the search overlay
+                                showSearchInProgressOverlay(query);
+                                
+                                // Style the clicked button
+                                btn.classList.add('active', 'disabled', 'example-active');
+                                
+                                // Submit the search form after a short delay
+                                setTimeout(() => {
+                                    document.getElementById('searchResultsForm').submit();
+                                }, 300);
+                            }
+                        });
                     }
                 });
             </script>

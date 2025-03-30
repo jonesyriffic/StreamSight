@@ -1331,7 +1331,8 @@ def get_document_topics():
                 question_topics.append(f"How can {topic} help my business?")
     
     # Return no more than 15 topics total to keep the UI clean
-    return jsonify(question_topics)
+    # Structure the response as an object with a topics array property
+    return jsonify({"topics": question_topics})
 
 @app.route('/api/generate-summary/<doc_id>', methods=['POST'])
 @login_required

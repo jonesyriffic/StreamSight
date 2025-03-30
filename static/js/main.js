@@ -636,10 +636,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Try to fetch real document topics from our API
         fetch('/api/document-topics')
             .then(response => response.json())
-            .then(topics => {
-                if (topics && topics.length > 0) {
+            .then(data => {
+                if (data && data.topics && data.topics.length > 0) {
                     // Use the fetched topics
-                    updateSearchExamples(topics);
+                    updateSearchExamples(data.topics);
+                } else {
+                    throw new Error('No topics returned from API');
                 }
             })
             .catch(error => {
