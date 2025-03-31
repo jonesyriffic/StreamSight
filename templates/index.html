@@ -454,7 +454,6 @@
                             </div>
                         </div>
                     </div>
-                    {% endif %}
                     {% endfor %}
                 </div>
                 
@@ -539,7 +538,7 @@
                                 <div class="mt-auto">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <small class="text-muted">
-                                            <i class="fas fa-calendar-alt me-1"></i> {{ doc.uploaded_at|formattime }}
+                                            <i class="fas fa-calendar-alt me-1"></i> {{ doc.uploaded_at|humanize }}
                                         </small>
                                         
                                         <div>
