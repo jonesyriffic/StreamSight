@@ -1030,23 +1030,75 @@ document.addEventListener('DOMContentLoaded', function() {
             text.textContent = theme === 'dark' ? 'Dark' : 'Light';
         });
         
-        // We don't switch the CSS link anymore since it causes font styling issues
-        // Instead, we toggle the data-bs-theme attribute which changes color schemes
-        // while preserving our font styling
-        
-        // Apply additional specific styles based on theme
+        // Add a custom class to the body element for theme-specific styling
         if (theme === 'light') {
-            // Add any light-mode specific overrides here if needed
-            document.documentElement.style.setProperty('--md-sys-color-background', '#f8f9fa');
-            document.documentElement.style.setProperty('--md-sys-color-on-background', '#212529');
-            document.documentElement.style.setProperty('--md-sys-color-surface', '#ffffff');
-            document.documentElement.style.setProperty('--md-sys-color-on-surface', '#212529');
+            document.body.classList.add('theme-light');
+            document.body.classList.remove('theme-dark');
+            
+            // Add light mode specific styles
+            addCustomLightModeStyles();
         } else {
-            // Restore dark mode colors if needed
-            document.documentElement.style.setProperty('--md-sys-color-background', '#121212');
-            document.documentElement.style.setProperty('--md-sys-color-on-background', '#e0e0e0');
-            document.documentElement.style.setProperty('--md-sys-color-surface', '#1e1e1e');
-            document.documentElement.style.setProperty('--md-sys-color-on-surface', '#f5f5f5');
+            document.body.classList.add('theme-dark');
+            document.body.classList.remove('theme-light');
+            
+            // Remove any light mode styles we added
+            removeCustomLightModeStyles();
         }
+    }
+    
+    // Function to add a style element with light mode overrides
+    function addCustomLightModeStyles() {
+        // Remove any existing style element first
+        removeCustomLightModeStyles();
+        
+        // Create a new style element
+        const styleElement = document.createElement('style');
+        styleElement.id = 'custom-light-mode-styles';
+        
+        // Define light mode overrides
+        styleElement.textContent = `
+            :root {
+                --md-sys-color-background: #f8f9fa !important;
+                --md-sys-color-on-background: #212529 !important;
+                --md-sys-color-surface: #ffffff !important;
+                --md-sys-color-on-surface: #212529 !important;
+                --md-sys-color-surface-variant: #e9ecef !important;
+                --md-sys-color-on-surface-variant: #495057 !important;
+                --md-sys-color-primary-container: #cfe2ff !important;
+                --md-sys-color-on-primary-container: #084298 !important;
+                --md-sys-color-secondary-container: #e2e3e5 !important;
+                --md-sys-color-on-secondary-container: #41464b !important;
+                --md-sys-color-tertiary-container: #d1e7dd !important;
+                --md-sys-color-on-tertiary-container: #0f5132 !important;
+                --md-sys-color-error-container: #f8d7da !important;
+                --md-sys-color-on-error-container: #842029 !important;
+            }
+            
+            .theme-light .navbar {
+                background-color: #f8f9fa !important;
+            }
+            
+            .theme-light .nav-link, 
+            .theme-light .navbar-brand, 
+            .theme-light #theme-toggle {
+                color: #212529 !important;
+            }
+            
+            .theme-light footer {
+                background-color: #f8f9fa !important;
+            }
+        `;
+        
+        // Add it to the document head
+        document.head.appendChild(styleElement);
+    }
+    
+    // Function to remove the custom light mode styles
+    function removeCustomLightModeStyles() {
+        const existingStyle = document.getElementById('custom-light-mode-styles');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+    }
     }
 });
