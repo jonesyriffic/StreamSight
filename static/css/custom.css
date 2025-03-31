@@ -1,19 +1,123 @@
-/* Custom CSS styles for GSP Insights Hub */
+/* Custom CSS styles for GSP Insights Hub - Material Design v3 */
 
-/* Override focus outlines for accessibility */
-:focus {
-    outline: 2px solid var(--bs-info) !important;
-    outline-offset: 2px;
+/* Material Design v3 Typography Variables */
+:root {
+    /* Typography Scale */
+    --md-display-large-size: 3.5rem;
+    --md-display-large-weight: 400;
+    --md-display-large-line-height: 4rem;
+    --md-display-large-tracking: -0.016rem;
+    
+    --md-display-medium-size: 2.8rem;
+    --md-display-medium-weight: 400;
+    --md-display-medium-line-height: 3.25rem;
+    --md-display-medium-tracking: 0;
+    
+    --md-display-small-size: 2.25rem;
+    --md-display-small-weight: 400;
+    --md-display-small-line-height: 2.75rem;
+    
+    --md-headline-large-size: 2rem;
+    --md-headline-large-weight: 400;
+    --md-headline-large-line-height: 2.5rem;
+    
+    --md-headline-medium-size: 1.75rem;
+    --md-headline-medium-weight: 400;
+    --md-headline-medium-line-height: 2.25rem;
+    
+    --md-headline-small-size: 1.5rem;
+    --md-headline-small-weight: 400;
+    --md-headline-small-line-height: 2rem;
+    
+    --md-title-large-size: 1.375rem;
+    --md-title-large-weight: 400;
+    --md-title-large-line-height: 1.75rem;
+    
+    --md-title-medium-size: 1rem;
+    --md-title-medium-weight: 500;
+    --md-title-medium-line-height: 1.5rem;
+    --md-title-medium-tracking: 0.009rem;
+    
+    --md-title-small-size: 0.875rem;
+    --md-title-small-weight: 500;
+    --md-title-small-line-height: 1.25rem;
+    --md-title-small-tracking: 0.006rem;
+    
+    --md-body-large-size: 1rem;
+    --md-body-large-weight: 400;
+    --md-body-large-line-height: 1.5rem;
+    --md-body-large-tracking: 0.031rem;
+    
+    --md-body-medium-size: 0.875rem;
+    --md-body-medium-weight: 400;
+    --md-body-medium-line-height: 1.25rem;
+    --md-body-medium-tracking: 0.016rem;
+    
+    --md-body-small-size: 0.75rem;
+    --md-body-small-weight: 400;
+    --md-body-small-line-height: 1rem;
+    --md-body-small-tracking: 0.025rem;
+    
+    --md-label-large-size: 0.875rem;
+    --md-label-large-weight: 500;
+    --md-label-large-line-height: 1.25rem;
+    --md-label-large-tracking: 0.006rem;
+    
+    --md-label-medium-size: 0.75rem;
+    --md-label-medium-weight: 500;
+    --md-label-medium-line-height: 1rem;
+    --md-label-medium-tracking: 0.031rem;
+    
+    --md-label-small-size: 0.6875rem;
+    --md-label-small-weight: 500;
+    --md-label-small-line-height: 0.875rem;
+    --md-label-small-tracking: 0.031rem;
 }
 
-/* Section headers for main page sections */
-.section-title {
-    font-size: 1.75rem;
+/* Applying MD3 Typography to elements */
+h1, .h1 {
+    font-size: var(--md-headline-large-size);
+    font-weight: var(--md-headline-large-weight);
+    line-height: var(--md-headline-large-line-height);
+    letter-spacing: -0.015rem;
     margin-bottom: 1rem;
-    font-weight: 600;
+}
+
+h2, .h2 {
+    font-size: var(--md-headline-medium-size);
+    font-weight: var(--md-headline-medium-weight);
+    line-height: var(--md-headline-medium-line-height);
+    letter-spacing: -0.005rem;
+    margin-bottom: 0.875rem;
+}
+
+h3, .h3 {
+    font-size: var(--md-headline-small-size);
+    font-weight: var(--md-headline-small-weight);
+    line-height: var(--md-headline-small-line-height);
+    margin-bottom: 0.75rem;
+}
+
+h4, .h4 {
+    font-size: var(--md-title-large-size);
+    font-weight: var(--md-title-large-weight);
+    line-height: var(--md-title-large-line-height);
+    margin-bottom: 0.5rem;
+}
+
+.section-title {
+    font-size: var(--md-headline-small-size);
+    margin-bottom: 1rem;
+    font-weight: 400;
     color: var(--bs-light);
     border-bottom: 1px solid rgba(255,255,255,0.1);
     padding-bottom: 0.5rem;
+}
+
+/* Override focus outlines for accessibility */
+:focus {
+    outline: 2px solid var(--md-sys-color-primary) !important;
+    outline-offset: 2px;
 }
 
 /* Welcome banner styling */
@@ -28,18 +132,31 @@
     border: none;
 }
 
-/* Card header styling */
+/* Material Design v3 Card Header/Footer Styling */
 .card-header {
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(0,0,0,0.1);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.1));
+    padding: 1rem;
+    font-size: var(--md-title-medium-size, 1rem);
+    font-weight: var(--md-title-medium-weight, 500);
+}
+
+.card-footer {
+    background-color: transparent;
+    border-top: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.1));
+    padding: 0.75rem 1rem;
 }
 
 /* Recommendation card styling */
 .recommendation-card .relevance-box {
-    border-left: 3px solid var(--bs-primary);
+    border-left: 3px solid var(--md-sys-color-primary, var(--bs-primary));
+    background-color: rgba(var(--md-sys-color-primary-rgb, 13, 110, 253), 0.08);
+    border-radius: 8px;
+    padding: 0.75rem;
 }
 
 .featured-card {
-    border-left: 3px solid var(--bs-warning);
+    border-left: 3px solid var(--md-sys-color-tertiary, var(--bs-warning));
 }
 
 /* Search section styling */
@@ -463,24 +580,105 @@
     }
 }
 
-/* Improve card shadow */
+/* Material Design v3 Card Styling */
 .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: box-shadow 0.3s ease;
+    border-radius: 16px;
+    border: none;
+    background-color: var(--md-sys-color-surface-container, #333);
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    position: relative;
 }
 
 .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.3), 0px 2px 12px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
 }
 
-/* File upload styling */
+/* Material Design v3 Form Styling */
+.md-form-input {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.md-form-input label {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    padding: 0 5px;
+    font-size: var(--md-label-medium-size);
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-background);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    background-color: transparent;
+    border: 2px solid var(--md-sys-color-outline-variant);
+    padding: 0.75rem 1rem;
+    font-size: var(--md-body-large-size);
+    line-height: var(--md-body-large-line-height);
+    transition: all 0.2s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--md-sys-color-primary-rgb), 0.25);
+    background-color: transparent;
+}
+
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.2rem;
+    border-radius: 2px;
+    border: 2px solid var(--md-sys-color-outline);
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-check-input:checked {
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--md-sys-color-primary-rgb), 0.25);
+}
+
+.form-label {
+    font-size: var(--md-label-large-size);
+    font-weight: var(--md-label-large-weight);
+    margin-bottom: 0.5rem;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.form-text {
+    font-size: var(--md-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 0.25rem;
+}
+
+/* File upload styling - MD3 Version */
 .custom-file-upload {
-    border: 1px solid var(--bs-gray);
+    border: 2px solid var(--md-sys-color-outline-variant);
     display: inline-block;
-    padding: 6px 12px;
+    padding: 0.75rem 1rem;
     cursor: pointer;
-    background-color: var(--bs-gray-dark);
-    border-radius: 0.25rem;
+    background-color: transparent;
+    border-radius: 8px;
+    font-size: var(--md-body-large-size);
+    transition: all 0.2s ease-in-out;
+}
+
+.custom-file-upload:hover {
+    border-color: var(--md-sys-color-primary);
+    background-color: rgba(var(--md-sys-color-primary-rgb), 0.05);
 }
 
 /* Responsive improvements */
@@ -537,14 +735,36 @@
     box-shadow: 0 0 8px rgba(var(--bs-info-rgb), 0.8);
 }
 
-/* Badge card styling */
+/* Badge card styling with Material Design v3 elevation */
 .card.bg-dark.border-info {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--md-elevation-1, 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15));
 }
 
 .card.bg-dark.border-info:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--md-elevation-4, 0px 6px 12px rgba(0,0,0,0.3), 0px 4px 16px rgba(0,0,0,0.15));
+}
+
+/* Material Design v3 Elevation Classes */
+.md-elevation-1 {
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
+}
+
+.md-elevation-2 {
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.3), 0px 1px 8px rgba(0,0,0,0.12);
+}
+
+.md-elevation-3 {
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.3), 0px 2px 12px rgba(0,0,0,0.15);
+}
+
+.md-elevation-4 {
+    box-shadow: 0px 6px 12px rgba(0,0,0,0.3), 0px 4px 16px rgba(0,0,0,0.15);
+}
+
+.md-elevation-5 {
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.3), 0px 6px 24px rgba(0,0,0,0.15);
 }
 
 /* Rotating Material Design Icon Animation */
