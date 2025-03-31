@@ -616,19 +616,22 @@ h4, .h4 {
 }
 
 .form-control, .form-select {
-    border-radius: 8px;
-    background-color: transparent;
-    border: 2px solid var(--md-sys-color-outline-variant);
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 2px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.3));
     padding: 0.75rem 1rem;
-    font-size: var(--md-body-large-size);
-    line-height: var(--md-body-large-line-height);
+    font-size: var(--md-body-large-size, 1rem);
+    line-height: var(--md-body-large-line-height, 1.5);
     transition: all 0.2s ease-in-out;
+    color: var(--md-sys-color-on-surface, white);
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 0.25rem rgba(var(--md-sys-color-primary-rgb), 0.25);
-    background-color: transparent;
+    border-color: var(--md-sys-color-primary, #0d6efd);
+    box-shadow: 0 0 0 3px rgba(var(--md-sys-color-primary-rgb, 13, 110, 253), 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    outline: none;
+    color: white;
 }
 
 .form-check-input {
@@ -647,8 +650,9 @@ h4, .h4 {
 }
 
 .form-check-input:focus {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 0.25rem rgba(var(--md-sys-color-primary-rgb), 0.25);
+    border-color: var(--md-sys-color-primary, #0d6efd);
+    box-shadow: 0 0 0 3px rgba(var(--md-sys-color-primary-rgb, 13, 110, 253), 0.3);
+    outline: none;
 }
 
 .form-label {
