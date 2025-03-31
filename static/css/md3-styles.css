@@ -1,0 +1,140 @@
+/* Material Design v3 Style Overrides */
+
+/* Card Styling */
+.card {
+    border-radius: 16px !important;
+    border: none !important;
+    background-color: var(--md-sys-color-surface-container, #333) !important;
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.card:hover {
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.3), 0px 2px 12px rgba(0,0,0,0.15) !important;
+    transform: translateY(-4px) !important;
+}
+
+.card-header {
+    background-color: rgba(0,0,0,0.1) !important;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.1)) !important;
+    padding: 1rem !important;
+    font-size: var(--md-title-medium-size, 1rem) !important;
+    font-weight: var(--md-title-medium-weight, 500) !important;
+}
+
+.card-footer {
+    background-color: transparent !important;
+    border-top: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.1)) !important;
+    padding: 0.75rem 1rem !important;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border-radius: 12px !important;
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    border: 2px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.3)) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: var(--md-body-large-size, 1rem) !important;
+    line-height: var(--md-body-large-line-height, 1.5) !important;
+    transition: all 0.2s ease-in-out !important;
+    color: var(--md-sys-color-on-surface, white) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--md-sys-color-primary, #0d6efd) !important;
+    box-shadow: 0 0 0 3px rgba(var(--md-sys-color-primary-rgb, 13, 110, 253), 0.3) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    outline: none !important;
+    color: white !important;
+}
+
+.form-check-input {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin-top: 0.2rem !important;
+    border-radius: 2px !important;
+    border: 2px solid var(--md-sys-color-outline, rgba(255,255,255,0.4)) !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.form-check-input:checked {
+    background-color: var(--md-sys-color-primary, #0d6efd) !important;
+    border-color: var(--md-sys-color-primary, #0d6efd) !important;
+}
+
+.form-check-input:focus {
+    border-color: var(--md-sys-color-primary, #0d6efd) !important;
+    box-shadow: 0 0 0 3px rgba(var(--md-sys-color-primary-rgb, 13, 110, 253), 0.3) !important;
+    outline: none !important;
+}
+
+/* Recommendation Card Styling */
+.recommendation-card .relevance-box {
+    border-left: 3px solid var(--md-sys-color-primary, var(--bs-primary)) !important;
+    background-color: rgba(var(--md-sys-color-primary-rgb, 13, 110, 253), 0.08) !important;
+    border-radius: 8px !important;
+    padding: 0.75rem !important;
+}
+
+.featured-card {
+    border-left: 3px solid var(--md-sys-color-tertiary, var(--bs-warning)) !important;
+}
+
+/* Badge Card Styling */
+.card.bg-dark.border-info {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: var(--md-elevation-1, 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15)) !important;
+}
+
+.card.bg-dark.border-info:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: var(--md-elevation-4, 0px 6px 12px rgba(0,0,0,0.3), 0px 4px 16px rgba(0,0,0,0.15)) !important;
+}
+
+/* Material Design v3 Elevation Classes */
+.md-elevation-1 {
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15) !important;
+}
+
+.md-elevation-2 {
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.3), 0px 1px 8px rgba(0,0,0,0.12) !important;
+}
+
+.md-elevation-3 {
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.3), 0px 2px 12px rgba(0,0,0,0.15) !important;
+}
+
+.md-elevation-4 {
+    box-shadow: 0px 6px 12px rgba(0,0,0,0.3), 0px 4px 16px rgba(0,0,0,0.15) !important;
+}
+
+.md-elevation-5 {
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.3), 0px 6px 24px rgba(0,0,0,0.15) !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 1.5rem !important;
+    padding: 0.5rem 1.25rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.025rem !important;
+    transition: all 0.3s ease !important;
+    text-transform: none !important;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.875rem !important;
+}
+
+.btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn:active {
+    transform: translateY(0) !important;
+}
