@@ -9,12 +9,13 @@
 /* Latest Documents Auto-Scrolling Container */
 #latestDocumentsRow {
     display: flex;
-    overflow-x: auto;
+    overflow-x: hidden;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--bs-primary) transparent;
     padding-bottom: 15px;
+    position: relative;
 }
 
 #latestDocumentsRow::-webkit-scrollbar {
@@ -29,6 +30,25 @@
 #latestDocumentsRow::-webkit-scrollbar-thumb {
     background-color: var(--bs-primary);
     border-radius: 10px;
+}
+
+/* Carousel control buttons */
+#carousel-pause-btn, #carousel-left-btn, #carousel-right-btn {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#carousel-pause-btn:hover, #carousel-left-btn:hover, #carousel-right-btn:hover {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    transform: scale(1.1);
 }
 
 /* Featured Documents Styling */

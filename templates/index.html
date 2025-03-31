@@ -583,10 +583,21 @@
                     <i class="fas fa-clock text-info me-2"></i>
                     Latest Additions
                 </h3>
-                <a href="{{ url_for('library') }}" class="btn btn-sm btn-outline-info">View All</a>
+                <div>
+                    <button id="carousel-pause-btn" class="btn btn-sm btn-outline-light me-2" title="Pause auto-scrolling">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button id="carousel-left-btn" class="btn btn-sm btn-outline-light me-2" title="Scroll left">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="carousel-right-btn" class="btn btn-sm btn-outline-light me-2" title="Scroll right">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <a href="{{ url_for('library') }}" class="btn btn-sm btn-outline-info">View All</a>
+                </div>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-nowrap overflow-auto gap-4" id="latestDocumentsRow">
+                <div class="d-flex flex-nowrap overflow-hidden gap-4" id="latestDocumentsRow">
                     {% for doc in latest_documents %}
                     <div class="col-md-4 latest-document-card" style="min-width: 320px; flex: 0 0 auto;">
                         <div class="card h-100
@@ -1095,6 +1106,161 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred while dismissing the recommendation.');
         });
     });
+});
+</script>
+
+<!-- Auto-Scrolling Carousel for Latest Documents -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-scrolling carousel for latest documents
+    const latestDocsContainer = document.getElementById('latestDocumentsRow');
+    const pauseButton = document.getElementById('carousel-pause-btn');
+    const leftButton = document.getElementById('carousel-left-btn');
+    const rightButton = document.getElementById('carousel-right-btn');
+    
+    if (latestDocsContainer && pauseButton && leftButton && rightButton) {
+        let isPaused = false;
+        let scrollInterval;
+        const cardWidth = 340; // Card width + gap
+        const scrollSpeed = 5000; // Scroll every 5 seconds
+        
+        // Function to scroll to the next item
+        function scrollToNext() {
+            if (isPaused) return;
+            
+            // Get current scroll position
+            const currentPosition = latestDocsContainer.scrollLeft;
+            const maxScroll = latestDocsContainer.scrollWidth - latestDocsContainer.clientWidth;
+            
+            // Calculate next position
+            let nextPosition = currentPosition + cardWidth;
+            
+            // If we're at or near the end, scroll back to start
+            if (nextPosition >= maxScroll) {
+                nextPosition = 0;
+            }
+            
+            // Smooth scroll to next position
+            latestDocsContainer.scrollTo({
+                left: nextPosition,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Start auto-scrolling
+        function startAutoScroll() {
+            // Clear any existing interval
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+            }
+            
+            // Set new interval
+            scrollInterval = setInterval(scrollToNext, scrollSpeed);
+            
+            // Update button appearance
+            pauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+            pauseButton.title = 'Pause auto-scrolling';
+        }
+        
+        // Stop auto-scrolling
+        function stopAutoScroll() {
+            clearInterval(scrollInterval);
+            pauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            pauseButton.title = 'Resume auto-scrolling';
+        }
+        
+        // Toggle auto-scrolling
+        pauseButton.addEventListener('click', function() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                stopAutoScroll();
+            } else {
+                startAutoScroll();
+            }
+        });
+        
+        // Manual scroll left
+        leftButton.addEventListener('click', function() {
+            const currentPosition = latestDocsContainer.scrollLeft;
+            
+            // Temporarily pause auto-scrolling
+            const wasAutoScrolling = !isPaused;
+            if (wasAutoScrolling) {
+                isPaused = true;
+                stopAutoScroll();
+            }
+            
+            // Scroll one card to the left
+            latestDocsContainer.scrollTo({
+                left: Math.max(0, currentPosition - cardWidth),
+                behavior: 'smooth'
+            });
+            
+            // Resume auto-scrolling after a delay if it was on
+            if (wasAutoScrolling) {
+                setTimeout(() => {
+                    isPaused = false;
+                    startAutoScroll();
+                }, 2000);
+            }
+        });
+        
+        // Manual scroll right
+        rightButton.addEventListener('click', function() {
+            const currentPosition = latestDocsContainer.scrollLeft;
+            const maxScroll = latestDocsContainer.scrollWidth - latestDocsContainer.clientWidth;
+            
+            // Temporarily pause auto-scrolling
+            const wasAutoScrolling = !isPaused;
+            if (wasAutoScrolling) {
+                isPaused = true;
+                stopAutoScroll();
+            }
+            
+            // Scroll one card to the right
+            let nextPosition = currentPosition + cardWidth;
+            if (nextPosition > maxScroll) {
+                nextPosition = 0;
+            }
+            
+            latestDocsContainer.scrollTo({
+                left: nextPosition,
+                behavior: 'smooth'
+            });
+            
+            // Resume auto-scrolling after a delay if it was on
+            if (wasAutoScrolling) {
+                setTimeout(() => {
+                    isPaused = false;
+                    startAutoScroll();
+                }, 2000);
+            }
+        });
+        
+        // Start auto-scrolling when the page loads
+        startAutoScroll();
+        
+        // Pause auto-scrolling when hovering over the carousel
+        latestDocsContainer.addEventListener('mouseenter', function() {
+            if (!isPaused) {
+                const wasAutoScrolling = !isPaused;
+                isPaused = true;
+                stopAutoScroll();
+                
+                // Store the auto-scrolling state
+                latestDocsContainer.dataset.wasAutoScrolling = wasAutoScrolling;
+            }
+        });
+        
+        // Resume auto-scrolling when mouse leaves the carousel
+        latestDocsContainer.addEventListener('mouseleave', function() {
+            if (latestDocsContainer.dataset.wasAutoScrolling === 'true') {
+                isPaused = false;
+                startAutoScroll();
+                delete latestDocsContainer.dataset.wasAutoScrolling;
+            }
+        });
+    }
 });
 </script>
 
