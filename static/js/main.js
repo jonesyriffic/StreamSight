@@ -572,10 +572,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Handle search form validation
-    const searchForm = document.querySelector('form[action*="search"]');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
+    // Handle search form validation for forms not already having handlers
+    // Skip #searchForm and #searchResultsForm since they already have handlers for the overlay
+    const searchForms = document.querySelectorAll('form[action*="search"]:not(#searchForm):not(#searchResultsForm)');
+    searchForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
             const searchInput = this.querySelector('input[name="query"]');
             if (!searchInput.value.trim()) {
                 e.preventDefault();
@@ -592,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchInput.focus();
             }
         });
-    }
+    });
     
     // Automatically open the first result on search results page
     const firstAccordionButton = document.querySelector('.accordion-button');
