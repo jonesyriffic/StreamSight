@@ -472,15 +472,7 @@ h4, .h4 {
     font-style: italic;
 }
 
-#searchInProgressOverlay .loader {
-    width: 80px;
-    height: 80px;
-    margin: 20px auto;
-    border: 8px solid rgba(255, 193, 7, 0.3);
-    border-radius: 50%;
-    border-top-color: #ffc107;
-    animation: spin 1s infinite linear;
-}
+/* Removed older loader style */
 
 @keyframes pulse-overlay {
     0% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.5); transform: scale(1); }
@@ -1235,25 +1227,7 @@ body.modal-open {
     animation: pulse 1.5s infinite;
 }
 
-#searchInProgressOverlay .loader {
-    display: inline-block;
-    width: 70px;
-    height: 70px;
-    position: relative;
-    margin: 1.5rem 0;
-}
-
-#searchInProgressOverlay .loader:after {
-    content: " ";
-    display: block;
-    width: 56px;
-    height: 56px;
-    margin: 8px;
-    border-radius: 50%;
-    border: 5px solid var(--md-sys-color-primary);
-    border-color: var(--md-sys-color-primary) transparent var(--md-sys-color-tertiary) transparent;
-    animation: loader-spin 1.8s cubic-bezier(0.8, 0.2, 0.2, 0.8) infinite;
-}
+/* Removed bottom loader spinner to avoid duplication with thinking stages */
 
 /* Pulsating Sparkle Emoji Effect */
 .sparkle-emoji {
@@ -1332,10 +1306,7 @@ body.modal-open {
     100% { text-shadow: 0 0 20px rgba(var(--md-sys-color-primary-rgb), 0.8); }
 }
 
-@keyframes loader-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* Removed animation as it's no longer needed after removing the loader */
 
 /* Material Design v3 Search Styling */
 .modern-search-container {
