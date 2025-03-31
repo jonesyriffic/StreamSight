@@ -71,6 +71,122 @@
     outline: none !important;
 }
 
+/* Table Styling */
+table {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+}
+
+table thead {
+    background-color: var(--md-sys-color-surface-container, #1e1e1e) !important;
+}
+
+table thead th {
+    padding: 1rem !important;
+    font-weight: 500 !important;
+    color: var(--md-sys-color-on-surface, white) !important;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.1)) !important;
+    text-transform: none !important;
+    font-size: 0.875rem !important;
+}
+
+table tbody tr {
+    background-color: var(--md-sys-color-surface, #121316) !important; 
+    transition: background-color 0.2s ease-in-out !important;
+}
+
+table tbody tr:nth-of-type(odd) {
+    background-color: rgba(255,255,255,0.03) !important;
+}
+
+table tbody tr:hover {
+    background-color: rgba(255,255,255,0.05) !important;
+}
+
+table tbody td {
+    padding: 0.75rem 1rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.05)) !important;
+    color: var(--md-sys-color-on-surface, #e2e2e6) !important;
+}
+
+/* Library Content Table Specific Styling */
+.table-responsive {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-color: var(--md-sys-color-surface, #121316) !important;
+}
+
+/* Fix dark tables in cards */
+.card .table {
+    color: var(--md-sys-color-on-surface, #e2e2e6) !important;
+}
+
+.card .table thead th {
+    background-color: var(--md-sys-color-surface-variant, #292929) !important;
+    color: var(--md-sys-color-on-surface-variant, #c3c7cf) !important;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant, rgba(255,255,255,0.1)) !important;
+}
+
+.card .table tbody {
+    background-color: transparent !important;
+}
+
+.card .table tbody tr {
+    background-color: transparent !important;
+}
+
+.card .table tbody tr:nth-of-type(odd) {
+    background-color: rgba(255,255,255,0.03) !important;
+}
+
+.card .table tbody tr:hover {
+    background-color: rgba(255,255,255,0.05) !important;
+}
+
+/* Library Table Specific Styling - Fix the dark backgrounds */
+#library-content-card {
+    background-color: #1a1c1e !important; /* Match MD3 background */
+}
+
+#library-content-card .table-responsive {
+    background-color: transparent !important;
+}
+
+#library-content-card table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+#library-content-card table thead th {
+    background-color: #28292c !important; /* Darker header */
+    color: #e2e2e6 !important;
+    text-transform: none !important;
+    font-weight: 500 !important;
+    padding: 1rem !important;
+}
+
+#library-content-card table tbody tr {
+    background-color: #1a1c1e !important; /* Body row background */
+}
+
+#library-content-card table tbody tr:nth-of-type(odd) {
+    background-color: #22252a !important; /* Slightly lighter for odd rows */
+}
+
+#library-content-card table tbody tr:hover {
+    background-color: #2a2d32 !important; /* Highlight on hover */
+}
+
+#library-content-card table tbody td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 0.875rem 1rem !important;
+}
+
 /* Recommendation Card Styling */
 .recommendation-card .relevance-box {
     border-left: 3px solid var(--md-sys-color-primary, var(--bs-primary)) !important;
