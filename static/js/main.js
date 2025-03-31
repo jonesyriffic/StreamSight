@@ -1030,14 +1030,23 @@ document.addEventListener('DOMContentLoaded', function() {
             text.textContent = theme === 'dark' ? 'Dark' : 'Light';
         });
         
-        // Switch Bootstrap theme CSS
-        const bootstrapTheme = document.getElementById('bootstrap-theme');
-        if (bootstrapTheme) {
-            if (theme === 'dark') {
-                bootstrapTheme.href = 'https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css';
-            } else {
-                bootstrapTheme.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
-            }
+        // We don't switch the CSS link anymore since it causes font styling issues
+        // Instead, we toggle the data-bs-theme attribute which changes color schemes
+        // while preserving our font styling
+        
+        // Apply additional specific styles based on theme
+        if (theme === 'light') {
+            // Add any light-mode specific overrides here if needed
+            document.documentElement.style.setProperty('--md-sys-color-background', '#f8f9fa');
+            document.documentElement.style.setProperty('--md-sys-color-on-background', '#212529');
+            document.documentElement.style.setProperty('--md-sys-color-surface', '#ffffff');
+            document.documentElement.style.setProperty('--md-sys-color-on-surface', '#212529');
+        } else {
+            // Restore dark mode colors if needed
+            document.documentElement.style.setProperty('--md-sys-color-background', '#121212');
+            document.documentElement.style.setProperty('--md-sys-color-on-background', '#e0e0e0');
+            document.documentElement.style.setProperty('--md-sys-color-surface', '#1e1e1e');
+            document.documentElement.style.setProperty('--md-sys-color-on-surface', '#f5f5f5');
         }
     }
 });
