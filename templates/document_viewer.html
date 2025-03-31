@@ -530,6 +530,11 @@
                             
                             // Show success toast
                             showToast('Document marked as featured', 'success');
+                            
+                            // Redirect to homepage after a short delay to see the featured document
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1500);
                         } else {
                             toggleFeaturedBtn.classList.remove('btn-warning');
                             toggleFeaturedBtn.classList.add('btn-outline-warning');
@@ -537,6 +542,11 @@
                             
                             // Show info toast
                             showToast('Document removed from featured', 'info');
+                            
+                            // Redirect to homepage after a short delay
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1500);
                         }
                     } else {
                         // Restore original button state on error
