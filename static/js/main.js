@@ -981,47 +981,4 @@ document.addEventListener('DOMContentLoaded', function() {
  * Enhanced search suggestions with dynamic question carousel
  * Replaced voice search with more reliable text-based search
  * Material Design v3 conformant
- * Added theme switching functionality (light/dark mode)
  */
-
-// Simple Theme Toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const themeToggleButtons = document.querySelectorAll('#theme-toggle');
-    if (themeToggleButtons.length) {
-        // Check for saved theme preference
-        const savedTheme = localStorage.getItem('streamSightTheme') || 'dark';
-        applyTheme(savedTheme);
-        
-        // Add click event to all theme toggle buttons
-        themeToggleButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const currentTheme = localStorage.getItem('streamSightTheme') || 'dark';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                applyTheme(newTheme);
-                localStorage.setItem('streamSightTheme', newTheme);
-            });
-        });
-    }
-    
-    // Function to apply the theme
-    function applyTheme(theme) {
-        // Update the data-bs-theme attribute
-        document.documentElement.setAttribute('data-bs-theme', theme);
-        
-        // Update theme toggle buttons
-        const themeIcons = document.querySelectorAll('#theme-icon');
-        const themeTexts = document.querySelectorAll('#theme-text');
-        
-        themeIcons.forEach(icon => {
-            icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
-        });
-        
-        themeTexts.forEach(text => {
-            text.textContent = theme === 'dark' ? 'Dark' : 'Light';
-        });
-        
-        // Apply a class to the body element
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add('theme-' + theme);
-    }
-});

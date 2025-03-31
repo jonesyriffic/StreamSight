@@ -32,7 +32,7 @@
       import 'https://cdn.jsdelivr.net/npm/@material/web@1.0.0/tabs/primary-tab.js';
     </script>
     
-    <!-- Bootstrap CSS (Dark Theme) - We always use the dark theme CSS and override with custom CSS when needed -->
+    <!-- Bootstrap CSS (Replit Theme) - keeping for compatibility during transition -->
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
     
     <!-- Font Awesome for icons -->
@@ -51,7 +51,7 @@
     
     <!-- Material Design v3 Styles -->
     <style>
-        /* Material Design 3 Theme Variables - Dark Theme (Default) */
+        /* Material Design 3 Theme Variables */
         :root {
             /* Primary theme colors */
             --md-sys-color-primary: #a8c7fa;
@@ -98,55 +98,6 @@
             --color-tech: #4ce0b3;
             --color-product: #5b8eff;
             --color-service: #ffce41;
-        }
-        
-        /* Material Design 3 Light Theme */
-        [data-bs-theme="light"] {
-            /* Primary theme colors */
-            --md-sys-color-primary: #2c5ea7;
-            --md-sys-color-on-primary: #ffffff;
-            --md-sys-color-primary-container: #d3e3ff;
-            --md-sys-color-on-primary-container: #001b3f;
-            
-            /* Secondary colors */
-            --md-sys-color-secondary: #555f70;
-            --md-sys-color-on-secondary: #ffffff;
-            --md-sys-color-secondary-container: #d9e3f8;
-            --md-sys-color-on-secondary-container: #121c2b;
-            
-            /* Tertiary colors */
-            --md-sys-color-tertiary: #70587b;
-            --md-sys-color-on-tertiary: #ffffff;
-            --md-sys-color-tertiary-container: #f8daff;
-            --md-sys-color-on-tertiary-container: #2a1533;
-            
-            /* Error colors */
-            --md-sys-color-error: #ba1a1a;
-            --md-sys-color-on-error: #ffffff;
-            --md-sys-color-error-container: #ffdad6;
-            --md-sys-color-on-error-container: #410002;
-
-            /* Background colors */
-            --md-sys-color-background: #f3f3f7;
-            --md-sys-color-on-background: #1a1c1e;
-            --md-sys-color-surface: #ffffff;
-            --md-sys-color-on-surface: #1a1c1e;
-            --md-sys-color-surface-variant: #e1e2ec;
-            --md-sys-color-on-surface-variant: #44474f;
-
-            /* Other colors */
-            --md-sys-color-outline: #74777f;
-            --md-sys-color-outline-variant: #c4c6d0;
-            --md-sys-color-shadow: #000000;
-            --md-sys-color-surface-tint: #2c5ea7;
-            --md-sys-color-inverse-surface: #2f3033;
-            --md-sys-color-inverse-on-surface: #f2f0f4;
-            
-            /* Category colors in MD3 palette - adjusted for light theme */
-            --color-insights: #0077b6;
-            --color-tech: #2b9348;
-            --color-product: #0a58ca;
-            --color-service: #e6a700;
             
             /* Elevation values */
             --md-elevation-1: 0px 1px 2px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
@@ -481,12 +432,6 @@
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
                         <li class="nav-item me-2">
-                            <button class="nav-link px-3 rounded-pill" id="theme-toggle" style="color: var(--md-sys-color-on-surface); opacity: 0.9; background: none; border: none; cursor: pointer; display: flex; align-items: center;">
-                                <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;" id="theme-icon">dark_mode</span>
-                                <span id="theme-text">Dark</span>
-                            </button>
-                        </li>
-                        <li class="nav-item me-2">
                             <a class="nav-link px-3 rounded-pill {{ 'active' if request.path == url_for('tour_page') }}" href="{{ url_for('tour_page') }}" id="nav-tour-link" style="color: var(--md-sys-color-on-surface); opacity: 0.9;">
                                 <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">tour</span>
                                 Tour
@@ -523,12 +468,6 @@
                             </ul>
                         </li>
                         {% else %}
-                        <li class="nav-item me-2">
-                            <button class="nav-link px-3 rounded-pill" id="theme-toggle" style="color: var(--md-sys-color-on-surface); opacity: 0.9; background: none; border: none; cursor: pointer; display: flex; align-items: center;">
-                                <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;" id="theme-icon">dark_mode</span>
-                                <span id="theme-text">Dark</span>
-                            </button>
-                        </li>
                         <li class="nav-item me-2">
                             <a class="nav-link px-3 rounded-pill {{ 'active' if request.path == url_for('tour_page') }}" href="{{ url_for('tour_page') }}" id="nav-tour-link" style="color: var(--md-sys-color-on-surface); opacity: 0.9;">
                                 <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.2rem;">tour</span>

@@ -1,101 +1,4 @@
-/* Custom CSS styles for StreamSight */
-
-/* Theme settings */
-:root {
-    font-family: 'Roboto', 'Google Sans', sans-serif;
-    
-    /* Material Design v3 outline variant color */
-    --md-sys-color-outline-variant: rgba(73, 69, 79, 0.2);
-    --md-sys-color-surface-container-high: rgba(25, 28, 30, 0.95);
-    --md-sys-color-surface-container-lowest: rgba(22, 25, 27, 0.8);
-}
-
-/* Light theme overrides */
-html[data-bs-theme="light"] {
-    --bs-body-bg: #f8f9fa;
-    --bs-body-color: #212529;
-    
-    /* Font overrides to ensure consistency */
-    --md-sys-typescale-font-family: 'Roboto', 'Google Sans', sans-serif;
-    --md-sys-typescale-title-large-font-family: 'Google Sans', 'Roboto', sans-serif;
-    
-    /* Material Colors */
-    --md-sys-color-surface: #ffffff;
-    --md-sys-color-on-surface: #1a1c1e;
-    --md-sys-color-surface-variant: #e1e2ec;
-    --md-sys-color-on-surface-variant: #44474f;
-    --md-sys-color-primary: #2c5ea7;
-    --md-sys-color-primary-rgb: 44, 94, 167;
-    --md-sys-color-on-primary: #ffffff;
-    --md-sys-color-primary-container: #d3e3ff;
-    --md-sys-color-on-primary-container: #001b3f;
-    --md-sys-color-secondary: #555f70;
-    --md-sys-color-on-secondary: #ffffff;
-    --md-sys-color-secondary-container: #d9e3f8;
-    --md-sys-color-on-secondary-container: #121c2b;
-    --md-sys-color-tertiary: #70587b;
-    --md-sys-color-on-tertiary: #ffffff;
-    --md-sys-color-tertiary-container: #f8daff;
-    --md-sys-color-on-tertiary-container: #2a1533;
-    --md-sys-color-error: #ba1a1a;
-    --md-sys-color-error-rgb: 186, 26, 26;
-    --md-sys-color-on-error: #ffffff;
-    --md-sys-color-error-container: #ffdad6;
-    --md-sys-color-on-error-container: #410002;
-    --md-sys-color-outline: #74777f;
-    --md-sys-color-surface-container-high: #f3f3f7;
-    --md-sys-color-surface-container-lowest: #ffffff;
-    
-    /* Category colors for light theme */
-    --color-insights: #0077b6;
-    --color-tech: #2b9348;
-    --color-product: #0a58ca;
-    --color-service: #e6a700;
-}
-
-/* Dark theme overrides */
-html[data-bs-theme="dark"] {
-    --bs-body-bg: #1a1c1e;
-    --bs-body-color: #e2e2e6;
-    
-    /* Font overrides to ensure consistency */
-    --md-sys-typescale-font-family: 'Roboto', 'Google Sans', sans-serif;
-    --md-sys-typescale-title-large-font-family: 'Google Sans', 'Roboto', sans-serif;
-    
-    /* Material Dark Theme Colors */
-    --md-sys-color-primary: #a8c7fa;
-    --md-sys-color-primary-rgb: 168, 199, 250;
-    --md-sys-color-on-primary: #062e6f;
-    --md-sys-color-primary-container: #234589;
-    --md-sys-color-on-primary-container: #d6e3ff;
-    --md-sys-color-secondary: #bcc7dc;
-    --md-sys-color-on-secondary: #283041;
-    --md-sys-color-secondary-container: #3e4759;
-    --md-sys-color-on-secondary-container: #d8e3f8;
-    --md-sys-color-tertiary: #d6bee4;
-    --md-sys-color-tertiary-rgb: 214, 190, 228;
-    --md-sys-color-on-tertiary: #402a4a;
-    --md-sys-color-tertiary-container: #584062;
-    --md-sys-color-on-tertiary-container: #f2daff;
-    --md-sys-color-error: #ffb4ab;
-    --md-sys-color-error-rgb: 255, 180, 171;
-    --md-sys-color-on-error: #690005;
-    --md-sys-color-error-container: #93000a;
-    --md-sys-color-on-error-container: #ffb4ab;
-    --md-sys-color-background: #1a1c1e;
-    --md-sys-color-on-background: #e2e2e6;
-    --md-sys-color-surface: #121316;
-    --md-sys-color-on-surface: #c4c6d0;
-    --md-sys-color-surface-variant: #43474e;
-    --md-sys-color-on-surface-variant: #c3c7cf;
-    --md-sys-color-outline: #8d9199;
-    
-    /* Category colors for dark theme */
-    --color-insights: #4dabdd;
-    --color-tech: #55ca7a;
-    --color-product: #6898e7;
-    --color-service: #ffc835;
-}
+/* Custom CSS styles for DocuSearch AI */
 
 /* Override focus outlines for accessibility */
 :focus {
@@ -127,157 +30,28 @@ html[data-bs-theme="dark"] {
     transform: translateY(0);
 }
 
-/* Material Design v3 Badge Styling */
+/* Category badge styling */
 .badge {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.35em 0.8em;
-    border-radius: 100px;
-    letter-spacing: 0.025em;
-    text-transform: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-}
-
-/* Document type badges */
-.badge.pdf {
-    background-color: var(--md-sys-color-error-container);
-    color: var(--md-sys-color-on-error-container);
-}
-
-.badge.web-link {
-    background-color: var(--md-sys-color-primary-container);
-    color: var(--md-sys-color-on-primary-container);
-}
-
-.badge.youtube-video {
-    background-color: #D00000;
-    color: white;
-}
-
-/* Category colors using Material Design v3 color system */
-.badge.customer-service {
-    background-color: var(--color-service);
-    color: #000;
-}
-
-.badge.industry-insights {
-    background-color: var(--color-insights);
-    color: white;
-}
-
-.badge.technology-news {
-    background-color: var(--color-tech); 
-    color: white;
-}
-
-.badge.product-management {
-    background-color: var(--color-product);
-    color: white;
-}
-
-/* Status badges */
-.badge.active, .badge.approved {
-    background-color: var(--md-sys-color-tertiary-container);
-    color: var(--md-sys-color-on-tertiary-container);
-}
-
-.badge.admin {
-    background-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-}
-
-.badge.user {
-    background-color: var(--md-sys-color-secondary-container);
-    color: var(--md-sys-color-on-secondary-container);
-}
-
-.badge.personalized {
-    background-color: var(--md-sys-color-tertiary);
-    color: var(--md-sys-color-on-tertiary);
-}
-
-/* Updated filter styles for better contrast and readability */
-.filter-container {
-    background-color: var(--md-sys-color-surface-variant);
-    border-radius: 16px;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.filter-container label {
-    color: var(--md-sys-color-on-surface-variant);
-    font-weight: 500;
     font-size: 0.85rem;
-    margin-bottom: 0.25rem;
-}
-
-.filter-container select,
-.filter-container .form-select {
-    background-color: var(--md-sys-color-surface);
-    color: var(--md-sys-color-on-surface);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-}
-
-.filter-container select:focus,
-.filter-container .form-select:focus {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 0.15rem rgba(var(--md-sys-color-primary-rgb), 0.25);
-}
-
-.filter-button {
-    background-color: var(--md-sys-color-primary-container);
-    color: var(--md-sys-color-on-primary-container);
-    border: none;
-    border-radius: 100px;
-    padding: 0.5rem 1.25rem;
     font-weight: 500;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    padding: 0.35em 0.65em;
 }
 
-.filter-button:hover {
-    background-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+/* Category colors */
+.category-industry {
+    background-color: var(--bs-info);
 }
 
-/* Stat cards for dashboard */
-.stat-card {
-    background-color: var(--md-sys-color-surface-variant);
-    border-radius: 16px;
-    padding: 1.5rem;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+.category-technology {
+    background-color: var(--bs-success);
 }
 
-.stat-card .stat-icon {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-    color: var(--md-sys-color-primary);
+.category-product {
+    background-color: var(--bs-primary);
 }
 
-.stat-card .stat-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--md-sys-color-on-surface);
-    margin-bottom: 0.5rem;
-}
-
-.stat-card .stat-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface-variant);
+.category-customer {
+    background-color: var(--bs-warning);
 }
 
 /* Modern Search Box Styling */
@@ -610,62 +384,18 @@ html[data-bs-theme="dark"] {
     }
 }
 
-/* Table styles with Material Design v3 */
-.table {
-    width: 100%;
-    margin-bottom: 1rem;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table th {
-    color: var(--md-sys-color-on-surface-variant);
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    font-weight: 500;
-    padding: 1rem 0.75rem;
-    text-align: left;
-    font-size: 0.875rem;
-    letter-spacing: 0.1px;
-}
-
+/* Prevent text overflow in tables */
 .table td {
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 1rem 0.75rem;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    color: var(--md-sys-color-on-surface);
-    font-size: 0.9375rem;
 }
 
 /* Visual cue for clickable rows */
 .table-hover tbody tr:hover {
     cursor: pointer;
-    background-color: var(--md-sys-color-surface-variant);
-}
-
-/* Table in light mode */
-[data-bs-theme=light] .table th {
-    color: var(--md-sys-color-on-surface-variant);
-}
-
-[data-bs-theme=light] .table td {
-    color: var(--md-sys-color-on-surface);
-}
-
-/* Table in dark mode */
-[data-bs-theme=dark] .table {
-    color: var(--md-sys-color-on-surface);
-}
-
-/* Card backgrounds for better contrast */
-[data-bs-theme=dark] .card {
-    background-color: var(--md-sys-color-surface-variant);
-}
-
-[data-bs-theme=light] .card {
-    background-color: var(--md-sys-color-surface);
+    background-color: var(--bs-primary-rgb, 0.1);
 }
 
 /* Badge styling */
@@ -747,46 +477,6 @@ html[data-bs-theme="dark"] {
     line-height: 1.6;
 }
 
-/* Progress bar styling for relevance metrics */
-.relevance-bar {
-    height: 8px;
-    border-radius: 4px;
-    background-color: var(--md-sys-color-surface-variant);
-    position: relative;
-    overflow: hidden;
-    margin-top: 0.5rem;
-}
-
-.relevance-bar-fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s ease-out;
-}
-
-.relevance-value {
-    text-align: right;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: var(--md-sys-color-on-surface);
-    margin-top: 0.25rem;
-}
-
-/* Relevance colors based on score */
-.relevance-high {
-    background-color: var(--md-sys-color-primary);
-}
-
-.relevance-medium {
-    background-color: var(--md-sys-color-tertiary);
-}
-
-.relevance-low {
-    background-color: var(--md-sys-color-error);
-}
-
 /* Key Points section */
 .key-points-section h3 {
     font-size: 1.4rem;
@@ -857,26 +547,6 @@ html[data-bs-theme="dark"] {
 [data-bs-theme=dark] .key-points-section h3,
 [data-bs-theme=dark] .summary-section h3 {
     color: var(--bs-info);
-}
-
-/* Navigation theme specific adjustments */
-[data-bs-theme=light] .navbar {
-    background-color: var(--md-sys-color-surface);
-}
-
-[data-bs-theme=light] .navbar-brand,
-[data-bs-theme=light] .nav-link,
-[data-bs-theme=light] .navbar .material-symbols-outlined {
-    color: var(--md-sys-color-on-surface) !important;
-}
-
-[data-bs-theme=light] .navbar-toggler-icon {
-    filter: invert(1);
-}
-
-/* For font consistency */
-body, .btn, .form-control, h1, h2, h3, h4, h5, h6, p, .card-title, .nav-link {
-    font-family: var(--md-sys-typescale-font-family) !important;
 }
 
 /* Modal improvements to prevent flickering */
