@@ -25,6 +25,26 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInProgressOverlay.style.opacity = '0';
         searchInProgressOverlay.style.visibility = 'hidden';
         
+        // Define the global showAISearchOverlay function
+        window.showAISearchOverlay = function(query) {
+            console.log('Showing AI search overlay for query:', query);
+            // Update the query text
+            const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
+            if (searchQueryElement) {
+                searchQueryElement.textContent = `"${query}"`;
+            }
+            
+            // Show the overlay
+            searchInProgressOverlay.classList.add('visible');
+            searchInProgressOverlay.style.opacity = '1';
+            searchInProgressOverlay.style.visibility = 'visible';
+            
+            // Start AI thinking process
+            if (window.aiThinking) {
+                window.aiThinking.start(query);
+            }
+        };
+        
         // Initialize AI thinking process functions
         window.aiThinking = {
             /**
