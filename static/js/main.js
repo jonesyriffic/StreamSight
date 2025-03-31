@@ -984,44 +984,34 @@ document.addEventListener('DOMContentLoaded', function() {
  * Added theme switching functionality (light/dark mode)
  */
 
-// Theme Switching Functionality
+// Simple Theme Toggle
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggleButtons = document.querySelectorAll('#theme-toggle');
     if (themeToggleButtons.length) {
         // Check for saved theme preference
-        const savedTheme = localStorage.getItem('streamSightTheme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-            updateThemeUI(savedTheme);
-        }
+        const savedTheme = localStorage.getItem('streamSightTheme') || 'dark';
+        applyTheme(savedTheme);
         
         // Add click event to all theme toggle buttons
         themeToggleButtons.forEach(button => {
-            button.addEventListener('click', toggleTheme);
+            button.addEventListener('click', function() {
+                const currentTheme = localStorage.getItem('streamSightTheme') || 'dark';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+                localStorage.setItem('streamSightTheme', newTheme);
+            });
         });
     }
     
-    // Function to toggle between light and dark themes
-    function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    // Function to apply the theme
+    function applyTheme(theme) {
+        // Update the data-bs-theme attribute
+        document.documentElement.setAttribute('data-bs-theme', theme);
         
-        // Update HTML attribute
-        document.documentElement.setAttribute('data-bs-theme', newTheme);
-        
-        // Save preference to localStorage
-        localStorage.setItem('streamSightTheme', newTheme);
-        
-        // Update UI elements
-        updateThemeUI(newTheme);
-    }
-    
-    // Function to update UI elements based on theme
-    function updateThemeUI(theme) {
+        // Update theme toggle buttons
         const themeIcons = document.querySelectorAll('#theme-icon');
         const themeTexts = document.querySelectorAll('#theme-text');
         
-        // Update all theme toggle buttons
         themeIcons.forEach(icon => {
             icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
         });
@@ -1030,75 +1020,8 @@ document.addEventListener('DOMContentLoaded', function() {
             text.textContent = theme === 'dark' ? 'Dark' : 'Light';
         });
         
-        // Add a custom class to the body element for theme-specific styling
-        if (theme === 'light') {
-            document.body.classList.add('theme-light');
-            document.body.classList.remove('theme-dark');
-            
-            // Add light mode specific styles
-            addCustomLightModeStyles();
-        } else {
-            document.body.classList.add('theme-dark');
-            document.body.classList.remove('theme-light');
-            
-            // Remove any light mode styles we added
-            removeCustomLightModeStyles();
-        }
-    }
-    
-    // Function to add a style element with light mode overrides
-    function addCustomLightModeStyles() {
-        // Remove any existing style element first
-        removeCustomLightModeStyles();
-        
-        // Create a new style element
-        const styleElement = document.createElement('style');
-        styleElement.id = 'custom-light-mode-styles';
-        
-        // Define light mode overrides
-        styleElement.textContent = `
-            :root {
-                --md-sys-color-background: #f8f9fa !important;
-                --md-sys-color-on-background: #212529 !important;
-                --md-sys-color-surface: #ffffff !important;
-                --md-sys-color-on-surface: #212529 !important;
-                --md-sys-color-surface-variant: #e9ecef !important;
-                --md-sys-color-on-surface-variant: #495057 !important;
-                --md-sys-color-primary-container: #cfe2ff !important;
-                --md-sys-color-on-primary-container: #084298 !important;
-                --md-sys-color-secondary-container: #e2e3e5 !important;
-                --md-sys-color-on-secondary-container: #41464b !important;
-                --md-sys-color-tertiary-container: #d1e7dd !important;
-                --md-sys-color-on-tertiary-container: #0f5132 !important;
-                --md-sys-color-error-container: #f8d7da !important;
-                --md-sys-color-on-error-container: #842029 !important;
-            }
-            
-            .theme-light .navbar {
-                background-color: #f8f9fa !important;
-            }
-            
-            .theme-light .nav-link, 
-            .theme-light .navbar-brand, 
-            .theme-light #theme-toggle {
-                color: #212529 !important;
-            }
-            
-            .theme-light footer {
-                background-color: #f8f9fa !important;
-            }
-        `;
-        
-        // Add it to the document head
-        document.head.appendChild(styleElement);
-    }
-    
-    // Function to remove the custom light mode styles
-    function removeCustomLightModeStyles() {
-        const existingStyle = document.getElementById('custom-light-mode-styles');
-        if (existingStyle) {
-            existingStyle.remove();
-        }
-    }
+        // Apply a class to the body element
+        document.body.classList.remove('theme-light', 'theme-dark');
+        document.body.classList.add('theme-' + theme);
     }
 });

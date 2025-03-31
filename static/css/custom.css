@@ -1,4 +1,33 @@
-/* Custom CSS styles for DocuSearch AI */
+/* Custom CSS styles for StreamSight */
+
+/* Theme settings */
+:root {
+    font-family: 'Roboto', 'Google Sans', sans-serif;
+}
+
+/* Light theme overrides */
+html[data-bs-theme="light"] {
+    --bs-body-bg: #f8f9fa;
+    --bs-body-color: #212529;
+    
+    /* Font overrides to ensure consistency */
+    --md-sys-typescale-font-family: 'Roboto', 'Google Sans', sans-serif;
+    --md-sys-typescale-title-large-font-family: 'Google Sans', 'Roboto', sans-serif;
+    
+    /* Material Nav Elements */
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-on-surface: #1a1c1e;
+}
+
+/* Dark theme overrides */
+html[data-bs-theme="dark"] {
+    --bs-body-bg: #1a1c1e;
+    --bs-body-color: #e2e2e6;
+    
+    /* Font overrides to ensure consistency */
+    --md-sys-typescale-font-family: 'Roboto', 'Google Sans', sans-serif;
+    --md-sys-typescale-title-large-font-family: 'Google Sans', 'Roboto', sans-serif;
+}
 
 /* Override focus outlines for accessibility */
 :focus {
@@ -547,6 +576,26 @@
 [data-bs-theme=dark] .key-points-section h3,
 [data-bs-theme=dark] .summary-section h3 {
     color: var(--bs-info);
+}
+
+/* Navigation theme specific adjustments */
+[data-bs-theme=light] .navbar {
+    background-color: var(--md-sys-color-surface);
+}
+
+[data-bs-theme=light] .navbar-brand,
+[data-bs-theme=light] .nav-link,
+[data-bs-theme=light] .navbar .material-symbols-outlined {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+[data-bs-theme=light] .navbar-toggler-icon {
+    filter: invert(1);
+}
+
+/* For font consistency */
+body, .btn, .form-control, h1, h2, h3, h4, h5, h6, p, .card-title, .nav-link {
+    font-family: var(--md-sys-typescale-font-family) !important;
 }
 
 /* Modal improvements to prevent flickering */
