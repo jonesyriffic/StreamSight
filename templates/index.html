@@ -164,7 +164,7 @@
                 <div class="card-body">
                     {% if recommendation.relevance_reasons %}
                     <div class="relevance-box mb-3 p-2 rounded bg-dark bg-opacity-25">
-                        <p class="mb-0 small"><strong>Relevance:</strong> {{ recommendation.relevance_reasons }}</p>
+                        <p class="mb-0 small"><strong>Relevance:</strong> {{ recommendation.relevance_reasons|striptags }}</p>
                     </div>
                     {% endif %}
                     
