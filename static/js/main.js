@@ -981,4 +981,63 @@ document.addEventListener('DOMContentLoaded', function() {
  * Enhanced search suggestions with dynamic question carousel
  * Replaced voice search with more reliable text-based search
  * Material Design v3 conformant
+ * Added theme switching functionality (light/dark mode)
  */
+
+// Theme Switching Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggleButtons = document.querySelectorAll('#theme-toggle');
+    if (themeToggleButtons.length) {
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('streamSightTheme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        }
+        
+        // Add click event to all theme toggle buttons
+        themeToggleButtons.forEach(button => {
+            button.addEventListener('click', toggleTheme);
+        });
+    }
+    
+    // Function to toggle between light and dark themes
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Update HTML attribute
+        document.documentElement.setAttribute('data-bs-theme', newTheme);
+        
+        // Save preference to localStorage
+        localStorage.setItem('streamSightTheme', newTheme);
+        
+        // Update UI elements
+        updateThemeUI(newTheme);
+    }
+    
+    // Function to update UI elements based on theme
+    function updateThemeUI(theme) {
+        const themeIcons = document.querySelectorAll('#theme-icon');
+        const themeTexts = document.querySelectorAll('#theme-text');
+        
+        // Update all theme toggle buttons
+        themeIcons.forEach(icon => {
+            icon.textContent = theme === 'dark' ? 'dark_mode' : 'light_mode';
+        });
+        
+        themeTexts.forEach(text => {
+            text.textContent = theme === 'dark' ? 'Dark' : 'Light';
+        });
+        
+        // Switch Bootstrap theme CSS
+        const bootstrapTheme = document.getElementById('bootstrap-theme');
+        if (bootstrapTheme) {
+            if (theme === 'dark') {
+                bootstrapTheme.href = 'https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css';
+            } else {
+                bootstrapTheme.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css';
+            }
+        }
+    }
+});
