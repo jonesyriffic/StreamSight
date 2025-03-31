@@ -5,7 +5,7 @@
 {% block content %}
 <div class="row align-items-center mb-5">
     <div class="col-md-8">
-        <h1 class="display-4 mb-4">StreamSight</h1>
+        <h1 class="display-4 mb-4">GSP Insights Hub</h1>
         <p class="lead">
             Discover breakthrough insights from your product management and customer service resources
             using advanced AI-powered document analysis.
@@ -28,7 +28,7 @@
         {% endif %}
     </div>
     <div class="col-md-4 text-center">
-        <span class="material-symbols-outlined" style="font-size: 6rem; color: var(--color-service);">lightbulb</span>
+        <img src="{{ url_for('static', filename='images/gspinsightshub.png') }}" alt="GSP Insights Hub Logo" style="height: 100px;" class="me-2">
     </div>
 </div>
 
@@ -37,7 +37,7 @@
     <div class="col-md-12">
         <div class="card bg-dark shadow search-container">
             <div class="card-body">
-                <h2 class="card-title mb-3">Search Your Knowledge Base</h2>
+                <h2 class="card-title mb-3">Ask a question...</h2>
                 <form action="{{ url_for('search') }}" method="get" class="mb-0" id="searchForm">
                     <div class="modern-search-container mb-3">
                         <div class="input-group input-group-lg" id="searchContainer">
