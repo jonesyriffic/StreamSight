@@ -209,7 +209,6 @@
             <div class="card-body">
                 <div class="row g-4 recommended-documents">
                     {% for doc in recommended_documents %}
-                    {% if loop.index <= 3 %}
                     <div class="col-md-4">
                         <div class="card h-100 recommendation-card
                             {% if doc.category == 'Industry Insights' %}card-insights
@@ -472,23 +471,125 @@
 </div>
 {% endif %}
 
-<!-- Recently Added Documents -->
-{% if recent_documents %}
+<!-- Featured Documents Section -->
+{% if featured_documents %}
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card featured-card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-award text-warning me-2"></i>
+                    Featured Documents
+                </h3>
+                <span class="badge bg-warning text-dark">Editor's Choice</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-4 featured-documents-container">
+                    {% for doc in featured_documents %}
+                    <div class="col-md-4">
+                        <div class="card h-100 featured-document shadow
+                            {% if doc.category == 'Industry Insights' %}card-insights
+                            {% elif doc.category == 'Technology News' %}card-tech
+                            {% elif doc.category == 'Product Management' %}card-product
+                            {% elif doc.category == 'Customer Service' %}card-service
+                            {% else %}card-default{% endif %}">
+                            
+                            <div class="featured-badge">
+                                <i class="fas fa-star me-1"></i> Featured
+                            </div>
+                            
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
+                                    </h5>
+                                    <span class="badge 
+                                        {% if doc.category == 'Industry Insights' %}bg-info
+                                        {% elif doc.category == 'Technology News' %}bg-success
+                                        {% elif doc.category == 'Product Management' %}bg-primary
+                                        {% elif doc.category == 'Customer Service' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ doc.category }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                {% if doc.content_type == 'youtube' and doc.thumbnail_url %}
+                                <div class="mb-3 text-center">
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="d-block position-relative">
+                                        <img src="{{ doc.thumbnail_url }}" class="img-fluid rounded youtube-thumbnail" alt="YouTube Thumbnail">
+                                        <div class="youtube-play-overlay">
+                                            <i class="fab fa-youtube fa-3x text-danger"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="document-summary mb-3 flex-grow-1">
+                                    <p class="card-text document-summary-content">
+                                        {% if doc.summary %}
+                                        {{ doc.summary|truncate(200) }}
+                                        {% else %}
+                                        <em class="text-muted">No summary available yet</em>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i> {{ doc.uploaded_at|formattime }}
+                                        </small>
+                                        
+                                        <div>
+                                            {% if doc.content_type == 'pdf' %}
+                                            <span class="badge bg-dark" title="PDF Document">
+                                                <i class="fas fa-file-pdf me-1"></i> PDF
+                                            </span>
+                                            {% elif doc.content_type == 'weblink' %}
+                                            <span class="badge bg-dark" title="Web Link">
+                                                <i class="fas fa-link me-1"></i> Link
+                                            </span>
+                                            {% elif doc.content_type == 'youtube' %}
+                                            <span class="badge bg-dark" title="YouTube Video">
+                                                <i class="fab fa-youtube me-1"></i> Video
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-primary w-100">
+                                        <i class="fas fa-eye me-1"></i> View Document
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Latest Document Additions -->
+{% if latest_documents %}
 <div class="row mb-5">
     <div class="col-md-12">
         <div class="card bg-dark shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">
                     <i class="fas fa-clock text-info me-2"></i>
-                    Recently Added Documents
+                    Latest Additions
                 </h3>
                 <a href="{{ url_for('library') }}" class="btn btn-sm btn-outline-info">View All</a>
             </div>
             <div class="card-body">
-                <div class="row g-4">
-                    {% for doc in recent_documents %}
-                    {% if loop.index <= 3 %}
-                    <div class="col-md-4">
+                <div class="d-flex flex-nowrap overflow-auto gap-4" id="latestDocumentsRow">
+                    {% for doc in latest_documents %}
+                    <div class="col-md-4 latest-document-card" style="min-width: 320px; flex: 0 0 auto;">
                         <div class="card h-100
                             {% if doc.category == 'Industry Insights' %}card-insights
                             {% elif doc.category == 'Technology News' %}card-tech
@@ -561,6 +662,8 @@
         </div>
     </div>
 </div>
+
+
 {% endif %}
 
 

@@ -975,10 +975,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateSearchExamples(fallbackExamples);
             });
     }
+    
+    // Auto-scrolling functionality for latest documents carousel
+    const latestRow = document.getElementById('latestDocumentsRow');
+    if (latestRow && latestRow.children.length > 1) {
+        let scrollPosition = 0;
+        const scrollAmount = latestRow.scrollWidth / latestRow.children.length;
+        
+        // Auto-scroll every 5 seconds
+        setInterval(() => {
+            scrollPosition += scrollAmount;
+            if (scrollPosition >= latestRow.scrollWidth) {
+                scrollPosition = 0;
+            }
+            latestRow.scrollTo({
+                left: scrollPosition,
+                behavior: 'smooth'
+            });
+        }, 5000);
+    }
 });
 
 /**
  * Enhanced search suggestions with dynamic question carousel
  * Replaced voice search with more reliable text-based search
  * Material Design v3 conformant
+ * Added auto-scrolling carousel for latest documents
+ * Added featured documents section with hover effects
  */

@@ -287,8 +287,13 @@ def index():
         db.extract('year', Document.uploaded_at) == current_year
     ).count()
     
-    # Get only recent documents for the dashboard
-    recent_documents = Document.query.order_by(Document.uploaded_at.desc()).limit(5).all()
+    # Get featured documents for the homepage
+    featured_documents = Document.query.filter_by(is_featured=True, file_available=True) \
+                        .order_by(Document.featured_at.desc()).limit(3).all()
+    
+    # Get latest document additions for the homepage
+    latest_documents = Document.query.filter_by(file_available=True) \
+                      .order_by(Document.uploaded_at.desc()).limit(3).all()
     
     # Initialize recommended documents as an empty list
     recommended_documents = []
@@ -301,14 +306,18 @@ def index():
         # If no recommendations returned, fall back to most recent documents
         if not recommended_documents:
             recommended_documents = Document.query.filter_by(file_available=True) \
-                .order_by(Document.uploaded_at.desc()).limit(3).all()
+                .order_by(Document.uploaded_at.desc()).limit(2).all()
+        else:
+            # Limit to 2 recommendations as per the new design
+            recommended_documents = recommended_documents[:2]
     
     return render_template('index.html', 
                           categories=categories,
                           total_documents=total_documents,
                           total_categories=total_categories,
                           upload_month=upload_month,
-                          recent_documents=[doc.to_dict() for doc in recent_documents],
+                          featured_documents=[doc.to_dict() for doc in featured_documents],
+                          latest_documents=[doc.to_dict() for doc in latest_documents],
                           recommended_documents=[doc.to_dict() for doc in recommended_documents])
 
 @app.route('/login', methods=['GET', 'POST'])
