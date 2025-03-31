@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamSight - {% block title %}Product Manager's Knowledge Hub{% endblock %}</title>
+    <title>GSP Insights Hub - {% block title %}Product Manager's Knowledge Hub{% endblock %}</title>
     
     <!-- Material Design Web Components -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -368,8 +368,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark py-3">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                    <span class="material-symbols-outlined me-2" style="color: var(--color-service);">lightbulb</span>
-                    <span class="fw-bold" style="font-family: var(--md-sys-typescale-title-large-font-family);">Stream<span style="color: var(--color-insights);">Sight</span></span>
+                    <img src="{{ url_for('static', filename='images/gspinsightshub.png') }}" alt="GSP Insights Hub Logo" style="height: 50px;" class="me-2">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -563,8 +562,7 @@
             <div class="row">
                 <div class="col-md-6 mb-4 mb-md-0">
                     <h5 class="mb-3" style="font-family: var(--md-sys-typescale-title-large-font-family); color: var(--md-sys-color-on-surface);">
-                        <span class="material-symbols-outlined align-middle me-2" style="color: var(--color-service);">lightbulb</span>
-                        StreamSight
+                        <img src="{{ url_for('static', filename='images/gspinsightshub.png') }}" alt="GSP Insights Hub Logo" style="height: 40px;" class="me-2">
                     </h5>
                     <p class="mb-0" style="color: var(--md-sys-color-on-surface-variant);">AI-powered document insights platform for product managers to discover, analyze, and collaborate on industry knowledge.</p>
                 </div>
@@ -623,7 +621,7 @@
             </div>
             <md-divider style="margin: 24px 0;"></md-divider>
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                <p class="mb-3 mb-md-0" style="color: var(--md-sys-color-on-surface-variant);">StreamSight &copy; 2025</p>
+                <p class="mb-3 mb-md-0" style="color: var(--md-sys-color-on-surface-variant);">GSP Insights Hub &copy; 2025</p>
                 <p class="mb-0" style="color: var(--md-sys-color-on-surface-variant); font-size: 0.875rem;">
                     Made with
                     <span class="material-symbols-outlined align-middle mx-1" style="font-size: 1rem; color: var(--md-sys-color-error);">favorite</span>
