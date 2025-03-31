@@ -91,6 +91,12 @@
                         <a href="{{ url_for('edit_document', doc_id=document.id) }}" class="btn btn-sm btn-outline-warning">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
+                        
+                        <!-- Featured Document Toggle Button -->
+                        <button id="toggle-featured-btn" class="btn btn-sm {% if document.is_featured %}btn-warning{% else %}btn-outline-warning{% endif %}" data-doc-id="{{ document.id }}">
+                            <i class="fas fa-star me-1"></i> 
+                            {% if document.is_featured %}Unfeature{% else %}Feature{% endif %}
+                        </button>
                         {% endif %}
                         
                         {% if document.content_type == 'weblink' %}
@@ -492,6 +498,109 @@
                 console.error('Error updating like status:', error);
             });
         });
+        
+        // Featured toggle functionality
+        const toggleFeaturedBtn = document.getElementById('toggle-featured-btn');
+        if (toggleFeaturedBtn) {
+            toggleFeaturedBtn.addEventListener('click', function() {
+                const docId = this.getAttribute('data-doc-id');
+                
+                // Show loading state
+                this.disabled = true;
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
+                
+                // Send AJAX request to toggle featured status
+                fetch(`/api/document/${docId}/toggle-featured`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update button appearance based on new status
+                    if (data.success) {
+                        if (data.is_featured) {
+                            toggleFeaturedBtn.classList.remove('btn-outline-warning');
+                            toggleFeaturedBtn.classList.add('btn-warning');
+                            toggleFeaturedBtn.innerHTML = '<i class="fas fa-star me-1"></i> Unfeature';
+                            
+                            // Show success toast
+                            showToast('Document marked as featured', 'success');
+                        } else {
+                            toggleFeaturedBtn.classList.remove('btn-warning');
+                            toggleFeaturedBtn.classList.add('btn-outline-warning');
+                            toggleFeaturedBtn.innerHTML = '<i class="fas fa-star me-1"></i> Feature';
+                            
+                            // Show info toast
+                            showToast('Document removed from featured', 'info');
+                        }
+                    } else {
+                        // Restore original button state on error
+                        toggleFeaturedBtn.innerHTML = originalText;
+                        
+                        // Show error toast
+                        showToast('Error: ' + (data.error || 'Unknown error'), 'error');
+                    }
+                    
+                    // Re-enable button
+                    toggleFeaturedBtn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toggleFeaturedBtn.innerHTML = originalText;
+                    toggleFeaturedBtn.disabled = false;
+                    showToast('Network error. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Helper function to show toast notifications
+        function showToast(message, type = 'info') {
+            // Get or create toast container
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '5';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const toastEl = document.createElement('div');
+            toastEl.id = toastId;
+            toastEl.className = `toast align-items-center ${type === 'error' ? 'bg-danger' : type === 'success' ? 'bg-success' : 'bg-info'} text-white`;
+            toastEl.role = 'alert';
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            
+            // Create toast content
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Add to container
+            toastContainer.appendChild(toastEl);
+            
+            // Initialize and show toast
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+            
+            // Remove from DOM after hiding
+            toastEl.addEventListener('hidden.bs.toast', function() {
+                toastEl.remove();
+            });
+        }
     });
 </script>
 {% endblock %}

@@ -265,6 +265,8 @@ class EditDocumentForm(FlaskForm):
         ('Product Management', 'Product Management'),
         ('Customer Service', 'Customer Service')
     ])
+    is_featured = BooleanField('Featured Document', 
+                               description='Display this document in the Featured section on the homepage')
 
 @app.route('/')
 @login_required
@@ -1457,6 +1459,21 @@ def edit_document(doc_id):
         old_name = document.friendly_name or document.filename
         document.friendly_name = form.friendly_name.data
         document.category = form.category.data
+        
+        # Handle featured status changes
+        old_featured_status = document.is_featured
+        document.is_featured = form.is_featured.data
+        
+        # If document is newly featured, update the featured_at timestamp
+        if form.is_featured.data and not old_featured_status:
+            document.featured_at = datetime.utcnow()
+            logger.info(f"Document {doc_id} has been marked as featured")
+            flash(f"Document '{document.friendly_name}' is now featured on the homepage", 'success')
+        # If document is no longer featured, clear the featured_at timestamp
+        elif not form.is_featured.data and old_featured_status:
+            document.featured_at = None
+            logger.info(f"Document {doc_id} has been removed from featured")
+            flash(f"Document '{document.friendly_name}' is no longer featured on the homepage", 'info')
         
         # Save changes
         db.session.commit()

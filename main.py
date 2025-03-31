@@ -2,6 +2,8 @@ import logging
 from app import app
 from models import db, Badge, Document
 from utils.document_ai import generate_friendly_name
+# Import feature routes
+import routes.feature_routes
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

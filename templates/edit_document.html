@@ -115,6 +115,25 @@
                             {% endif %}
                         </div>
                         
+                        <!-- Featured Document Field -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_featured(class="form-check-input", id="is_featured") }}
+                                <label class="form-check-label" for="is_featured">
+                                    <strong>Featured Document</strong>
+                                </label>
+                                <div class="form-text">
+                                    Display this document in the Featured section on the homepage.
+                                    {% if document.is_featured %}
+                                    <span class="text-success">
+                                        <i class="fas fa-star me-1"></i>
+                                        Currently featured since {{ document.featured_at|humanize }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{{ url_for('view_document', doc_id=document.id) }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-1"></i> Cancel
