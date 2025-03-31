@@ -24,6 +24,143 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInProgressOverlay.style.display = 'flex';
         searchInProgressOverlay.style.opacity = '0';
         searchInProgressOverlay.style.visibility = 'hidden';
+        
+        // Initialize AI thinking process functions
+        window.aiThinking = {
+            /**
+             * Start the AI thinking process with animated stages
+             * @param {string} query - The search query
+             */
+            start: function(query) {
+                // Clear any existing progress interval
+                if (this.progressInterval) {
+                    clearInterval(this.progressInterval);
+                    this.progressInterval = null;
+                }
+                
+                // Reset stages
+                document.querySelectorAll('.thinking-stage').forEach(stage => {
+                    stage.classList.remove('active', 'completed');
+                });
+                document.querySelector('.timeline-progress').style.width = '0%';
+                
+                // Start with first stage
+                const firstStage = document.getElementById('stage-searching');
+                firstStage.classList.add('active');
+                
+                // Update timeline progress
+                document.querySelector('.timeline-progress').style.width = '10%';
+                
+                // Add detail to first stage
+                firstStage.querySelector('.stage-detail').textContent = 'Scanning document library...';
+                
+                // Set up progression through stages
+                this.simulateProgress();
+            },
+            
+            /**
+             * Get real-time search progress updates from the server
+             */
+            simulateProgress: function() {
+                // Generate a query ID for this search session
+                const queryId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                
+                // Start polling for progress updates
+                this.progressInterval = setInterval(() => {
+                    fetch(`/api/search/progress?query_id=${queryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update the UI with the current stage information
+                                this.updateStage(data.stage, data.detail, data.progress);
+                                
+                                // If we're at 100%, stop polling
+                                if (data.progress >= 95) {
+                                    clearInterval(this.progressInterval);
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error getting search progress:', error);
+                            // Fall back to simulated progress on error
+                            clearInterval(this.progressInterval);
+                            this.fallbackSimulatedProgress();
+                        });
+                }, 1000); // Poll every second
+            },
+            
+            /**
+             * Fallback to simulated progress if API fails
+             */
+            fallbackSimulatedProgress: function() {
+                const timings = [
+                    { stage: 'searching', progress: 25, detail: 'Identifying relevant content...', time: 1500 },
+                    { stage: 'analyzing', progress: 50, detail: 'Analyzing document relevance...', time: 3000 },
+                    { stage: 'generating', progress: 75, detail: 'Synthesizing information...', time: 5000 },
+                    { stage: 'finalizing', progress: 100, detail: 'Preparing response...', time: 7000 }
+                ];
+                
+                timings.forEach((step, index) => {
+                    setTimeout(() => {
+                        const prevStage = index > 0 ? document.getElementById(`stage-${timings[index-1].stage}`) : null;
+                        const currentStage = document.getElementById(`stage-${step.stage}`);
+                        
+                        // Update previous stage to completed
+                        if (prevStage) {
+                            prevStage.classList.remove('active');
+                            prevStage.classList.add('completed');
+                        }
+                        
+                        // Activate current stage
+                        currentStage.classList.add('active');
+                        
+                        // Update timeline progress
+                        document.querySelector('.timeline-progress').style.width = `${step.progress}%`;
+                        
+                        // Update stage detail
+                        currentStage.querySelector('.stage-detail').textContent = step.detail;
+                    }, step.time);
+                });
+            },
+            
+            /**
+             * Update a specific stage with detailed information
+             * @param {string} stage - The stage ID (searching, analyzing, generating, finalizing)
+             * @param {string} detail - The detailed information to display
+             * @param {number} progress - Progress percentage (0-100)
+             */
+            updateStage: function(stage, detail, progress) {
+                const stageElement = document.getElementById(`stage-${stage}`);
+                if (!stageElement) return;
+                
+                // Activate this stage, complete previous stages
+                document.querySelectorAll('.thinking-stage').forEach(el => {
+                    const stageId = el.id.replace('stage-', '');
+                    const stageIndex = ['searching', 'analyzing', 'generating', 'finalizing'].indexOf(stageId);
+                    const currentIndex = ['searching', 'analyzing', 'generating', 'finalizing'].indexOf(stage);
+                    
+                    if (stageIndex < currentIndex) {
+                        el.classList.remove('active');
+                        el.classList.add('completed');
+                    } else if (stageIndex === currentIndex) {
+                        el.classList.add('active');
+                        el.classList.remove('completed');
+                    } else {
+                        el.classList.remove('active', 'completed');
+                    }
+                });
+                
+                // Update stage detail
+                if (detail) {
+                    stageElement.querySelector('.stage-detail').textContent = detail;
+                }
+                
+                // Update timeline progress
+                if (progress !== undefined) {
+                    document.querySelector('.timeline-progress').style.width = `${progress}%`;
+                }
+            }
+        };
     } else {
         console.error('Search overlay element not found in DOM!');
     }
@@ -50,6 +187,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Show the overlay
                     searchInProgressOverlay.classList.add('visible');
+                    
+                    // Start AI thinking process
+                    if (window.aiThinking) {
+                        window.aiThinking.start(query);
+                    }
                 }
             }
         });
@@ -73,6 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Show the overlay
                     searchInProgressOverlay.classList.add('visible');
+                    
+                    // Start AI thinking process
+                    if (window.aiThinking) {
+                        window.aiThinking.start(query);
+                    }
                 }
             }
         });

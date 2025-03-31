@@ -2,8 +2,12 @@ import logging
 from app import app
 from models import db, Badge, Document
 from utils.document_ai import generate_friendly_name
-# Import feature routes
+# Import routes
 import routes.feature_routes
+from routes.search_progress import search_progress_bp
+
+# Register blueprints
+app.register_blueprint(search_progress_bp)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

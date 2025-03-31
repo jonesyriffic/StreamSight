@@ -732,7 +732,7 @@
     </script>
     
     <!-- Search in Progress Overlay -->
-    <!-- Enhanced Search In Progress Overlay with Material Design V3 and sparkles -->
+    <!-- Enhanced Search In Progress Overlay with Material Design V3 and AI thinking process -->
     <div id="searchInProgressOverlay">
         <div class="loader-container md-elevation-5">
             <div class="sparkle-container">
@@ -745,6 +745,59 @@
             </div>
             <div class="search-status">Searching...</div>
             <div class="search-query"></div>
+            
+            <!-- Real-time AI thinking indicators -->
+            <div class="ai-thinking-container">
+                <div class="thinking-timeline">
+                    <div class="timeline-progress"></div>
+                </div>
+                
+                <div class="thinking-stages">
+                    <div class="thinking-stage" id="stage-searching">
+                        <div class="stage-indicator">
+                            <div class="stage-circle"></div>
+                            <div class="stage-line"></div>
+                        </div>
+                        <div class="stage-content">
+                            <div class="stage-title">Finding relevant documents</div>
+                            <div class="stage-detail"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="thinking-stage" id="stage-analyzing">
+                        <div class="stage-indicator">
+                            <div class="stage-circle"></div>
+                            <div class="stage-line"></div>
+                        </div>
+                        <div class="stage-content">
+                            <div class="stage-title">Analyzing document contents</div>
+                            <div class="stage-detail"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="thinking-stage" id="stage-generating">
+                        <div class="stage-indicator">
+                            <div class="stage-circle"></div>
+                            <div class="stage-line"></div>
+                        </div>
+                        <div class="stage-content">
+                            <div class="stage-title">Generating response</div>
+                            <div class="stage-detail"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="thinking-stage" id="stage-finalizing">
+                        <div class="stage-indicator">
+                            <div class="stage-circle"></div>
+                        </div>
+                        <div class="stage-content">
+                            <div class="stage-title">Finalizing results</div>
+                            <div class="stage-detail"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="search-info">This may take up to 90 seconds</div>
             <div class="loader"></div>
             <div class="sparkle-container bottom">
