@@ -271,6 +271,17 @@ def setup_document_content_types():
     except Exception as e:
         logging.error(f"Error setting up document content type columns: {str(e)}")
 
+def setup_featured_documents():
+    """Set up featured document columns for homepage featured content"""
+    try:
+        with app.app_context():
+            from migrate_featured_documents import run_migration
+            logging.info("Setting up featured document columns...")
+            run_migration()
+            logging.info("Featured document columns set up successfully")
+    except Exception as e:
+        logging.error(f"Error setting up featured document columns: {str(e)}")
+
 
 def run_dev_initializations():
     # Initialize badges
@@ -287,6 +298,9 @@ def run_dev_initializations():
     
     # Set up document content type columns
     setup_document_content_types()
+    
+    # Set up featured document columns
+    setup_featured_documents()
     
     # Fix relevance format issues
     fix_relevance_format()
