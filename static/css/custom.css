@@ -6,6 +6,49 @@
     outline-offset: 2px;
 }
 
+/* Section headers for main page sections */
+.section-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--bs-light);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.5rem;
+}
+
+/* Welcome banner styling */
+.welcome-banner {
+    background-color: #4CAF50;
+    border-radius: 0.375rem;
+}
+
+.welcome-banner .alert {
+    border-radius: 0.375rem;
+    background-color: transparent;
+    border: none;
+}
+
+/* Card header styling */
+.card-header {
+    background-color: rgba(0,0,0,0.2);
+}
+
+/* Recommendation card styling */
+.recommendation-card .relevance-box {
+    border-left: 3px solid var(--bs-primary);
+}
+
+.featured-card {
+    border-left: 3px solid var(--bs-warning);
+}
+
+/* Search section styling */
+.search-section {
+    background-color: #212529;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Latest Documents Auto-Scrolling Container */
 #latestDocumentsRow {
     display: flex;

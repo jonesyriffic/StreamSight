@@ -3,681 +3,280 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="row align-items-center mb-5">
+<div class="row mb-4">
     <div class="col-md-8">
-        <h1 class="display-4 mb-4">GSP Insights Hub</h1>
-        <p class="lead">
-            Discover breakthrough insights from your product management and customer service resources
-            using advanced AI-powered document analysis.
+        <h1 class="mb-2">GSP Insights Hub</h1>
+        <p class="lead mb-4">
+            Discover breakthrough insights from industry reports and 
+            white papers using advanced AI-powered document analysis.
         </p>
-        
-        {% if current_user.is_authenticated %}
-            {% if not current_user.is_approved %}
-            <div class="alert alert-warning mt-3">
-                <i class="fas fa-clock me-2"></i> <strong>Welcome {{ current_user.name or current_user.email }}!</strong> Your account is pending approval. Some features will be limited until an administrator approves your account.
-            </div>
-            {% elif not current_user.is_active %}
-            <div class="alert alert-danger mt-3">
-                <i class="fas fa-ban me-2"></i> <strong>Account deactivated.</strong> Your account has been deactivated. Please contact an administrator.
-            </div>
-            {% else %}
-            <div class="alert alert-success mt-3">
-                <i class="fas fa-check-circle me-2"></i> <strong>Welcome back, {{ current_user.name or current_user.email }}!</strong> Your account is active and fully approved.
-            </div>
-            {% endif %}
-        {% endif %}
     </div>
-    <div class="col-md-4 text-center">
-        <img src="{{ url_for('static', filename='images/gspinsightshub.png') }}" alt="GSP Insights Hub Logo" style="height: 100px;" class="me-2">
+    <div class="col-md-4 text-end">
+        <img src="{{ url_for('static', filename='images/gspinsightshub.png') }}" alt="GSP Insights Hub Logo" style="height: 120px;">
     </div>
 </div>
+
+{% if current_user.is_authenticated %}
+<div class="welcome-banner mb-4">
+    <div class="alert alert-success mb-0">
+        <h5 class="mb-0">Welcome back {{ current_user.name or current_user.email }}!</h5>
+    </div>
+</div>
+{% endif %}
 
 <!-- Search Box -->
 <div class="row mb-5">
-    <div class="col-md-12">
-        <div class="card bg-dark shadow search-container">
-            <div class="card-body">
-                <h2 class="card-title mb-3">Ask a question...</h2>
-                <form action="{{ url_for('search') }}" method="get" class="mb-0" id="searchForm">
-                    <div class="modern-search-container mb-3">
-                        <div class="input-group input-group-lg" id="searchContainer">
-                            <span class="input-group-text">
-                                <span class="material-symbols-outlined">lightbulb</span>
+    <div class="col-12">
+        <div class="search-section bg-dark p-4 rounded-3 shadow">
+            <h2 class="mb-4">Ask a question...</h2>
+            <form action="{{ url_for('search') }}" method="get" class="mb-3" id="searchForm">
+                <div class="modern-search-container mb-3">
+                    <div class="input-group input-group-lg" id="searchContainer">
+                        <span class="input-group-text">
+                            <i class="fas fa-lightbulb"></i>
+                        </span>
+                        <input type="text" name="query" class="form-control search-input" 
+                               placeholder="Which digital engagement metrics matter most?" 
+                               aria-label="Search query" id="mainSearchInput">
+                        <button class="btn btn-primary search-button" type="submit" id="mainSearchButton">
+                            <span class="search-button-normal">
+                                Search
                             </span>
-                            <input type="text" name="query" class="form-control search-input" 
-                                   placeholder="What are best practices for digital product testing and validation?" 
-                                   aria-label="Search query" id="mainSearchInput">
-                            <button class="btn btn-primary" type="submit" id="mainSearchButton">
-                                <span class="search-button-normal">
-                                    <span class="material-symbols-outlined">search</span> Search
-                                </span>
-                                <span class="search-button-loading d-none" id="mainSearchSpinnerInline">
-                                    <span class="material-symbols-outlined rotating me-1">progress_activity</span> Searching...
-                                </span>
+                            <span class="search-button-loading d-none">
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Searching...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-info example-search-button">
+                        <i class="fas fa-question-circle me-1"></i> How can AI improve customer service?
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info example-search-button">
+                        <i class="fas fa-question-circle me-1"></i> What are the latest industry trends?
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info example-search-button">
+                        <i class="fas fa-question-circle me-1"></i> How does AR improve productivity?
+                    </button>
+                </div>
+                
+                <div class="d-flex align-items-center text-muted small mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>Searches may take up to 90 seconds to process</span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Documents Section -->
+<div class="row mb-5">
+    <div class="col-12 mb-3">
+        <h2 class="section-title">Featured</h2>
+    </div>
+    
+    {% if featured_documents %}
+    <div class="row">
+        {% for doc in featured_documents %}
+        <div class="col-lg-4 mb-4">
+            <div class="card featured-card h-100 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 text-truncate" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
+                    </h5>
+                    <span class="badge {% if doc.category == 'Industry Insights' %}bg-info
+                        {% elif doc.category == 'Technology News' %}bg-success
+                        {% elif doc.category == 'Product Management' %}bg-primary
+                        {% elif doc.category == 'Customer Service' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ doc.category }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center text-muted small mb-2">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        <span>Added {{ doc.uploaded_at|humanize }}</span>
+                    </div>
+                    
+                    {% if doc.summary %}
+                    <p class="card-text">{{ doc.summary|striptags|truncate(120) }}</p>
+                    {% else %}
+                    <p class="card-text fst-italic text-muted">Summary not available. View the document to generate a summary.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye me-1"></i> View
+                    </a>
+                    
+                    {% if doc.content_type == 'pdf' and doc.filepath %}
+                    <a href="{{ url_for('serve_document_pdf', doc_id=doc.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-file-pdf me-1"></i> PDF
+                    </a>
+                    {% elif doc.content_type == 'weblink' and doc.source_url %}
+                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-globe me-1"></i> Web
+                    </a>
+                    {% elif doc.content_type == 'youtube' and doc.source_url %}
+                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fab fa-youtube me-1"></i> Video
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No featured documents available.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recommended Documents Section -->
+{% if current_user.is_authenticated and recommendations %}
+<div class="row mb-5">
+    <div class="col-12 mb-3">
+        <h2 class="section-title">Recommended for you</h2>
+    </div>
+    
+    <div class="row">
+        {% for recommendation in recommendations %}
+        <div class="col-lg-6 mb-4">
+            <div class="card recommendation-card h-100 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 text-truncate" data-bs-toggle="tooltip" title="{{ recommendation.document.friendly_name if recommendation.document.friendly_name else recommendation.document.filename }}">
+                        {{ recommendation.document.friendly_name if recommendation.document.friendly_name else recommendation.document.filename }}
+                    </h5>
+                    <span class="badge {% if recommendation.document.category == 'Industry Insights' %}bg-info
+                        {% elif recommendation.document.category == 'Technology News' %}bg-success
+                        {% elif recommendation.document.category == 'Product Management' %}bg-primary
+                        {% elif recommendation.document.category == 'Customer Service' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ recommendation.document.category }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="relevance-box mb-3 p-2 rounded bg-dark bg-opacity-25">
+                        <p class="mb-0 small"><strong>Relevance:</strong> {{ recommendation.relevance_reason }}</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between my-2">
+                        <a href="{{ url_for('view_document', doc_id=recommendation.document.id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye me-1"></i> View Document
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary dismiss-recommendation-btn" 
+                                data-doc-id="{{ recommendation.document.id }}" data-bs-toggle="modal" 
+                                data-bs-target="#dismissModal{{ recommendation.id }}">
+                            <i class="fas fa-times me-1"></i> Not for me
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dismiss Modal -->
+            <div class="modal fade" id="dismissModal{{ recommendation.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Dismiss Recommendation</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to dismiss this recommendation?</p>
+                            <p class="small text-muted">This document won't be recommended to you again.</p>
+                            <form id="dismissForm{{ recommendation.id }}">
+                                <input type="hidden" name="document_id" value="{{ recommendation.document.id }}">
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger dismiss-confirm-btn" data-form="dismissForm{{ recommendation.id }}">
+                                <i class="fas fa-check me-1"></i> Dismiss
                             </button>
                         </div>
                     </div>
-                    <div class="text-muted small mb-3">
-                        <i class="fas fa-info-circle me-1"></i> Searches may take up to 90 seconds to process
-                    </div>
-                    
-                    <!-- Direct example search buttons (inline animation) -->
-                    <div class="d-flex flex-wrap mt-2 mb-3">
-                        <a href="/search?query=How%20can%20AI%20improve%20customer%20service%3F" 
-                           class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
-                           onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> How can AI improve customer service?'; setTimeout(() => window.location.href=this.href, 1000);">
-                           <i class="fas fa-search me-1"></i> How can AI improve customer service?
-                        </a>
-                        <a href="/search?query=What%20are%20the%20latest%20industry%20trends%3F" 
-                           class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
-                           onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> What are the latest industry trends?'; setTimeout(() => window.location.href=this.href, 1000);">
-                           <i class="fas fa-search me-1"></i> What are the latest industry trends?
-                        </a>
-                        <a href="/search?query=How%20does%20AR%20improve%20productivity%3F" 
-                           class="btn btn-sm btn-outline-info rounded-pill me-2 mb-2 no-md-convert example-direct"
-                           onclick="event.preventDefault(); this.innerHTML='<i class=\'fas fa-robot fa-bounce me-1\'></i> How does AR improve productivity?'; setTimeout(() => window.location.href=this.href, 1000);">
-                           <i class="fas fa-search me-1"></i> How does AR improve productivity?
-                        </a>
-                    </div>
-                    
-                    <!-- Material Design v3 Search Loading Indicator -->
-                    <div id="aiSearchOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" 
-                         style="z-index: 9999;">
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <div class="card p-4 shadow-lg" style="max-width: 500px;">
-                                <div class="text-center mb-3">
-                                    <!-- Material Design Progress Circular -->
-                                    <div class="md-progress-circular">
-                                        <svg viewBox="0 0 48 48">
-                                            <circle class="progress-circular-determinate" cx="24" cy="24" r="20"></circle>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <h4 class="text-center">AI Search in Progress</h4>
-                                <p class="text-center mb-0">
-                                    Searching for <strong id="searchQueryDisplay"></strong> across all documents...
-                                </p>
-                                <p class="text-center text-muted small mt-2">
-                                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">info</span>
-                                    This search may take up to 90 seconds to complete
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Legacy Loading spinner (can be removed if the overlay works well) -->
-                    <div id="mainSearchSpinner" class="mt-3 text-center d-none">
-                        <div class="spinner-border text-info" role="status">
-                            <span class="visually-hidden">Searching...</span>
-                        </div>
-                        <p class="mt-2 text-info">Searching documents using AI... This may take a few moments.</p>
-                    </div>
-                    
-                    <script>
-                        // Global function to show AI search overlay (available to both form submit and example clicks)
-                        window.showAISearchOverlay = function(query) {
-                            // Display the query text in the overlay
-                            document.getElementById('searchQueryDisplay').textContent = `"${query}"`;
-                            
-                            // Show the overlay
-                            document.getElementById('aiSearchOverlay').classList.remove('d-none');
-                            
-                            // Update button state with inline spinner
-                            const mainSearchButton = document.getElementById('mainSearchButton');
-                            const mainSearchSpinnerInline = document.getElementById('mainSearchSpinnerInline');
-                            const searchButtonNormal = mainSearchButton.querySelector('.search-button-normal');
-                            
-                            // Disable button and add classes
-                            mainSearchButton.disabled = true;
-                            mainSearchButton.classList.add('btn-warning');
-                            mainSearchButton.classList.remove('btn-primary');
-                            
-                            // Show spinner in button
-                            if (searchButtonNormal) searchButtonNormal.classList.add('d-none');
-                            if (mainSearchSpinnerInline) mainSearchSpinnerInline.classList.remove('d-none');
-                            
-                            // Add searching class to container
-                            const searchContainer = document.getElementById('searchContainer');
-                            if (searchContainer) searchContainer.classList.add('searching');
-                            
-                            // Also show the legacy spinner for compatibility
-                            document.getElementById('mainSearchSpinner').classList.remove('d-none');
-                        };
-                        
-                        // Show loading spinner when search form is submitted
-                        document.getElementById('searchForm').addEventListener('submit', function(e) {
-                            const query = this.querySelector('input[name="query"]').value.trim();
-                            // Only show spinner if there's a search query
-                            if (query) {
-                                e.preventDefault(); // Prevent immediate form submission
-                                showAISearchOverlay(query);
-                                
-                                // Submit the form after a short delay
-                                setTimeout(() => {
-                                    this.submit();
-                                }, 300);
-                            }
-                        });
-                    </script>
-                    <!-- Category filter removed -->
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Message for users without team specialization -->
-{% if current_user.is_authenticated and not current_user.team_specialization %}
-<div class="row mb-5">
-    <div class="col-md-12">
-        <div class="card bg-info bg-opacity-10 border-info shadow">
-            <div class="card-body">
-                <div class="d-flex align-items-start">
-                    <div class="flex-shrink-0 me-3">
-                        <i class="fas fa-user-tag fa-2x text-info"></i>
-                    </div>
-                    <div>
-                        <h4 class="card-title text-info mb-2">Get Personalized Recommendations</h4>
-                        <p class="card-text mb-3">
-                            Set your team specialization in your profile to receive tailored document recommendations 
-                            relevant to your specific role and interests.
-                        </p>
-                        <a href="{{ url_for('profile') }}" class="btn btn-info">
-                            <i class="fas fa-user-edit me-2"></i> Update Your Profile
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Team Recommendations -->
-{% if current_user.is_authenticated and current_user.team_specialization and recommended_documents %}
-<div class="row mb-5">
-    <div class="col-md-12">
-        <div class="card bg-dark shadow">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">
-                    <i class="fas fa-star text-warning me-2"></i> 
-                    Recommendations for you
-                </h3>
-                <span class="badge bg-info">{{ current_user.team_specialization }}</span>
-                <span class="badge bg-primary">Personalized</span>
-            </div>
-            <div class="card-body">
-                <div class="row g-4 recommended-documents">
-                    {% for doc in recommended_documents %}
-                    <div class="col-md-4">
-                        <div class="card h-100 recommendation-card
-                            {% if doc.category == 'Industry Insights' %}card-insights
-                            {% elif doc.category == 'Technology News' %}card-tech
-                            {% elif doc.category == 'Product Management' %}card-product
-                            {% elif doc.category == 'Customer Service' %}card-service
-                            {% else %}card-default{% endif %}">
-                            
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
-                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
-                                    </h5>
-                                    <span class="badge 
-                                        {% if doc.category == 'Industry Insights' %}bg-info
-                                        {% elif doc.category == 'Technology News' %}bg-success
-                                        {% elif doc.category == 'Product Management' %}bg-primary
-                                        {% elif doc.category == 'Customer Service' %}bg-warning
-                                        {% else %}bg-secondary{% endif %}">
-                                        {{ doc.category }}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3 flex-grow-1">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-primary me-2 px-2 py-1">
-                                            <span class="material-symbols-outlined me-1" style="font-size: 0.9rem; vertical-align: middle;">lightbulb</span> Relevance
-                                        </span>
-                                    </div>
-                                    
-                                    {% if doc.relevance_reasons %}
-                                        {% set found_relevance = false %}
-                                        {% set relevance_content = "" %}
-                                        {% set relevance_length = 0 %}
-                                        
-                                        {% for team_key, relevance in doc.relevance_reasons.items() %}
-                                            {% if not found_relevance and current_user.team_specialization and team_key == current_user.team_specialization %}
-                                                {% set found_relevance = true %}
-                                                
-                                                {% if relevance is mapping and relevance.relevance_reason %}
-                                                    {% set relevance_content = relevance.relevance_reason %}
-                                                    {% set relevance_length = relevance.relevance_reason|length %}
-                                                {% elif relevance is string %}
-                                                    {% set relevance_content = relevance %}
-                                                    {% set relevance_length = relevance|length %}
-                                                {% else %}
-                                                    {% set relevance_content = "Apply these specific insights to improve your " + current_user.team_specialization + " metrics." %}
-                                                    {% set relevance_length = relevance_content|length %}
-                                                {% endif %}
-                                                
-                                                <!-- Debug relevance information -->
-                                                <div class="d-none">
-                                                    Team key: {{ team_key }}, 
-                                                    Content: {{ relevance_content }}
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                        
-                                        {% if found_relevance %}
-                                            <div class="border-start border-primary ps-3 pt-1 pb-1 mt-2 mb-2">
-                                                <p class="card-text small mb-1">{{ relevance_content|truncate(150) }}</p>
-                                                
-                                                {% if relevance_length > 150 %}
-                                                    <button class="btn btn-link btn-sm text-primary p-0" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#relevanceModal{{ loop.index }}">
-                                                        Read more
-                                                    </button>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                        
-                                        {% if not found_relevance %}
-                                            <div class="border-start border-primary ps-3 pt-1 pb-1 mt-2 mb-2">
-                                                {% if doc.category == 'Industry Insights' %}
-                                                    <p class="card-text small mb-1">The market insights in this report will help you improve your {{ current_user.team_specialization }} solutions. You can apply the data trends to your current projects.</p>
-                                                {% elif doc.category == 'Technology News' %}
-                                                    <p class="card-text small mb-1">These technology updates directly impact your {{ current_user.team_specialization }} toolset. You can use these developments to enhance your team's capabilities.</p>
-                                                {% elif doc.category == 'Product Management' %}
-                                                    <p class="card-text small mb-1">The product strategies outlined here can strengthen your {{ current_user.team_specialization }} approach. You'll find specific methods to improve your workflow.</p>
-                                                {% elif doc.category == 'Customer Service' %}
-                                                    <p class="card-text small mb-1">These customer service tactics will optimize your {{ current_user.team_specialization }} operations. You can implement these techniques in your current processes.</p>
-                                                {% else %}
-                                                    <p class="card-text small mb-1">This {{ doc.category }} document contains specific techniques that will enhance your {{ current_user.team_specialization }} initiatives.</p>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                        
-                                        
-                                        <!-- Modal for full relevance reason -->
-                                        <div class="modal fade" id="relevanceModal{{ loop.index }}" tabindex="-1" aria-labelledby="relevanceModalLabel{{ loop.index }}" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content bg-dark text-light">
-                                                    <div class="modal-header bg-dark">
-                                                        <h5 class="modal-title text-success" id="relevanceModalLabel{{ loop.index }}">
-                                                            <span class="material-symbols-outlined me-2">lightbulb</span>Document Relevance Insights
-                                                        </h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <h6 class="mb-3 text-light">{{ doc.friendly_name if doc.friendly_name else doc.filename }}</h6>
-                                                        
-                                                        <div class="d-flex align-items-center mb-3">
-                                                            <span class="badge bg-info me-2">{{ current_user.team_specialization }}</span>
-                                                            <small class="text-muted">Your team specialization</small>
-                                                        </div>
-                                                        
-                                                        <div class="card bg-dark-subtle border-success mb-3">
-                                                            <div class="card-header bg-success bg-opacity-25 text-success">
-                                                                <i class="fas fa-bullseye me-1"></i>
-                                                                <strong>Why this is relevant for you</strong>
-                                                            </div>
-                                                            <div class="card-body">
-                                                                {% set relevance_text = "" %}
-                                                                {% for team_key, relevance in doc.relevance_reasons.items() %}
-                                                                    {% if not relevance_text and current_user.team_specialization and team_key == current_user.team_specialization %}
-                                                                        {% if relevance is mapping and relevance.relevance_reason %}
-                                                                            {% set relevance_text = relevance.relevance_reason %}
-                                                                        {% elif relevance is string %}
-                                                                            {% set relevance_text = relevance %}
-                                                                        {% else %}
-                                                                            {% set relevance_text = "Apply these specific insights to improve your " + current_user.team_specialization + " metrics." %}
-                                                                        {% endif %}
-                                                                        
-                                                                        <!-- Debug relevance information -->
-                                                                        <div class="d-none">
-                                                                            Modal - Team key: {{ team_key }}, 
-                                                                            Content: {{ relevance_text }}
-                                                                        </div>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                                
-                                                                {% if relevance_text %}
-                                                                    <p class="mb-0">{{ relevance_text }}</p>
-                                                                {% else %}
-                                                                    {% if doc.category == 'Industry Insights' %}
-                                                                        <p class="mb-0">This industry report highlights market trends that directly impact your {{ current_user.team_specialization }} work. You can use these insights to refine your strategies and align your projects with emerging customer expectations.</p>
-                                                                    {% elif doc.category == 'Technology News' %}
-                                                                        <p class="mb-0">The technology innovations covered in this document have direct applications for your {{ current_user.team_specialization }} tools and systems. You can leverage these advancements to improve your team's technical capabilities and service delivery.</p>
-                                                                    {% elif doc.category == 'Product Management' %}
-                                                                        <p class="mb-0">This document outlines product strategies that can enhance your {{ current_user.team_specialization }} approaches. You'll find methodologies that can streamline your workflows and improve cross-functional collaboration.</p>
-                                                                    {% elif doc.category == 'Customer Service' %}
-                                                                        <p class="mb-0">The customer service practices detailed here will help your {{ current_user.team_specialization }} team improve customer satisfaction metrics. You can implement these specific techniques to address common pain points in your service delivery.</p>
-                                                                    {% else %}
-                                                                        <p class="mb-0">This {{ doc.category }} content provides targeted information that will strengthen your {{ current_user.team_specialization }} initiatives. The specific data points can inform your decision-making process.</p>
-                                                                    {% endif %}
-                                                                {% endif %}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-success">
-                                                            <i class="fas fa-eye me-1"></i> View Full Document
-                                                        </a>
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% else %}
-                                        <div class="border-start border-warning ps-3 pt-2 pb-2 mt-2 mb-2">
-                                            <p class="card-text small mb-0">
-                                                <i class="fas fa-info-circle me-1 text-warning"></i> 
-                                                {% if doc.category == 'Industry Insights' %}
-                                                    The market data in this report can help your {{ current_user.team_specialization }} team optimize customer engagement metrics and adapt to changing industry conditions.
-                                                {% elif doc.category == 'Technology News' %}
-                                                    This technology update highlights innovations that can enhance your {{ current_user.team_specialization }} toolset and improve your technical capabilities.
-                                                {% elif doc.category == 'Product Management' %}
-                                                    The product frameworks detailed here will help you strengthen your {{ current_user.team_specialization }} approach and improve cross-functional collaboration.
-                                                {% elif doc.category == 'Customer Service' %}
-                                                    These customer service best practices can help your {{ current_user.team_specialization }} team optimize service delivery and improve satisfaction scores.
-                                                {% else %}
-                                                    This document contains specific insights that will help you improve your {{ current_user.team_specialization }} operations and implementation approaches.
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="d-flex mt-auto justify-content-between">
-                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-primary">
-                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">visibility</span> View Document
-                                    </a>
-                                    <button type="button" class="btn btn-outline-danger btn-sm dismiss-recommendation-btn" 
-                                            data-doc-id="{{ doc.id }}">
-                                        <i class="fas fa-times me-1"></i> Not for me
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Dismiss Modal -->
-                            <div class="modal fade" id="dismissModal{{ loop.index }}" tabindex="-1" aria-labelledby="dismissModalLabel{{ loop.index }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content bg-dark text-light">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="dismissModalLabel{{ loop.index }}">Improve Your Recommendations</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>Would you like to tell us why this document isn't relevant to you?</p>
-                                            <p class="small text-muted">Your feedback helps us improve future recommendations.</p>
-                                            
-                                            <form id="dismissForm{{ loop.index }}">
-                                                <input type="hidden" name="document_id" value="{{ doc.id }}">
-                                                
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="feedback_type" value="not_relevant" id="notRelevant{{ loop.index }}">
-                                                    <label class="form-check-label" for="notRelevant{{ loop.index }}">
-                                                        Not relevant to my work
-                                                    </label>
-                                                </div>
-                                                
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="feedback_type" value="already_seen" id="alreadySeen{{ loop.index }}">
-                                                    <label class="form-check-label" for="alreadySeen{{ loop.index }}">
-                                                        Already seen this content elsewhere
-                                                    </label>
-                                                </div>
-                                                
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="feedback_type" value="not_interested" id="notInterested{{ loop.index }}">
-                                                    <label class="form-check-label" for="notInterested{{ loop.index }}">
-                                                        Not interested in this topic
-                                                    </label>
-                                                </div>
-                                                
-                                                <div class="mb-3">
-                                                    <label for="additionalFeedback{{ loop.index }}" class="form-label">Additional feedback (optional)</label>
-                                                    <textarea class="form-control" id="additionalFeedback{{ loop.index }}" name="feedback" rows="2" placeholder="Tell us more about why this isn't relevant..."></textarea>
-                                                </div>
-                                            </form>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="button" class="btn btn-primary dismiss-confirm-btn" data-form="dismissForm{{ loop.index }}" data-doc-id="{{ doc.id }}">
-                                                Submit & Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                {% if recommended_documents|length > 3 %}
-                <div class="text-center mt-4">
-                    <a href="{{ url_for('library') }}" class="btn btn-outline-info">
-                        <i class="fas fa-list me-1"></i> View All Recommendations
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Featured Documents Section -->
-{% if featured_documents %}
-<div class="row mb-5">
-    <div class="col-md-12">
-        <div class="card featured-card bg-dark shadow">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">
-                    <i class="fas fa-award text-warning me-2"></i>
-                    Featured Documents
-                </h3>
-                <span class="badge bg-warning text-dark">Editor's Choice</span>
-            </div>
-            <div class="card-body">
-                <div class="row g-4 featured-documents-container">
-                    {% for doc in featured_documents %}
-                    <div class="col-md-4">
-                        <div class="card h-100 featured-document shadow
-                            {% if doc.category == 'Industry Insights' %}card-insights
-                            {% elif doc.category == 'Technology News' %}card-tech
-                            {% elif doc.category == 'Product Management' %}card-product
-                            {% elif doc.category == 'Customer Service' %}card-service
-                            {% else %}card-default{% endif %}">
-                            
-                            <div class="featured-badge">
-                                <i class="fas fa-star me-1"></i> Featured
-                            </div>
-                            
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
-                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
-                                    </h5>
-                                    <span class="badge 
-                                        {% if doc.category == 'Industry Insights' %}bg-info
-                                        {% elif doc.category == 'Technology News' %}bg-success
-                                        {% elif doc.category == 'Product Management' %}bg-primary
-                                        {% elif doc.category == 'Customer Service' %}bg-warning
-                                        {% else %}bg-secondary{% endif %}">
-                                        {{ doc.category }}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="card-body d-flex flex-column">
-                                {% if doc.content_type == 'youtube' and doc.thumbnail_url %}
-                                <div class="mb-3 text-center">
-                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="d-block position-relative">
-                                        <img src="{{ doc.thumbnail_url }}" class="img-fluid rounded youtube-thumbnail" alt="YouTube Thumbnail">
-                                        <div class="youtube-play-overlay">
-                                            <i class="fab fa-youtube fa-3x text-danger"></i>
-                                        </div>
-                                    </a>
-                                </div>
-                                {% endif %}
-                                
-                                <div class="document-summary mb-3 flex-grow-1">
-                                    <p class="card-text document-summary-content">
-                                        {% if doc.summary %}
-                                        {{ doc.summary|truncate(200) }}
-                                        {% else %}
-                                        <em class="text-muted">No summary available yet</em>
-                                        {% endif %}
-                                    </p>
-                                </div>
-                                
-                                <div class="mt-auto">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-calendar-alt me-1"></i> {{ doc.uploaded_at|humanize }}
-                                        </small>
-                                        
-                                        <div>
-                                            {% if doc.content_type == 'pdf' %}
-                                            <span class="badge bg-dark" title="PDF Document">
-                                                <i class="fas fa-file-pdf me-1"></i> PDF
-                                            </span>
-                                            {% elif doc.content_type == 'weblink' %}
-                                            <span class="badge bg-dark" title="Web Link">
-                                                <i class="fas fa-link me-1"></i> Link
-                                            </span>
-                                            {% elif doc.content_type == 'youtube' %}
-                                            <span class="badge bg-dark" title="YouTube Video">
-                                                <i class="fab fa-youtube me-1"></i> Video
-                                            </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    
-                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-primary w-100">
-                                        <i class="fas fa-eye me-1"></i> View Document
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
 {% endif %}
 
 <!-- Latest Document Additions -->
-{% if latest_documents %}
 <div class="row mb-5">
-    <div class="col-md-12">
-        <div class="card bg-dark shadow">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">
-                    <i class="fas fa-clock text-info me-2"></i>
-                    Latest Additions
-                </h3>
-                <div>
-                    <button id="carousel-pause-btn" class="btn btn-sm btn-outline-light me-2" title="Pause auto-scrolling">
-                        <i class="fas fa-pause"></i>
-                    </button>
-                    <button id="carousel-left-btn" class="btn btn-sm btn-outline-light me-2" title="Scroll left">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button id="carousel-right-btn" class="btn btn-sm btn-outline-light me-2" title="Scroll right">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <a href="{{ url_for('library') }}" class="btn btn-sm btn-outline-info">View All</a>
+    <div class="col-12 mb-3">
+        <h2 class="section-title">Latest additions</h2>
+    </div>
+    
+    {% if latest_documents %}
+    <div class="row">
+        {% for doc in latest_documents %}
+        <div class="col-lg-4 mb-4">
+            <div class="card latest-card h-100 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 text-truncate" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
+                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
+                    </h5>
+                    <span class="badge {% if doc.category == 'Industry Insights' %}bg-info
+                        {% elif doc.category == 'Technology News' %}bg-success
+                        {% elif doc.category == 'Product Management' %}bg-primary
+                        {% elif doc.category == 'Customer Service' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ doc.category }}
+                    </span>
                 </div>
-            </div>
-            <div class="card-body">
-                <div class="d-flex flex-nowrap overflow-hidden gap-4" id="latestDocumentsRow">
-                    {% for doc in latest_documents %}
-                    <div class="col-md-4 latest-document-card" style="min-width: 320px; flex: 0 0 auto;">
-                        <div class="card h-100
-                            {% if doc.category == 'Industry Insights' %}card-insights
-                            {% elif doc.category == 'Technology News' %}card-tech
-                            {% elif doc.category == 'Product Management' %}card-product
-                            {% elif doc.category == 'Customer Service' %}card-service
-                            {% else %}card-default{% endif %}">
-                            
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title text-truncate mb-0" data-bs-toggle="tooltip" title="{{ doc.friendly_name if doc.friendly_name else doc.filename }}">
-                                        {{ doc.friendly_name if doc.friendly_name else doc.filename }}
-                                    </h5>
-                                    <span class="badge 
-                                        {% if doc.category == 'Industry Insights' %}bg-info
-                                        {% elif doc.category == 'Technology News' %}bg-success
-                                        {% elif doc.category == 'Product Management' %}bg-primary
-                                        {% elif doc.category == 'Customer Service' %}bg-warning
-                                        {% else %}bg-secondary{% endif %}">
-                                        {{ doc.category }}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="card-body d-flex flex-column">
-                                <div class="mb-3 flex-grow-1">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="fas fa-calendar-alt text-secondary me-2"></i>
-                                        <span class="text-muted">Added {{ doc.uploaded_at|humanize }}</span>
-                                    </div>
-                                    
-                                    {% if doc.summary %}
-                                    <p class="card-text small">{{ doc.summary|striptags|truncate(120) }}</p>
-                                    {% else %}
-                                    <p class="card-text small fst-italic text-muted">Summary not available. View the document to generate a summary.</p>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="d-flex mt-auto justify-content-between">
-                                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-outline-light">
-                                        <span class="material-symbols-outlined me-1" style="font-size: 0.9rem; vertical-align: middle;">visibility</span> View
-                                    </a>
-                                    
-                                    {% if doc.content_type == 'pdf' and doc.filepath %}
-                                    <a href="{{ url_for('serve_upload', filename=doc.filepath) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-file-pdf me-1"></i> PDF
-                                    </a>
-                                    {% elif doc.content_type == 'weblink' and doc.source_url %}
-                                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-globe me-1"></i> Web
-                                    </a>
-                                    {% elif doc.content_type == 'youtube' and doc.source_url %}
-                                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fab fa-youtube me-1"></i> Video
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center text-muted small mb-2">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        <span>Added {{ doc.uploaded_at|humanize }}</span>
                     </div>
-                    {% endfor %}
+                    
+                    {% if doc.summary %}
+                    <p class="card-text">{{ doc.summary|striptags|truncate(120) }}</p>
+                    {% else %}
+                    <p class="card-text fst-italic text-muted">Summary not available. View the document to generate a summary.</p>
+                    {% endif %}
                 </div>
-                
-                <div class="text-center mt-4">
-                    <a href="{{ url_for('library') }}" class="btn btn-outline-info">
-                        <i class="fas fa-book me-1"></i> Browse All Documents
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye me-1"></i> View
                     </a>
+                    
+                    {% if doc.content_type == 'pdf' and doc.filepath %}
+                    <a href="{{ url_for('serve_document_pdf', doc_id=doc.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-file-pdf me-1"></i> PDF
+                    </a>
+                    {% elif doc.content_type == 'weblink' and doc.source_url %}
+                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-globe me-1"></i> Web
+                    </a>
+                    {% elif doc.content_type == 'youtube' and doc.source_url %}
+                    <a href="{{ doc.source_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fab fa-youtube me-1"></i> Video
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No documents available.
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-
-{% endif %}
-
-
-
-<!-- Button to reset all dismissed recommendations (only shown when user has recommendations or team specialization) -->
+<!-- Reset Recommendations Button (if user has team specialization) -->
 {% if current_user.is_authenticated and current_user.team_specialization %}
 <div class="row mb-5">
     <div class="col text-center">
@@ -686,7 +285,6 @@
         </button>
     </div>
 </div>
-{% endif %}
 
 <!-- Reset Recommendations Confirmation Modal -->
 <div class="modal fade" id="resetRecommendationsModal" tabindex="-1" aria-labelledby="resetRecommendationsModalLabel" aria-hidden="true">
@@ -709,6 +307,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <script>
 // Handle dismiss recommendation button clicks
@@ -782,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Store card reference before closing the modal
-                    const card = cardElement.closest('.col-md-4');
+                    const card = cardElement.closest('.col-lg-6');
                     
                     // Manually close the modal completely
                     modalElement.style.display = 'none';
@@ -822,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }, 5000);
                             
                             // If no more recommendations, refresh the page
-                            const remainingCards = document.querySelectorAll('.recommended-documents .col-md-4');
+                            const remainingCards = document.querySelectorAll('.recommendation-card');
                             if (remainingCards.length === 0) {
                                 location.reload();
                             }
@@ -876,392 +475,53 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while resetting your recommendations.');
+                alert('An error occurred while resetting recommendations.');
             });
         });
     }
-});
-
-// Fix all modal positioning issues
-document.querySelectorAll('.modal').forEach(modalEl => {
-    // Fix for modal positioning on show
-    modalEl.addEventListener('show.bs.modal', function(event) {
-        // Ensure the modal is always in the center, regardless of mouse position
-        document.body.style.cursor = 'default';
-        
-        // Reset any position adjustments that might have been applied
-        const dialog = this.querySelector('.modal-dialog');
-        if (dialog) {
-            dialog.style.top = '50%';
-            dialog.style.left = '50%';
-            dialog.style.transform = 'translate(-50%, -50%)';
-        }
-    });
     
-    // Fix for modal cleanup on hide
-    modalEl.addEventListener('hidden.bs.modal', function(event) {
-        // This ensures the modal is completely removed from the DOM flow after hiding
-        this.style.display = 'none';
-        
-        // Remove any modal backdrops that might be left
-        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-            backdrop.parentNode.removeChild(backdrop);
-        });
-        
-        // Reset body styles
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-        
-        // Re-show modal after a brief delay to reset state
-        setTimeout(() => {
-            this.style.display = '';
-        }, 50);
-    });
-});
-</script>
-
-<!-- Custom Fixed Feedback Dialog -->
-<div id="fixedFeedbackDialog">
-    <div class="fixed-dialog-container">
-        <div class="fixed-dialog-header">
-            <h5 class="fixed-dialog-title">Improve Your Recommendations</h5>
-            <button type="button" class="fixed-dialog-close" id="fixedDialogClose">&times;</button>
-        </div>
-        <div class="fixed-dialog-body">
-            <p>Would you like to tell us why this document isn't relevant to you?</p>
-            <p class="small text-muted">Your feedback helps us improve future recommendations.</p>
-            
-            <form id="fixedFeedbackForm">
-                <input type="hidden" name="document_id" id="feedbackDocId" value="">
-                
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="radio" name="feedback_type" value="not_relevant" id="fixedNotRelevant">
-                    <label class="form-check-label" for="fixedNotRelevant">
-                        Not relevant to my work
-                    </label>
-                </div>
-                
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="radio" name="feedback_type" value="already_seen" id="fixedAlreadySeen">
-                    <label class="form-check-label" for="fixedAlreadySeen">
-                        Already seen this content elsewhere
-                    </label>
-                </div>
-                
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="radio" name="feedback_type" value="not_interested" id="fixedNotInterested">
-                    <label class="form-check-label" for="fixedNotInterested">
-                        Not interested in this topic
-                    </label>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="fixedAdditionalFeedback" class="form-label">Additional feedback (optional)</label>
-                    <textarea class="form-control" id="fixedAdditionalFeedback" name="feedback" rows="2" placeholder="Tell us more about why this isn't relevant..."></textarea>
-                </div>
-            </form>
-        </div>
-        <div class="fixed-dialog-footer">
-            <button type="button" class="btn btn-secondary" id="fixedCancelBtn">Cancel</button>
-            <button type="button" class="btn btn-primary" id="fixedSubmitBtn">
-                Submit & Remove
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-// Custom feedback dialog functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const fixedDialog = document.getElementById('fixedFeedbackDialog');
-    const closeBtn = document.getElementById('fixedDialogClose');
-    const cancelBtn = document.getElementById('fixedCancelBtn');
-    const submitBtn = document.getElementById('fixedSubmitBtn');
-    const feedbackForm = document.getElementById('fixedFeedbackForm');
-    const docIdInput = document.getElementById('feedbackDocId');
-    
-    // Event delegation for dismiss buttons
-    document.addEventListener('click', function(e) {
-        // Check if the clicked element is a dismiss recommendation button or its child icon
-        if (e.target.classList.contains('dismiss-recommendation-btn') || 
-            (e.target.tagName === 'I' && e.target.parentElement.classList.contains('dismiss-recommendation-btn'))) {
-            
-            // Prevent the default bootstrap modal behavior
+    // Example search buttons
+    const exampleButtons = document.querySelectorAll('.example-search-button');
+    exampleButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            
-            // Get the button element (could be the icon's parent)
-            const button = e.target.classList.contains('dismiss-recommendation-btn') ? 
-                           e.target : e.target.parentElement;
-            
-            // Get document ID from the button
-            const docId = button.getAttribute('data-doc-id');
-            
-            // Update the form's hidden input
-            docIdInput.value = docId;
-            
-            // Keep track of which button triggered this dialog
-            fixedDialog.setAttribute('data-trigger-button', button.id || '');
-            
-            // Reset the form
-            feedbackForm.reset();
-            
-            // Show the dialog
-            fixedDialog.classList.add('visible');
-        }
-    });
-    
-    // Close dialog when clicking close button
-    closeBtn.addEventListener('click', function() {
-        fixedDialog.classList.remove('visible');
-    });
-    
-    // Close dialog when clicking cancel button
-    cancelBtn.addEventListener('click', function() {
-        fixedDialog.classList.remove('visible');
-    });
-    
-    // Handle form submission
-    submitBtn.addEventListener('click', function() {
-        // Prepare the JSON data
-        const formData = new FormData(feedbackForm);
-        const jsonData = {};
-        formData.forEach((value, key) => {
-            jsonData[key] = value;
-        });
-        
-        // Create a mouse blocker overlay to prevent any interaction during animation
-        const blocker = document.createElement('div');
-        blocker.style.position = 'fixed';
-        blocker.style.top = '0';
-        blocker.style.left = '0';
-        blocker.style.width = '100%';
-        blocker.style.height = '100%';
-        blocker.style.zIndex = '2000';
-        blocker.style.backgroundColor = 'transparent';
-        document.body.appendChild(blocker);
-        
-        // Hide the dialog immediately
-        fixedDialog.classList.remove('visible');
-        
-        // Find the card element
-        const docId = jsonData.document_id;
-        let cardElement = document.querySelector(`.dismiss-recommendation-btn[data-doc-id="${docId}"]`);
-        const card = cardElement.closest('.col-md-4');
-        
-        // Send the dismiss request
-        fetch('/api/recommendations/dismiss', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Wait a short moment before animating the card
-                setTimeout(() => {
-                    // Add fade-out class to initiate animation
-                    card.classList.add('fade-out');
-                    
-                    // After the fade-out animation completes, remove the element
-                    setTimeout(() => {
-                        card.remove();
-                        // Remove the blocker overlay
-                        document.body.removeChild(blocker);
-                        
-                        // Show success alert
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
-                        alertDiv.innerHTML = `
-                            <i class="fas fa-check-circle me-2"></i> Recommendation dismissed. Your feedback helps us improve.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        `;
-                        
-                        // Add the alert at the top of the recommendation section
-                        const recommendationSection = document.querySelector('.card.bg-dark.shadow');
-                        recommendationSection.insertAdjacentElement('afterbegin', alertDiv);
-                        
-                        // Auto-dismiss after 5 seconds
-                        setTimeout(() => {
-                            alertDiv.remove();
-                        }, 5000);
-                        
-                        // If no more recommendations, refresh the page
-                        const remainingCards = document.querySelectorAll('.recommended-documents .col-md-4');
-                        if (remainingCards.length === 0) {
-                            location.reload();
-                        }
-                    }, 500);
-                }, 200);
-            } else {
-                // Show error message
-                alert('Error dismissing recommendation: ' + (data.message || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while dismissing the recommendation.');
+            const text = this.innerText.trim();
+            document.getElementById('mainSearchInput').value = text;
+            document.getElementById('searchForm').submit();
         });
     });
 });
 </script>
 
-<!-- Auto-Scrolling Carousel for Latest Documents -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-scrolling carousel for latest documents
-    const latestDocsContainer = document.getElementById('latestDocumentsRow');
-    const pauseButton = document.getElementById('carousel-pause-btn');
-    const leftButton = document.getElementById('carousel-left-btn');
-    const rightButton = document.getElementById('carousel-right-btn');
-    
-    if (latestDocsContainer && pauseButton && leftButton && rightButton) {
-        let isPaused = false;
-        let scrollInterval;
-        const cardWidth = 340; // Card width + gap
-        const scrollSpeed = 5000; // Scroll every 5 seconds
-        
-        // Function to scroll to the next item
-        function scrollToNext() {
-            if (isPaused) return;
-            
-            // Get current scroll position
-            const currentPosition = latestDocsContainer.scrollLeft;
-            const maxScroll = latestDocsContainer.scrollWidth - latestDocsContainer.clientWidth;
-            
-            // Calculate next position
-            let nextPosition = currentPosition + cardWidth;
-            
-            // If we're at or near the end, scroll back to start
-            if (nextPosition >= maxScroll) {
-                nextPosition = 0;
-            }
-            
-            // Smooth scroll to next position
-            latestDocsContainer.scrollTo({
-                left: nextPosition,
-                behavior: 'smooth'
-            });
-        }
-        
-        // Start auto-scrolling
-        function startAutoScroll() {
-            // Clear any existing interval
-            if (scrollInterval) {
-                clearInterval(scrollInterval);
-            }
-            
-            // Set new interval
-            scrollInterval = setInterval(scrollToNext, scrollSpeed);
-            
-            // Update button appearance
-            pauseButton.innerHTML = '<i class="fas fa-pause"></i>';
-            pauseButton.title = 'Pause auto-scrolling';
-        }
-        
-        // Stop auto-scrolling
-        function stopAutoScroll() {
-            clearInterval(scrollInterval);
-            pauseButton.innerHTML = '<i class="fas fa-play"></i>';
-            pauseButton.title = 'Resume auto-scrolling';
-        }
-        
-        // Toggle auto-scrolling
-        pauseButton.addEventListener('click', function() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                stopAutoScroll();
-            } else {
-                startAutoScroll();
-            }
-        });
-        
-        // Manual scroll left
-        leftButton.addEventListener('click', function() {
-            const currentPosition = latestDocsContainer.scrollLeft;
-            
-            // Temporarily pause auto-scrolling
-            const wasAutoScrolling = !isPaused;
-            if (wasAutoScrolling) {
-                isPaused = true;
-                stopAutoScroll();
-            }
-            
-            // Scroll one card to the left
-            latestDocsContainer.scrollTo({
-                left: Math.max(0, currentPosition - cardWidth),
-                behavior: 'smooth'
-            });
-            
-            // Resume auto-scrolling after a delay if it was on
-            if (wasAutoScrolling) {
-                setTimeout(() => {
-                    isPaused = false;
-                    startAutoScroll();
-                }, 2000);
-            }
-        });
-        
-        // Manual scroll right
-        rightButton.addEventListener('click', function() {
-            const currentPosition = latestDocsContainer.scrollLeft;
-            const maxScroll = latestDocsContainer.scrollWidth - latestDocsContainer.clientWidth;
-            
-            // Temporarily pause auto-scrolling
-            const wasAutoScrolling = !isPaused;
-            if (wasAutoScrolling) {
-                isPaused = true;
-                stopAutoScroll();
-            }
-            
-            // Scroll one card to the right
-            let nextPosition = currentPosition + cardWidth;
-            if (nextPosition > maxScroll) {
-                nextPosition = 0;
-            }
-            
-            latestDocsContainer.scrollTo({
-                left: nextPosition,
-                behavior: 'smooth'
-            });
-            
-            // Resume auto-scrolling after a delay if it was on
-            if (wasAutoScrolling) {
-                setTimeout(() => {
-                    isPaused = false;
-                    startAutoScroll();
-                }, 2000);
-            }
-        });
-        
-        // Start auto-scrolling when the page loads
-        startAutoScroll();
-        
-        // Pause auto-scrolling when hovering over the carousel
-        latestDocsContainer.addEventListener('mouseenter', function() {
-            if (!isPaused) {
-                const wasAutoScrolling = !isPaused;
-                isPaused = true;
-                stopAutoScroll();
-                
-                // Store the auto-scrolling state
-                latestDocsContainer.dataset.wasAutoScrolling = wasAutoScrolling;
-            }
-        });
-        
-        // Resume auto-scrolling when mouse leaves the carousel
-        latestDocsContainer.addEventListener('mouseleave', function() {
-            if (latestDocsContainer.dataset.wasAutoScrolling === 'true') {
-                isPaused = false;
-                startAutoScroll();
-                delete latestDocsContainer.dataset.wasAutoScrolling;
-            }
-        });
-    }
-});
-</script>
+<style>
+.section-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--bs-light);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.5rem;
+}
 
+.welcome-banner {
+    background-color: var(--bs-success);
+    border-radius: 0.375rem;
+}
+
+.welcome-banner .alert {
+    border-radius: 0.375rem;
+}
+
+.card-header {
+    background-color: rgba(0,0,0,0.2);
+}
+
+.recommendation-card .relevance-box {
+    border-left: 3px solid var(--bs-primary);
+}
+
+.featured-card {
+    border-left: 3px solid var(--bs-warning);
+}
+</style>
 {% endblock %}
