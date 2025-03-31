@@ -162,9 +162,15 @@
                     </span>
                 </div>
                 <div class="card-body">
-                    {% if recommendation.relevance_reasons %}
+                    {% if recommendation.relevance_reasons and current_user.team_specialization and current_user.team_specialization in recommendation.relevance_reasons %}
                     <div class="relevance-box mb-3 p-2 rounded bg-dark bg-opacity-25">
-                        <p class="mb-0 small"><strong>Relevance:</strong> {{ recommendation.relevance_reasons|striptags }}</p>
+                        <p class="mb-0 small"><strong>Relevance:</strong> 
+                        {% if recommendation.relevance_reasons[current_user.team_specialization] is string %}
+                            {{ recommendation.relevance_reasons[current_user.team_specialization]|striptags }}
+                        {% elif recommendation.relevance_reasons[current_user.team_specialization] is mapping and 'relevance_reason' in recommendation.relevance_reasons[current_user.team_specialization] %}
+                            {{ recommendation.relevance_reasons[current_user.team_specialization]['relevance_reason']|striptags }}
+                        {% endif %}
+                        </p>
                     </div>
                     {% endif %}
                     
