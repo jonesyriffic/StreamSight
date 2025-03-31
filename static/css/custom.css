@@ -451,35 +451,7 @@ h4, .h4 {
 }
 
 /* Search in Progress Overlay - Impossible to Miss */
-#searchInProgressOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    pointer-events: none;
-}
-
-#searchInProgressOverlay.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-#searchInProgressOverlay .loader-container {
-    text-align: center;
-    padding: 30px;
-    background-color: #222;
-    border-radius: 12px;
-    box-shadow: 0 0 50px rgba(255, 193, 7, 0.5);
+/* Moved the search overlay styles to a single definition below */
     border: 3px solid #ffc107;
     max-width: 500px;
     width: 80%;

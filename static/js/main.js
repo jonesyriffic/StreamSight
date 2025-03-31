@@ -196,22 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const query = searchInput?.value?.trim();
             
             if (query) {
-                // Show the full-screen search overlay with animation
-                const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
-                if (searchInProgressOverlay) {
-                    // Update the query text
-                    const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
-                    if (searchQueryElement) {
-                        searchQueryElement.textContent = `"${query}"`;
-                    }
-                    
-                    // Show the overlay
-                    searchInProgressOverlay.classList.add('visible');
-                    
-                    // Start AI thinking process
-                    if (window.aiThinking) {
-                        window.aiThinking.start(query);
-                    }
+                // Use the showAISearchOverlay function
+                if (window.showAISearchOverlay) {
+                    window.showAISearchOverlay(query);
                 }
             }
         });
@@ -224,22 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const query = searchInput?.value?.trim();
             
             if (query) {
-                // Show the full-screen search overlay with animation
-                const searchInProgressOverlay = document.getElementById('searchInProgressOverlay');
-                if (searchInProgressOverlay) {
-                    // Update the query text
-                    const searchQueryElement = searchInProgressOverlay.querySelector('.search-query');
-                    if (searchQueryElement) {
-                        searchQueryElement.textContent = `"${query}"`;
-                    }
-                    
-                    // Show the overlay
-                    searchInProgressOverlay.classList.add('visible');
-                    
-                    // Start AI thinking process
-                    if (window.aiThinking) {
-                        window.aiThinking.start(query);
-                    }
+                // Use the showAISearchOverlay function
+                if (window.showAISearchOverlay) {
+                    window.showAISearchOverlay(query);
                 }
             }
         });
