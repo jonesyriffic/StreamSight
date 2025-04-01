@@ -244,6 +244,22 @@ def check_document_availability():
             logging.info("Document file availability check completed")
     except Exception as e:
         logging.error(f"Error checking document file availability: {str(e)}")
+        
+def fix_document_paths_permanently():
+    """Permanently fix document file paths using the improved file checking method"""
+    try:
+        with app.app_context():
+            from fix_document_paths_improved import fix_document_paths, check_upload_folder_permissions
+            
+            # First check upload folder permissions
+            if check_upload_folder_permissions():
+                # Fix document paths if we have proper permissions
+                fix_document_paths()
+                logging.info("Document paths permanently fixed")
+            else:
+                logging.error("Cannot fix document paths due to permission issues with upload folder")
+    except Exception as e:
+        logging.error(f"Error permanently fixing document paths: {str(e)}")
 
 def fix_summary_format():
     """Fix document summaries to ensure they don't display HTML in card views"""
@@ -313,6 +329,10 @@ def run_dev_initializations():
     
     # Regenerate document relevance data with concise format
     regenerate_concise_relevance()
+    
+    # Fix document paths permanently using improved method
+    # This must come before the document availability check
+    fix_document_paths_permanently()
     
     # Check document file availability
     check_document_availability()

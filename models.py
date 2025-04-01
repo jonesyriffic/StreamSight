@@ -205,10 +205,24 @@ class Document(db.Model):
                                cascade='all, delete-orphan', 
                                passive_deletes=True)
                                
-    def check_file_exists(self):
-        """Check if the file associated with this document exists"""
+    def check_file_exists(self, update_path=False):
+        """
+        Check if the file associated with this document exists
+        
+        Args:
+            update_path (bool): If True, update the document's filepath when a file is found
+                               using an alternate method
+        
+        Returns:
+            bool: True if the file exists, False otherwise
+        """
         import os
         import glob
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+        found_path = None
         
         # First check if file exists at specified filepath
         if os.path.exists(self.filepath):
@@ -217,19 +231,77 @@ class Document(db.Model):
         # Check with current working directory as base (for relative paths)
         cwd_path = os.path.join(os.getcwd(), self.filepath.lstrip('./'))
         if os.path.exists(cwd_path):
-            return True
+            if update_path:
+                found_path = cwd_path
+            else:
+                return True
             
         # Check in uploads folder with the filename
-        uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-        if os.path.exists(os.path.join(uploads_dir, os.path.basename(self.filepath))):
+        base_filename = os.path.basename(self.filepath)
+        uploads_filepath = os.path.join(uploads_dir, base_filename)
+        
+        if not found_path and os.path.exists(uploads_filepath):
+            if update_path:
+                found_path = f"./uploads/{base_filename}"
+            else:
+                return True
+            
+        # Try finding a file with UUID prefix
+        if not found_path:
+            # Pattern is usually UUID_filename.pdf
+            pattern = f"*{self.filename}"
+            possible_files = glob.glob(os.path.join(uploads_dir, pattern))
+            
+            if possible_files:
+                if update_path:
+                    # Use the first match with a relative path (./uploads/...)
+                    found_path = f"./uploads/{os.path.basename(possible_files[0])}"
+                else:
+                    return True
+                    
+        # Try matching based on partial filename
+        if not found_path:
+            # Get filename without extension for partial matching
+            name_without_ext = os.path.splitext(self.filename)[0]
+            pattern = f"*{name_without_ext}*"
+            possible_files = glob.glob(os.path.join(uploads_dir, pattern))
+            
+            if possible_files:
+                if update_path:
+                    # Use the first match with a relative path
+                    found_path = f"./uploads/{os.path.basename(possible_files[0])}"
+                else:
+                    return True
+            
+        # Last resort - look for document ID in filenames
+        if not found_path:
+            # Try to find any file that contains parts of the document ID
+            all_files = glob.glob(os.path.join(uploads_dir, "*.pdf"))
+            
+            for file_path in all_files:
+                file_base = os.path.basename(file_path)
+                # If filename contains part of the document ID
+                if any(part.lower() in file_base.lower() for part in self.id.split('-')):
+                    if update_path:
+                        found_path = f"./uploads/{file_base}"
+                    else:
+                        return True
+                    break
+            
+        # Update the filepath if a file was found and update_path is True
+        if found_path and update_path:
+            old_path = self.filepath
+            self.filepath = found_path
+            self.file_available = True
+            logger.info(f"Updated document {self.id} filepath from '{old_path}' to '{found_path}'")
             return True
             
-        # Fallback: Check for any file with matching name pattern
-        possible_files = glob.glob(os.path.join(uploads_dir, f"*{self.filename}"))
-        if possible_files:
-            return True
+        # If we get here and no file was found, update file_available if necessary
+        if update_path and self.file_available:
+            self.file_available = False
+            logger.warning(f"Document {self.id} file not found, marked as unavailable")
             
-        return False
+        return False if not found_path else True
     
     def to_dict(self):
         """Convert document to dictionary"""

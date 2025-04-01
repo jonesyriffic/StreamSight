@@ -1479,6 +1479,11 @@ def serve_document_pdf(doc_id):
     """
     Serve a document PDF by document ID rather than filename
     This solves path issues by using the database record
+    
+    This improved version will:
+    1. Use the enhanced Document.check_file_exists method with update_path=True
+    2. Update the document filepath if it's found using alternate lookup methods
+    3. Keep track of files that are consistently not found
     """
     try:
         # Get the document from database
@@ -1489,80 +1494,70 @@ def serve_document_pdf(doc_id):
             logger.warning(f"User {current_user.id} tried to access document {doc_id} without permission")
             abort(403)
             
-        # Extract just the filename from the filepath
-        filename = os.path.basename(document.filepath)
-        original_filename = document.filename
+        # Check if document is a PDF type
+        if document.content_type != 'pdf':
+            logger.warning(f"Attempted to serve non-PDF document {doc_id} through PDF endpoint")
+            return "This document is not a PDF file", 400
         
-        # First try using the filename from the database
-        try:
-            # Check if the file exists in our uploads folder
-            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
-                return send_from_directory(app.config['UPLOAD_FOLDER'], filename, mimetype='application/pdf')
-        except Exception as e:
-            logger.warning(f"Could not find file in uploads folder: {filename}, error: {str(e)}")
+        # Try to find the file using our enhanced check_file_exists method
+        # This will update the document's filepath if found through alternate methods
+        file_exists = document.check_file_exists(update_path=True)
         
-        # If that doesn't work, try looking for the file in the workspace
-        try:
-            # Check if the file exists at the full filepath
-            if os.path.exists(document.filepath):
+        if file_exists:
+            # The file was found, and the filepath may have been updated
+            try:
+                # Extract directory and filename from the filepath (may be updated)
                 directory = os.path.dirname(document.filepath)
+                if not directory:
+                    # If there's no directory component, use uploads folder
+                    directory = app.config['UPLOAD_FOLDER']
+                    document.filepath = os.path.join('./uploads', os.path.basename(document.filepath))
+                    
                 base_filename = os.path.basename(document.filepath)
+                
+                # Save any changes made to the filepath
+                db.session.commit()
+                logger.info(f"Successfully located file for document {doc_id}: {document.filepath}")
+                
+                # Serve the file
                 return send_from_directory(directory, base_filename, mimetype='application/pdf')
-        except Exception as e:
-            logger.warning(f"Could not find file at filepath: {document.filepath}, error: {str(e)}")
-            
-        # If we still can't find it, try using the UUID+filename pattern that might be in uploads
-        try:
-            # Pattern is usually UUID_filename.pdf
-            uuid_pattern = f"*{original_filename}"
-            possible_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], uuid_pattern))
-            
-            if possible_files:
-                directory = os.path.dirname(possible_files[0])
-                base_filename = os.path.basename(possible_files[0])
-                logger.info(f"Found file via pattern matching: {base_filename}")
-                return send_from_directory(directory, base_filename, mimetype='application/pdf')
-        except Exception as e:
-            logger.warning(f"Could not find file using original filename pattern matching: {uuid_pattern}, error: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error serving found document {doc_id}: {str(e)}")
+                # Continue with fallback methods
         
-        # Try finding any file that contains part of the original filename
+        # If we reach here, the file wasn't found using our enhanced method
+        # Let's try the last resort option - look in the uploads folder for any PDF file
         try:
-            # Get just the filename without extension
-            name_without_ext = os.path.splitext(original_filename)[0]
-            alt_pattern = f"*{name_without_ext}*"
+            uploads_dir = app.config['UPLOAD_FOLDER']
+            all_pdf_files = glob.glob(os.path.join(uploads_dir, "*.pdf"))
             
-            possible_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], alt_pattern))
-            if possible_files:
-                directory = os.path.dirname(possible_files[0])
-                base_filename = os.path.basename(possible_files[0])
-                logger.info(f"Found file via partial name matching: {base_filename}")
-                return send_from_directory(directory, base_filename, mimetype='application/pdf')
-        except Exception as e:
-            logger.warning(f"Could not find file using partial name matching: {alt_pattern}, error: {str(e)}")
-        
-        # Last resort - try looking through all files in the uploads directory
-        try:
-            # List all PDF files in the uploads directory
-            all_files = glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], "*.pdf"))
+            original_filename = document.filename
+            name_without_ext = os.path.splitext(original_filename)[0] if original_filename else ""
             
-            # Filter for files that might match our document
-            similar_files = []
-            for file_path in all_files:
-                # Check if any part of the filename matches
+            # Look for files that might match based on document ID parts or filename
+            potential_matches = []
+            for file_path in all_pdf_files:
                 file_base = os.path.basename(file_path)
-                # If filename contains part of the original or the document ID
-                if (name_without_ext.lower() in file_base.lower() or 
-                    any(part.lower() in file_base.lower() for part in doc_id.split('-'))):
-                    similar_files.append(file_path)
+                # Look for UUID parts or original filename in the file
+                if (any(part.lower() in file_base.lower() for part in doc_id.split('-')) or
+                    (name_without_ext and name_without_ext.lower() in file_base.lower())):
+                    potential_matches.append(file_path)
             
-            if similar_files:
+            if potential_matches:
                 # Use the first match
-                directory = os.path.dirname(similar_files[0])
-                base_filename = os.path.basename(similar_files[0])
-                logger.info(f"Found file via similarity search: {base_filename}")
+                found_file = potential_matches[0]
+                directory = os.path.dirname(found_file)
+                base_filename = os.path.basename(found_file)
+                
+                # Update the document's filepath with the found file
+                document.filepath = os.path.join('./uploads', base_filename)
+                document.file_available = True
+                db.session.commit()
+                
+                logger.info(f"Last resort found file for document {doc_id}: {document.filepath}")
                 return send_from_directory(directory, base_filename, mimetype='application/pdf')
         except Exception as e:
-            logger.warning(f"Could not find file using similarity search, error: {str(e)}")
+            logger.error(f"Error in last resort file search for document {doc_id}: {str(e)}")
             
         # If all attempts fail, update document status and return not found
         logger.error(f"Document file not found for ID {doc_id}, exhausted all search options")
