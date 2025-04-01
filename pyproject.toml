@@ -22,4 +22,8 @@ dependencies = [
     "requests>=2.32.3",
     "youtube-transcript-api>=1.0.3",
     "google-generativeai>=0.8.4",
+    "pymupdf>=1.25.5",
+    "pillow>=11.1.0",
+    "playwright>=1.51.0",
+    "cairosvg>=2.7.1",
 ]

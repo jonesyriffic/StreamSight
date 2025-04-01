@@ -5,7 +5,7 @@ import re
 import glob
 from functools import wraps
 from datetime import datetime, timedelta
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
+from flask import Flask, Blueprint, request, render_template, redirect, url_for, flash, jsonify, session, abort, send_from_directory
 from werkzeug.utils import secure_filename
 import json
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -23,6 +23,8 @@ from utils.relevance_generator_gemini import generate_relevance_reasons
 from utils.badge_service import BadgeService
 from utils.recommendation_service import get_user_recommendations, dismiss_recommendation, reset_dismissed_recommendations
 from utils.text_processor import clean_html, format_timestamp
+from utils.thumbnail_routes import thumbnail_bp
+from utils.auth_decorators import admin_required, approved_required
 from models import db, Document, User, Badge, UserActivity, SearchLog, TeamResponsibility, UserDismissedRecommendation, DocumentLike
 from statistics import mean
 
@@ -68,6 +70,9 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     }
 }
 db.init_app(app)
+
+# Register blueprints
+app.register_blueprint(thumbnail_bp)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -195,27 +200,7 @@ with app.app_context():
         db.session.commit()
         logger.info(f"Created admin user: {admin_email}")
 
-# Admin access decorator
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
-            flash('Admin access required', 'danger')
-            return abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
-
-# Access check for approved users
-def approved_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            return redirect(url_for('login'))
-        if not current_user.is_approved and not current_user.is_admin:
-            flash('Your account is pending approval', 'warning')
-            return redirect(url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
+# Admin and approved user decorators have been moved to utils/auth_decorators.py
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'pdf'}

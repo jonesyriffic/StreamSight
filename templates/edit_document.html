@@ -134,6 +134,44 @@
                             </div>
                         </div>
                         
+                        <!-- Thumbnail Section -->
+                        <div class="mb-4">
+                            <h5 class="text-muted">Document Thumbnail</h5>
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center p-2">
+                                            {% if document.thumbnail_url %}
+                                            <img src="{{ document.thumbnail_url }}" alt="Document thumbnail" class="img-fluid border" style="max-height: 150px;">
+                                            {% else %}
+                                            <div class="placeholder-glow">
+                                                <div class="placeholder border" style="width: 100%; height: 120px;"></div>
+                                                <p class="text-muted mt-2 small">No thumbnail</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-center">
+                                        <small class="text-muted">
+                                            {% if document.custom_thumbnail %}
+                                                <span class="badge bg-success">Custom Thumbnail</span>
+                                            {% elif document.thumbnail_generated %}
+                                                <span class="badge bg-info">Auto-Generated</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No Thumbnail</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <p>Thumbnails are displayed on the homepage, in recommendations, and search results.</p>
+                                    <a href="{{ url_for('thumbnails.thumbnail_management', doc_id=document.id) }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-image me-1"></i> Manage Thumbnail
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{{ url_for('view_document', doc_id=document.id) }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-1"></i> Cancel

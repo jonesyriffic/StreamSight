@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Thumbnail - {{ document.friendly_name or document.filename }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('edit_document', doc_id=document.id) }}">Edit Document</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Thumbnail Management</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mt-4 mb-3">Manage Document Thumbnail</h1>
+            <h4>{{ document.friendly_name or document.filename }}</h4>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Current Thumbnail</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            {% if document.thumbnail_url %}
+                            <div class="mb-3">
+                                <img src="{{ document.thumbnail_url }}" alt="Document thumbnail" class="img-fluid border" style="max-height: 300px;">
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge {% if document.custom_thumbnail %}bg-success{% elif document.thumbnail_generated %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {% if document.custom_thumbnail %}
+                                        Custom Thumbnail
+                                    {% elif document.thumbnail_generated %}
+                                        Auto-Generated
+                                    {% else %}
+                                        Default Thumbnail
+                                    {% endif %}
+                                </span>
+                                {% if document.content_type == 'pdf' %}
+                                <span class="badge bg-danger">PDF</span>
+                                {% elif document.content_type == 'weblink' %}
+                                <span class="badge bg-primary">Web Link</span>
+                                {% elif document.content_type == 'youtube' %}
+                                <span class="badge bg-danger">YouTube</span>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="mb-3 placeholder-glow">
+                                <div class="placeholder border" style="width: 100%; height: 200px;"></div>
+                                <p class="text-muted mt-2">No thumbnail available</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-grid gap-2">
+                                <button id="btn-reset-thumbnail" class="btn btn-outline-danger">Reset to Default</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thumbnail Options</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h6>Upload Custom Thumbnail</h6>
+                                <form id="thumbnail-upload-form" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="thumbnail" class="form-label">Select an image file</label>
+                                        <input class="form-control" type="file" id="thumbnail" name="thumbnail" accept="image/*">
+                                        <div class="form-text">Recommended size: 400x300 pixels</div>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">Upload Thumbnail</button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Generate Thumbnail</h6>
+                                <p class="text-muted">Generate a thumbnail automatically from the document content.</p>
+                                <div class="d-grid gap-2">
+                                    <button id="btn-generate-thumbnail" class="btn btn-success">Generate Thumbnail</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="my-4">
+                <a href="{{ url_for('edit_document', doc_id=document.id) }}" class="btn btn-secondary">Back to Edit Document</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        const docId = "{{ document.id }}";
+        
+        // Upload thumbnail
+        $('#thumbnail-upload-form').submit(function(e) {
+            e.preventDefault();
+            
+            // Show loading indicator
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalText = submitBtn.text();
+            submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('thumbnail', $('#thumbnail')[0].files[0]);
+            
+            // Send request
+            $.ajax({
+                url: `/admin/document/${docId}/upload-thumbnail`,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        toastr.success(response.message);
+                        
+                        // Refresh the page to show the new thumbnail
+                        location.reload();
+                    } else {
+                        // Show error message
+                        toastr.error(response.message || 'Failed to upload thumbnail');
+                        
+                        // Reset button
+                        submitBtn.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr) {
+                    // Show error message
+                    let errorMessage = 'Failed to upload thumbnail';
+                    try {
+                        errorMessage = JSON.parse(xhr.responseText).message || errorMessage;
+                    } catch (e) {}
+                    
+                    toastr.error(errorMessage);
+                    
+                    // Reset button
+                    submitBtn.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
+        // Generate thumbnail
+        $('#btn-generate-thumbnail').click(function() {
+            // Show loading indicator
+            const btn = $(this);
+            const originalText = btn.text();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...');
+            
+            // Send request
+            $.ajax({
+                url: `/admin/document/${docId}/generate-thumbnail`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        toastr.success(response.message);
+                        
+                        // Refresh the page to show the new thumbnail
+                        location.reload();
+                    } else {
+                        // Show error message
+                        toastr.error(response.message || 'Failed to generate thumbnail');
+                        
+                        // Reset button
+                        btn.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr) {
+                    // Show error message
+                    let errorMessage = 'Failed to generate thumbnail';
+                    try {
+                        errorMessage = JSON.parse(xhr.responseText).message || errorMessage;
+                    } catch (e) {}
+                    
+                    toastr.error(errorMessage);
+                    
+                    // Reset button
+                    btn.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
+        // Reset thumbnail
+        $('#btn-reset-thumbnail').click(function() {
+            if (!confirm('Are you sure you want to reset this thumbnail to the default?')) {
+                return;
+            }
+            
+            // Show loading indicator
+            const btn = $(this);
+            const originalText = btn.text();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Resetting...');
+            
+            // Send request
+            $.ajax({
+                url: `/admin/document/${docId}/reset-thumbnail`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        toastr.success(response.message);
+                        
+                        // Refresh the page to show the new thumbnail
+                        location.reload();
+                    } else {
+                        // Show error message
+                        toastr.error(response.message || 'Failed to reset thumbnail');
+                        
+                        // Reset button
+                        btn.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr) {
+                    // Show error message
+                    let errorMessage = 'Failed to reset thumbnail';
+                    try {
+                        errorMessage = JSON.parse(xhr.responseText).message || errorMessage;
+                    } catch (e) {}
+                    
+                    toastr.error(errorMessage);
+                    
+                    // Reset button
+                    btn.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

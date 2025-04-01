@@ -180,8 +180,10 @@ class Document(db.Model):
     # Content type and source information
     content_type = db.Column(db.String(20), default=TYPE_PDF, nullable=False)  # pdf, weblink, youtube
     source_url = db.Column(db.String(1024), nullable=True)  # Original URL for web links/YouTube
-    thumbnail_url = db.Column(db.String(1024), nullable=True)  # Thumbnail URL for YouTube videos
+    thumbnail_url = db.Column(db.String(1024), nullable=True)  # Thumbnail URL for all document types
     youtube_video_id = db.Column(db.String(20), nullable=True)  # YouTube video ID for embedding
+    thumbnail_generated = db.Column(db.Boolean, default=False)  # Flag to track if thumbnail was auto-generated
+    custom_thumbnail = db.Column(db.Boolean, default=False)  # Flag to track if thumbnail was uploaded by admin
     
     # Featured flag for homepage promotion
     is_featured = db.Column(db.Boolean, default=False)  # Flag to indicate if document is featured on homepage
@@ -286,6 +288,8 @@ class Document(db.Model):
             'source_url': self.source_url,
             'thumbnail_url': self.thumbnail_url,
             'youtube_video_id': self.youtube_video_id,
+            'thumbnail_generated': self.thumbnail_generated,
+            'custom_thumbnail': self.custom_thumbnail,
             'is_featured': self.is_featured,
             'featured_at': self.featured_at.isoformat() if self.featured_at else None
         }
