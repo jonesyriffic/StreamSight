@@ -574,13 +574,25 @@ document.addEventListener('DOMContentLoaded', function() {
 .document-thumbnail-container {
     background-color: rgba(0,0,0,0.1);
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .document-thumbnail {
-    max-height: 150px;
-    width: auto;
+    max-height: 250px;
+    width: 100%;
+    object-fit: contain;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     transition: transform 0.2s ease;
+}
+
+/* Special handling for vertical thumbnails */
+.document-thumbnail-container img[src*="thumbnail_"] {
+    object-fit: cover;
+    height: 100%;
 }
 
 .document-thumbnail:hover {
