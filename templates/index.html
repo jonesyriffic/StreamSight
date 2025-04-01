@@ -94,6 +94,19 @@
                         {{ doc.category }}
                     </span>
                 </div>
+                <div class="document-thumbnail-container text-center p-2">
+                    {% if doc.thumbnail_url %}
+                    <img src="{{ doc.thumbnail_url }}" alt="Thumbnail for {{ doc.friendly_name if doc.friendly_name else doc.filename }}" class="document-thumbnail img-fluid rounded">
+                    {% elif doc.content_type == 'pdf' %}
+                    <img src="{{ url_for('static', filename='images/pdf_placeholder.svg') }}" alt="PDF Document" class="document-thumbnail img-fluid rounded">
+                    {% elif doc.content_type == 'weblink' %}
+                    <img src="{{ url_for('static', filename='images/web_placeholder.svg') }}" alt="Web Link" class="document-thumbnail img-fluid rounded">
+                    {% elif doc.content_type == 'youtube' %}
+                    <img src="{{ url_for('static', filename='images/youtube_placeholder.svg') }}" alt="YouTube Video" class="document-thumbnail img-fluid rounded">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/pdf_placeholder.svg') }}" alt="Document" class="document-thumbnail img-fluid rounded">
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center text-muted small mb-2">
                         <i class="fas fa-calendar-alt me-2"></i>
@@ -160,6 +173,19 @@
                         {% else %}bg-secondary{% endif %}">
                         {{ recommendation.category }}
                     </span>
+                </div>
+                <div class="document-thumbnail-container text-center p-2">
+                    {% if recommendation.thumbnail_url %}
+                    <img src="{{ recommendation.thumbnail_url }}" alt="Thumbnail for {{ recommendation.friendly_name if recommendation.friendly_name else recommendation.filename }}" class="document-thumbnail img-fluid rounded">
+                    {% elif recommendation.content_type == 'pdf' %}
+                    <img src="{{ url_for('static', filename='images/pdf_placeholder.svg') }}" alt="PDF Document" class="document-thumbnail img-fluid rounded">
+                    {% elif recommendation.content_type == 'weblink' %}
+                    <img src="{{ url_for('static', filename='images/web_placeholder.svg') }}" alt="Web Link" class="document-thumbnail img-fluid rounded">
+                    {% elif recommendation.content_type == 'youtube' %}
+                    <img src="{{ url_for('static', filename='images/youtube_placeholder.svg') }}" alt="YouTube Video" class="document-thumbnail img-fluid rounded">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/pdf_placeholder.svg') }}" alt="Document" class="document-thumbnail img-fluid rounded">
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     {% if recommendation.relevance_reasons and current_user.team_specialization and current_user.team_specialization in recommendation.relevance_reasons %}
@@ -239,6 +265,19 @@
                         {% else %}bg-secondary{% endif %}">
                         {{ doc.category }}
                     </span>
+                </div>
+                <div class="document-thumbnail-container text-center p-2">
+                    {% if doc.thumbnail_url %}
+                    <img src="{{ doc.thumbnail_url }}" alt="Thumbnail for {{ doc.friendly_name if doc.friendly_name else doc.filename }}" class="document-thumbnail img-fluid rounded">
+                    {% elif doc.content_type == 'pdf' %}
+                    <img src="{{ url_for('static', filename='images/pdf_placeholder.svg') }}" alt="PDF Document" class="document-thumbnail img-fluid rounded">
+                    {% elif doc.content_type == 'weblink' %}
+                    <img src="{{ url_for('static', filename='images/web_placeholder.svg') }}" alt="Web Link" class="document-thumbnail img-fluid rounded">
+                    {% elif doc.content_type == 'youtube' %}
+                    <img src="{{ url_for('static', filename='images/youtube_placeholder.svg') }}" alt="YouTube Video" class="document-thumbnail img-fluid rounded">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/pdf_placeholder.svg') }}" alt="Document" class="document-thumbnail img-fluid rounded">
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center text-muted small mb-2">
@@ -530,6 +569,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .featured-card {
     border-left: 3px solid var(--bs-warning);
+}
+
+.document-thumbnail-container {
+    background-color: rgba(0,0,0,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.document-thumbnail {
+    max-height: 150px;
+    width: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease;
+}
+
+.document-thumbnail:hover {
+    transform: scale(1.02);
 }
 </style>
 {% endblock %}
