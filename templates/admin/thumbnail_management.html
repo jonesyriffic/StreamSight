@@ -75,6 +75,19 @@
                                         <input class="form-control" type="file" id="thumbnail" name="thumbnail" accept="image/*">
                                         <div class="form-text">Recommended size: 400x300 pixels</div>
                                     </div>
+                                    <div class="alert alert-info upload-thumbnail-info" style="display: none;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="upload-progress-container me-3">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 upload-status">Uploading Thumbnail</h6>
+                                                <p class="mb-0 upload-info">Processing and optimizing your image. This should take only a few seconds.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="d-grid gap-2">
                                         <button type="submit" class="btn btn-primary">Upload Thumbnail</button>
                                     </div>
@@ -84,6 +97,29 @@
                             <div class="mb-3">
                                 <h6>Generate Thumbnail</h6>
                                 <p class="text-muted">Generate a thumbnail automatically from the document content.</p>
+                                <div class="alert alert-info thumbnail-info" style="display: none;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress-container me-3">
+                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 generation-status">Thumbnail Generation in Progress</h6>
+                                            <p class="mb-0 expected-time">
+                                                {% if document.content_type == 'pdf' %}
+                                                    Expected time: ~15-30 seconds for PDF processing.
+                                                {% elif document.content_type == 'weblink' %}
+                                                    Expected time: ~20-40 seconds for webpage capture.
+                                                {% elif document.content_type == 'youtube' %}
+                                                    Expected time: ~5-10 seconds for YouTube thumbnail retrieval.
+                                                {% else %}
+                                                    Expected time: ~20-30 seconds for processing.
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="d-grid gap-2">
                                     <button id="btn-generate-thumbnail" class="btn btn-success">Generate Thumbnail</button>
                                 </div>
@@ -110,14 +146,45 @@
         $('#thumbnail-upload-form').submit(function(e) {
             e.preventDefault();
             
+            // Validate file input
+            if (!$('#thumbnail')[0].files.length) {
+                toastr.error('Please select an image file to upload');
+                return;
+            }
+            
             // Show loading indicator
             const submitBtn = $(this).find('button[type="submit"]');
             const originalText = submitBtn.text();
             submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
             
+            // Show the upload info alert
+            $('.upload-thumbnail-info').fadeIn();
+            
+            // Get file details for better UX messaging
+            const file = $('#thumbnail')[0].files[0];
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            $('.upload-info').text(`Uploading and processing ${file.name} (${fileSizeMB} MB). This should take only a few seconds.`);
+            
             // Create form data
             const formData = new FormData();
-            formData.append('thumbnail', $('#thumbnail')[0].files[0]);
+            formData.append('thumbnail', file);
+            
+            // Create a progress timer to update status
+            let seconds = 0;
+            const progressTimer = setInterval(function() {
+                seconds++;
+                let status = "Uploading Thumbnail";
+                if (seconds > 3) {
+                    status = "Processing Image...";
+                }
+                if (seconds > 8) {
+                    status = "Optimizing Image...";
+                }
+                if (seconds > 15) {
+                    status = "Almost Complete...";
+                }
+                $('.upload-status').text(status);
+            }, 1000);
             
             // Send request
             $.ajax({
@@ -127,13 +194,27 @@
                 contentType: false,
                 processData: false,
                 success: function(response) {
+                    // Clear the timer
+                    clearInterval(progressTimer);
+                    
                     if (response.success) {
+                        // Update status
+                        $('.upload-status').text("Thumbnail Successfully Uploaded!");
+                        $('.upload-thumbnail-info').removeClass('alert-info').addClass('alert-success');
+                        $('.upload-progress-container').html('<i class="fas fa-check-circle fa-2x text-success"></i>');
+                        $('.upload-info').text('Your custom thumbnail has been uploaded and applied to the document.');
+                        
                         // Show success message
                         toastr.success(response.message);
                         
-                        // Refresh the page to show the new thumbnail
-                        location.reload();
+                        // Refresh the page after a short delay to show the new thumbnail
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
                     } else {
+                        // Hide the info alert
+                        $('.upload-thumbnail-info').hide();
+                        
                         // Show error message
                         toastr.error(response.message || 'Failed to upload thumbnail');
                         
@@ -142,6 +223,12 @@
                     }
                 },
                 error: function(xhr) {
+                    // Clear the timer
+                    clearInterval(progressTimer);
+                    
+                    // Hide the info alert
+                    $('.upload-thumbnail-info').hide();
+                    
                     // Show error message
                     let errorMessage = 'Failed to upload thumbnail';
                     try {
@@ -163,18 +250,55 @@
             const originalText = btn.text();
             btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...');
             
+            // Show the info alert
+            $('.thumbnail-info').fadeIn();
+            
+            // Create a progress timer to update status
+            let seconds = 0;
+            const progressTimer = setInterval(function() {
+                seconds++;
+                updateGenerationStatus(seconds);
+            }, 1000);
+            
+            function updateGenerationStatus(elapsed) {
+                let status = "Thumbnail Generation in Progress";
+                if (elapsed > 10) {
+                    status = "Still working on it...";
+                }
+                if (elapsed > 30) {
+                    status = "Almost there...";
+                }
+                if (elapsed > 60) {
+                    status = "This is taking longer than expected...";
+                }
+                $('.generation-status').text(status);
+            }
+            
             // Send request
             $.ajax({
                 url: `/admin/document/${docId}/generate-thumbnail`,
                 type: 'POST',
                 success: function(response) {
+                    // Clear the timer
+                    clearInterval(progressTimer);
+                    
                     if (response.success) {
+                        // Update status
+                        $('.generation-status').text("Thumbnail Successfully Generated!");
+                        $('.thumbnail-info').removeClass('alert-info').addClass('alert-success');
+                        $('.progress-container').html('<i class="fas fa-check-circle fa-2x text-success"></i>');
+                        
                         // Show success message
                         toastr.success(response.message);
                         
-                        // Refresh the page to show the new thumbnail
-                        location.reload();
+                        // Refresh the page after a short delay to show the new thumbnail
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
                     } else {
+                        // Hide the info alert
+                        $('.thumbnail-info').hide();
+                        
                         // Show error message
                         toastr.error(response.message || 'Failed to generate thumbnail');
                         
@@ -183,6 +307,12 @@
                     }
                 },
                 error: function(xhr) {
+                    // Clear the timer
+                    clearInterval(progressTimer);
+                    
+                    // Hide the info alert
+                    $('.thumbnail-info').hide();
+                    
                     // Show error message
                     let errorMessage = 'Failed to generate thumbnail';
                     try {
@@ -208,18 +338,49 @@
             const originalText = btn.text();
             btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Resetting...');
             
+            // Show the info alert with reset message
+            $('.thumbnail-info').removeClass('alert-success').addClass('alert-info').fadeIn();
+            $('.generation-status').text("Resetting Thumbnail");
+            $('.expected-time').text("This will reset to default and generate a new thumbnail. Please wait...");
+            $('.progress-container').html('<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+            
+            // Create a progress timer to update status
+            let seconds = 0;
+            const progressTimer = setInterval(function() {
+                seconds++;
+                if (seconds > 5) {
+                    $('.generation-status').text("Generating new default thumbnail...");
+                }
+                if (seconds > 20) {
+                    $('.generation-status').text("Almost there...");
+                }
+            }, 1000);
+            
             // Send request
             $.ajax({
                 url: `/admin/document/${docId}/reset-thumbnail`,
                 type: 'POST',
                 success: function(response) {
+                    // Clear the timer
+                    clearInterval(progressTimer);
+                    
                     if (response.success) {
+                        // Update status
+                        $('.generation-status').text("Thumbnail Reset Successfully!");
+                        $('.thumbnail-info').removeClass('alert-info').addClass('alert-success');
+                        $('.progress-container').html('<i class="fas fa-check-circle fa-2x text-success"></i>');
+                        
                         // Show success message
                         toastr.success(response.message);
                         
-                        // Refresh the page to show the new thumbnail
-                        location.reload();
+                        // Refresh the page after a short delay to show the new thumbnail
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
                     } else {
+                        // Hide the info alert
+                        $('.thumbnail-info').hide();
+                        
                         // Show error message
                         toastr.error(response.message || 'Failed to reset thumbnail');
                         
@@ -228,6 +389,12 @@
                     }
                 },
                 error: function(xhr) {
+                    // Clear the timer
+                    clearInterval(progressTimer);
+                    
+                    // Hide the info alert
+                    $('.thumbnail-info').hide();
+                    
                     // Show error message
                     let errorMessage = 'Failed to reset thumbnail';
                     try {
